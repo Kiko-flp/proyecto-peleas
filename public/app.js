@@ -1017,54 +1017,75 @@ function openCharacterModal(gameId, charId) {
 }
 
 // =========================================================================
-// MODAL DEL CANAL DE YOUTUBE DEL PROYECTO
+// MODAL PÚBLICO DEL CANAL DE YOUTUBE DEL PROYECTO (INDEPENDIENTE)
 // =========================================================================
 function renderYoutubeModal() {
   const body = document.getElementById("youtubeModalBody");
   if (!body || !state.youtubeChannel) return;
 
   const yt = state.youtubeChannel;
+  const publicUrl = yt.publicUrl || "https://www.youtube.com/@FGCVaultES";
+
   body.innerHTML = `
-    <div class="yt-banner-preview">
-      <div class="yt-avatar-circle">FGC</div>
+    <div class="yt-banner-preview" style="justify-content:space-between;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:16px;max-width:680px;">
+        <div class="yt-avatar-circle">FGC</div>
+        <div>
+          <h3 style="font-family:var(--font-display);font-size:1.35rem;">${yt.name}</h3>
+          <div style="color:#fca5a5;font-family:var(--font-mono);font-size:0.85rem;">${yt.handle}</div>
+          <p style="font-size:0.84rem;color:#e2e8f0;margin-top:4px;">${yt.description}</p>
+        </div>
+      </div>
       <div>
-        <h3 style="font-family:var(--font-display);font-size:1.35rem;">${yt.name}</h3>
-        <div style="color:#fca5a5;font-family:var(--font-mono);font-size:0.85rem;">${yt.handle}</div>
-        <p style="font-size:0.83rem;color:#e2e8f0;margin-top:4px;">${yt.description}</p>
+        <a href="${publicUrl}" target="_blank" rel="noopener" class="btn btn-primary">
+          Ver Canal en YouTube (${yt.handle}) ➔
+        </a>
       </div>
     </div>
 
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;">
-      <a href="${yt.createUrl}" target="_blank" rel="noopener" class="btn btn-primary">
-        Abrir Creador de Canal en YouTube
-      </a>
-      <a href="${yt.studioUrl}" target="_blank" rel="noopener" class="btn btn-outline">
-        Ir a YouTube Studio
-      </a>
-      <button class="btn btn-outline" id="btnCopyYtData">
-        Copiar Nombre y Descripción del Canal
-      </button>
-    </div>
+    <div class="guide-split-layout">
+      <div class="video-panel-card">
+        <div class="hero-pill">VÍDEO GUÍAS DESTACADAS</div>
+        <h4 style="font-family:var(--font-display);margin-bottom:10px;">Últimas Guías Básicas y Competitivas</h4>
+        ${(yt.featuredVideos || [])
+          .slice(0, 2)
+          .map(
+            (v) => `
+            <div style="margin-bottom:14px;">
+              <div style="font-size:0.82rem;font-weight:600;color:#fbbf24;margin-bottom:4px;">
+                ${v.saga} — ${v.title}
+              </div>
+              <div class="video-frame-wrapper" style="margin:6px 0;">
+                <iframe
+                  src="${v.embedUrl}"
+                  title="${v.title}"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowfullscreen
+                ></iframe>
+              </div>
+            </div>
+          `
+          )
+          .join("")}
+      </div>
 
-    <div class="guide-section-item">
-      <h4>Estructura de Listas de Reproducción (Playlists) lista para tu canal</h4>
-      <ul style="padding-left:18px;margin-top:8px;font-size:0.86rem;color:#cbd5e1;display:flex;flex-direction:column;gap:6px;">
-        ${(yt.playlists || []).map((p) => `<li>${p}</li>`).join("")}
-      </ul>
+      <div class="text-panel-card">
+        <div class="hero-pill">LISTAS DE REPRODUCCIÓN POR SAGA</div>
+        <h4 style="font-family:var(--font-display);margin-bottom:10px;">Series de Guías del Canal</h4>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          ${(yt.playlists || [])
+            .map(
+              (p) => `
+              <div class="guide-section-item" style="margin-top:0;padding:12px 14px;">
+                <div style="font-weight:600;font-size:0.88rem;color:#f8fafc;">${p}</div>
+              </div>
+            `
+            )
+            .join("")}
+        </div>
+      </div>
     </div>
   `;
-
-  const copyBtn = document.getElementById("btnCopyYtData");
-  if (copyBtn) {
-    copyBtn.onclick = () => {
-      const clipText = `Nombre: ${yt.name}\nIdentificador: ${yt.handle}\nDescripción:\n${yt.description}`;
-      navigator.clipboard.writeText(clipText);
-      copyBtn.textContent = "Copiado al portapapeles";
-      setTimeout(() => {
-        copyBtn.textContent = "Copiar Nombre y Descripción del Canal";
-      }, 2000);
-    };
-  }
 }
 
 // =========================================================================

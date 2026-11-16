@@ -247,18 +247,34 @@ const SEED_DATA = {
     }
   ],
 
-  // Configuración del Canal Oficial de YouTube del proyecto
+  // Configuración Pública del Canal Oficial Independiente de YouTube del proyecto
   youtubeChannel: {
     name: "FGC Vault Español — Guías & Frame Data",
     handle: "@FGCVaultES",
-    createUrl: "https://www.youtube.com/create_channel",
-    studioUrl: "https://studio.youtube.com",
+    publicUrl: "https://www.youtube.com/@FGCVaultES",
     description:
-      "Enciclopedia audiovisual en español de Juegos de Lucha: Guías Básicas, Guías Avanzadas de Frame Data y Guías de Personajes (Juego Base y Packs DLC) para Mortal Kombat, Street Fighter, Tekken, Dragon Ball FighterZ, Guilty Gear y Super Smash Bros.",
+      "Canal oficial e independiente de FGC Vault: Guías Básicas, Guías Avanzadas de Frame Data y Guías de Personajes (Juego Base y Packs DLC) para Mortal Kombat, Street Fighter, Tekken, Dragon Ball FighterZ, Guilty Gear y Super Smash Bros.",
+    featuredVideos: [
+      {
+        title: "Guía de Inicio y Mecánicas Universales — Mortal Kombat 1",
+        saga: "Mortal Kombat",
+        embedUrl: "https://www.youtube.com/embed/u7pTIg7vKBM"
+      },
+      {
+        title: "Fundamentos del Drive System y Footsies — Street Fighter 6",
+        saga: "Street Fighter",
+        embedUrl: "https://www.youtube.com/embed/k9t3cM_9vY0"
+      },
+      {
+        title: "Movimiento 3D, Heat System y Castigos — Tekken 8",
+        saga: "Tekken",
+        embedUrl: "https://www.youtube.com/embed/8pX3mK_vY4A"
+      }
+    ],
     playlists: [
       "Mortal Kombat 1 — Guías de Personajes y Kameos (Base + Kombat Pack 1 & Khaos Reigns)",
-      "Street Fighter 6 — Fundamentos del Drive System y Guías Season 1 & 2",
-      "Tekken 8 — Movimiento 3D, Heat System y Guías del Plantel Completo",
+      "Street Fighter 6 — Fundamentos del Drive System y Guías Year 1, 2 & 3",
+      "Tekken 8 — Movimiento 3D, Heat System y Guías Season 1, 2 & 3",
       "Dragon Ball FighterZ — Rutas Universales, Asistencias y ToDs",
       "Guilty Gear -Strive- — Roman Cancels y Guías Season 1-4",
       "Super Smash Bros. Ultimate — Out of Shield, Edgeguard y Matchups"

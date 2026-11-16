@@ -220,6 +220,14 @@ class DataStore {
     return game;
   }
 
+  updateYoutubeChannelUrl(newUrl, newHandle) {
+    if (!this.state.youtubeChannel) return null;
+    if (newUrl) this.state.youtubeChannel.publicUrl = newUrl.trim();
+    if (newHandle) this.state.youtubeChannel.handle = newHandle.trim();
+    this.save();
+    return this.state.youtubeChannel;
+  }
+
   createAuthRequest(username, telegramHandle, role = "Colaborador Verificado") {
     const code = String(Math.floor(100000 + Math.random() * 900000));
     const reqObj = {

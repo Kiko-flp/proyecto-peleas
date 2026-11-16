@@ -303,6 +303,24 @@ class TelegramBotManager {
         await this.sendPendingSubmissions(chatId);
       } else if (text.startsWith("/juegos")) {
         await this.sendGamesManagement(chatId);
+      } else if (text.startsWith("/youtube")) {
+        const parts = text.split(/\s+/);
+        const newUrl = parts[1];
+        const newHandle = parts[2];
+        if (!newUrl) {
+          await this.callTelegram("sendMessage", {
+            chat_id: chatId,
+            text: "⚠️ Uso: `/youtube https://www.youtube.com/@TuCanalNuevo @TuCanalNuevo`",
+            parse_mode: "Markdown"
+          });
+          return;
+        }
+        const updated = store.updateYoutubeChannelUrl(newUrl, newHandle);
+        await this.callTelegram("sendMessage", {
+          chat_id: chatId,
+          text: `✅ *Canal público de YouTube actualizado en la web:*\n🔗 ${updated.publicUrl}\n🏷 ${updated.handle}`,
+          parse_mode: "Markdown"
+        });
       }
     }
 
