@@ -81,20 +81,21 @@ class YouTubeChannelManager {
       .join("\n");
 
     return {
-      title: `Guía de ${ch.name} en ${game.title} — Combos BnB, Frame Data y Matchups (${game.currentPatch})`,
+      playlistTarget: `Lista de Reproducción: ${game.title} (Recopilaciones en Español con Pausas)`,
+      title: `Guía de ${ch.name} en ${game.title} (Traducida al Español + Subtítulos + Pausas) — ${game.currentPatch}`,
       description:
-        `Guía competitiva en español de ${ch.name} (${dlcText}) en ${game.title}.\n` +
+        `Recopilación traducida al español con subtítulos integrados y pausas explicativas de ${ch.name} (${dlcText}) en ${game.title}.\n` +
+        `Lista de reproducción del juego: ${game.title}\n` +
         `Arquetipo: ${ch.archetype} | Dificultad: ${ch.difficulty}\n` +
-        `Ficha interactiva con traductor de mando (PS/Xbox): https://fgc-vault.onrender.com\n\n` +
+        `Movelist completo con Hitboxes animadas y Frame Data en: https://fgc-vault.onrender.com\n\n` +
+        `PAUSAS TÁCTICAS EXPLICATIVAS EN ESPAÑOL:\n` +
+        `00:45 [PAUSA 1] Análisis del rango óptimo y hitbox en neutro de ${ch.name}\n` +
+        `02:15 [PAUSA 2] Ventana exacta de cancelación en la ruta principal BnB\n` +
+        `04:10 [PAUSA 3] Presión en esquina, lecturas de guardia y cómo cubrir sus Counters\n\n` +
         `COMBOS PRINCIPALES (BREAD & BUTTER):\n${combosText}\n\n` +
         `MATCHUPS — VENTAJA Y COUNTERS:\n${favText}\n${cntText}\n\n` +
-        `ÍNDICE DEL VÍDEO:\n` +
-        `00:00 Resumen y Plan de Juego de ${ch.name}\n` +
-        `01:45 Botones Clave y Frame Data (Startup, Active, On Block)\n` +
-        `04:30 Combos Básicos (Midscreen, Esquina y con Barra)\n` +
-        `07:15 Matchups: Contra quién tiene ventaja y quién le hace Counter\n\n` +
-        `#${ch.name.replace(/[^a-zA-Z0-9]/g, "")} #${game.title.replace(/[^a-zA-Z0-9]/g, "")} #FGCVault`,
-      tags: [ch.name, game.title, "Guia", "Combos", "Frame Data", "Counters", "FGC Vault"]
+        `#${ch.name.replace(/[^a-zA-Z0-9]/g, "")} #${game.title.replace(/[^a-zA-Z0-9]/g, "")} #FGCVault #SubtitulosEspañol`,
+      tags: [ch.name, game.title, "Guia en Español", "Subtitulos Español", "Combos", "Frame Data", "Hitboxes", "FGC Vault"]
     };
   }
 

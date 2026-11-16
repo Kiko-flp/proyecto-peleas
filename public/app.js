@@ -966,6 +966,14 @@ function openCharacterModal(gameId, charId) {
                 <div class="ufd-bar ufd-bar-active">${fc.active}</div>
                 <div class="ufd-bar ufd-bar-recovery">${fc.recovery}</div>
                 <div class="ufd-bar ufd-bar-onblock">${fc.onBlock}</div>
+                <div class="ufd-hitbox-box">
+                  <img
+                    src="${fc.hitboxGifUrl || `/api/hitbox-anim?move=${encodeURIComponent(fc.moveName)}`}"
+                    alt="Hitbox de ${fc.moveName}"
+                    loading="lazy"
+                  />
+                  <div class="ufd-hitbox-caption">Hitbox Activa (Rosa) • Hurtbox (Azul)</div>
+                </div>
                 <div class="ufd-card-notes">${fc.notes}</div>
                 <div class="ufd-card-footer">${fc.totalFrames}</div>
               </div>
@@ -1058,22 +1066,52 @@ function openCharacterModal(gameId, charId) {
     <button class="btn-close-modal" id="btnCloseCharModal">✕</button>
   `;
 
+  const comp = ch.spanishCompilation || {
+    subtitleLang: "Español (Subtítulos activados)",
+    compilationNote: `Recopilación traducida al español con pausas explicativas de ${ch.name}.`,
+    pauses: []
+  };
+
   body.innerHTML = `
     <div class="guide-split-layout">
       <div>
         <div class="video-panel-card" style="margin-bottom:16px;">
-          <div class="hero-pill">VÍDEO GUÍA DEL PERSONAJE</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+            <div class="hero-pill" style="margin:0;">RECOPILACIÓN EN ESPAÑOL + SUBTÍTULOS + PAUSAS</div>
+            <span class="base-game-badge">${comp.subtitleLang}</span>
+          </div>
           <div class="video-frame-wrapper">
             <iframe
+              id="charModalVideoIframe"
               src="${ch.videoUrl}"
               title="Guía de ${ch.name}"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowfullscreen
             ></iframe>
           </div>
-          <p style="font-size:0.88rem;color:#e2e8f0;margin-top:8px;">
+          <p style="font-size:0.86rem;color:#e2e8f0;margin-top:6px;">
             <strong>Resumen:</strong> ${ch.overview}
           </p>
+
+          <!-- PAUSAS EXPLICATIVAS EN ESPAÑOL DEL VÍDEO -->
+          <div style="margin-top:12px;">
+            <strong style="font-size:0.82rem;color:#fbbf24;display:block;margin-bottom:6px;">
+              Pausas Tácticas Explicativas en Español (Haz clic para ir al segundo exacto):
+            </strong>
+            ${(comp.pauses || [])
+              .map(
+                (p) => `
+                <div class="pause-step-box" style="cursor:pointer;" data-seeksec="${p.seconds || 0}">
+                  <div>
+                    <span class="pause-time-badge">Pausa ${p.timestamp}</span>
+                    <strong style="font-size:0.83rem;color:#f8fafc;">${p.title}</strong>
+                  </div>
+                  <p style="font-size:0.79rem;color:#cbd5e1;margin-top:4px;">${p.explanation}</p>
+                </div>
+              `
+              )
+              .join("")}
+          </div>
         </div>
 
         <div class="guide-section-item">
@@ -1159,6 +1197,18 @@ function openCharacterModal(gameId, charId) {
 
   backdrop.classList.remove("hidden");
 
+  // Permitir saltar al segundo exacto de cada pausa explicativa en el reproductor
+  body.querySelectorAll("[data-seeksec]").forEach((pauseEl) => {
+    pauseEl.addEventListener("click", () => {
+      const sec = Number(pauseEl.dataset.seeksec || 0);
+      const iframe = document.getElementById("charModalVideoIframe");
+      if (iframe) {
+        const baseUrl = ch.videoUrl.split("?")[0];
+        iframe.src = `${baseUrl}?start=${sec}&autoplay=1&cc_load_policy=1&cc_lang_pref=es&hl=es`;
+      }
+    });
+  });
+
   document.getElementById("btnCloseCharModal").onclick = () => {
     backdrop.classList.add("hidden");
     state.selectedCharacter = null;
@@ -1166,7 +1216,7 @@ function openCharacterModal(gameId, charId) {
 }
 
 // =========================================================================
-// MODAL PÚBLICO DEL CANAL DE YOUTUBE DEL PROYECTO (INDEPENDIENTE)
+// MODAL PÚBLICO DEL CANAL DE YOUTUBE (RECOPILACIONES EN ESPAÑOL CON PAUSAS Y LISTAS POR JUEGO)
 // =========================================================================
 function renderYoutubeModal() {
   const body = document.getElementById("youtubeModalBody");
@@ -1174,6 +1224,7 @@ function renderYoutubeModal() {
 
   const yt = state.youtubeChannel;
   const publicUrl = yt.publicUrl || "https://www.youtube.com/@FGCVaultES";
+  const playlistsByGame = yt.playlistsByGame || [];
 
   body.innerHTML = `
     <div class="yt-banner-preview" style="justify-content:space-between;flex-wrap:wrap;">
@@ -1181,58 +1232,57 @@ function renderYoutubeModal() {
         <div class="yt-avatar-circle">FGC</div>
         <div>
           <h3 style="font-family:var(--font-display);font-size:1.35rem;">${yt.name}</h3>
-          <div style="color:#fca5a5;font-family:var(--font-mono);font-size:0.85rem;">${yt.handle}</div>
+          <div style="color:#fca5a5;font-family:var(--font-mono);font-size:0.85rem;">${yt.handle} • Subtítulos en Español + Pausas Explicativas</div>
           <p style="font-size:0.84rem;color:#e2e8f0;margin-top:4px;">${yt.description}</p>
         </div>
       </div>
       <div>
         <a href="${publicUrl}" target="_blank" rel="noopener" class="btn btn-primary">
-          Ver Canal en YouTube (${yt.handle}) ➔
+          Abrir Canal en YouTube (${yt.handle}) ➔
         </a>
       </div>
     </div>
 
-    <div class="guide-split-layout">
-      <div class="video-panel-card">
-        <div class="hero-pill">VÍDEO GUÍAS DESTACADAS</div>
-        <h4 style="font-family:var(--font-display);margin-bottom:10px;">Últimas Guías Básicas y Competitivas</h4>
-        ${(yt.featuredVideos || [])
-          .slice(0, 2)
-          .map(
-            (v) => `
-            <div style="margin-bottom:14px;">
-              <div style="font-size:0.82rem;font-weight:600;color:#fbbf24;margin-bottom:4px;">
-                ${v.saga} — ${v.title}
-              </div>
-              <div class="video-frame-wrapper" style="margin:6px 0;">
-                <iframe
-                  src="${v.embedUrl}"
-                  title="${v.title}"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowfullscreen
-                ></iframe>
-              </div>
-            </div>
-          `
-          )
-          .join("")}
-      </div>
+    <div class="ufd-section-banner" style="margin-top:6px;">
+      Listas de Reproducción por Juego (Recopilaciones Traducidas al Español con Pausas)
+    </div>
 
-      <div class="text-panel-card">
-        <div class="hero-pill">LISTAS DE REPRODUCCIÓN POR SAGA</div>
-        <h4 style="font-family:var(--font-display);margin-bottom:10px;">Series de Guías del Canal</h4>
-        <div style="display:flex;flex-direction:column;gap:10px;">
-          ${(yt.playlists || [])
-            .map(
-              (p) => `
-              <div class="guide-section-item" style="margin-top:0;padding:12px 14px;">
-                <div style="font-weight:600;font-size:0.88rem;color:#f8fafc;">${p}</div>
-              </div>
-            `
-            )
-            .join("")}
-        </div>
-      </div>
+    <div class="news-grid">
+      ${playlistsByGame
+        .map(
+          (pl) => `
+          <div class="video-panel-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+              <span class="news-cat-badge">${pl.gameTitle}</span>
+              <span class="base-game-badge">Subtítulos ES + Pausas</span>
+            </div>
+            <h4 style="font-family:var(--font-display);font-size:1rem;">${pl.playlistTitle}</h4>
+            <p style="font-size:0.78rem;color:#94a3b8;margin-top:2px;">${pl.sourcesCompiled}</p>
+            <div class="video-frame-wrapper">
+              <iframe
+                src="${pl.embedUrl}"
+                title="${pl.playlistTitle}"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+              ></iframe>
+            </div>
+            <div style="margin-top:8px;">
+              <strong style="font-size:0.76rem;color:#fbbf24;">Pausas de explicación incluidas en esta lista:</strong>
+              ${(pl.pauses || [])
+                .map(
+                  (p) => `
+                  <div class="pause-step-box" style="padding:7px 10px;margin-top:6px;font-size:0.76rem;">
+                    <span class="pause-time-badge">${p.time}</span>
+                    <span style="color:#e2e8f0;">${p.label}</span>
+                  </div>
+                `
+                )
+                .join("")}
+            </div>
+          </div>
+        `
+        )
+        .join("")}
     </div>
   `;
 }

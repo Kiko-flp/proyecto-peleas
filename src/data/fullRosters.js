@@ -141,338 +141,278 @@ function getFallbackIconUrl(gameId, charName, colorHex = "f59e0b", isDLC = false
 }
 
 // =========================================================================
-// GENERADOR DE TARJETAS DE FRAME DATA ESTILO ULTIMATEFRAMEDATA.COM
+// GENERADOR DEL MOVELIST COMPLETO CON FRAME DATA Y GIF ANIMADO DE HITBOX
+// Incluye TODOS los ataques del personaje divididos por categoría:
+// Ground Attacks / Standing Normals, Crouching / Tilts, Aerials, Smash / Command Strings,
+// Special Moves, Throws / Grabs y Supers / Finishers.
 // =========================================================================
+function makeHitboxUrl(type, moveName, startup, active) {
+  return `/api/hitbox-anim?type=${encodeURIComponent(type)}&move=${encodeURIComponent(
+    moveName
+  )}&startup=${encodeURIComponent(startup)}&active=${encodeURIComponent(active)}`;
+}
+
 function buildFrameDataCards(gameId, charName, archetype) {
   const h = hashNum(`${gameId}:${charName}`);
 
+  // 1. SUPER SMASH BROS. ULTIMATE — MOVELIST COMPLETO (23 ATAQUES)
   if (gameId === "ssbu") {
-    const jabStart = 3 + (h % 4);
-    const ftiltStart = 7 + (h % 4);
-    const utiltStart = 6 + (h % 3);
-    const nairStart = 4 + (h % 5);
-    const bairStart = 7 + (h % 6);
-    const usmashStart = 9 + (h % 5);
-    const upbStart = 4 + (h % 6);
-    return [
-      {
-        moveName: "Jab 1 /Jab 2 / Rapid Finisher",
-        input: "Neutral A (1, 2, 3)",
-        category: "Ground Attacks",
-        startup: `${jabStart} Frame Startup`,
-        active: `Active on ${jabStart}–${jabStart + 1}`,
-        recovery: `${18 + (h % 6)} Frames End Lag`,
-        onBlock: `-${12 + (h % 7)} On Shield`,
-        totalFrames: `${jabStart + 20 + (h % 5)} Total Frames`,
-        notes: "Chequeo rápido a corta distancia para frenar aproximaciones o forzar Tech Lock."
-      },
-      {
-        moveName: "Forward Tilt (F-Tilt)",
-        input: "Adelante + A",
-        category: "Ground Attacks",
-        startup: `${ftiltStart} Frame Startup`,
-        active: `Active on ${ftiltStart}–${ftiltStart + 3}`,
-        recovery: `${19 + (h % 5)} Frames End Lag`,
-        onBlock: `-${10 + (h % 5)} On Shield`,
-        totalFrames: `${ftiltStart + 22 + (h % 4)} Total Frames`,
-        notes: "Herramienta horizontal principal de espaciado en suelo."
-      },
-      {
-        moveName: "Up Tilt (U-Tilt)",
-        input: "Arriba + A",
-        category: "Ground Attacks",
-        startup: `${utiltStart} Frame Startup`,
-        active: `Active on ${utiltStart}–${utiltStart + 4}`,
-        recovery: `${16 + (h % 5)} Frames End Lag`,
-        onBlock: `-${8 + (h % 5)} On Shield`,
-        totalFrames: `${utiltStart + 20} Total Frames`,
-        notes: "Iniciador de malabares aéreos (Juggles) y combos de 0% a 45%."
-      },
-      {
-        moveName: "Neutral Air (Nair)",
-        input: "Salto + A (Neutro)",
-        category: "Aerial & Special Attacks",
-        startup: `${nairStart} Frame Startup`,
-        active: `Active on ${nairStart}–${nairStart + 10}`,
-        recovery: `${8 + (h % 4)} Frames Landing Lag`,
-        onBlock: `-${3 + (h % 3)} On Shield`,
-        totalFrames: "38 Total Frames",
-        notes: "Aéreo seguro sobre escudo con Fast Fall para iniciar presión o confirmar Smash."
-      },
-      {
-        moveName: "Back Air (Bair - RAR)",
-        input: "Salto + Atrás A",
-        category: "Aerial & Special Attacks",
-        startup: `${bairStart} Frame Startup`,
-        active: `Active on ${bairStart}–${bairStart + 2}`,
-        recovery: `${9 + (h % 4)} Frames Landing Lag`,
-        onBlock: `-${4 + (h % 3)} On Shield`,
-        totalFrames: "36 Total Frames",
-        notes: "Herramienta principal de KO en el borde y espaciado seguro."
-      },
-      {
-        moveName: "Up Smash / Up-B Out of Shield",
-        input: "Arriba + Smash / Arriba + B",
-        category: "Aerial & Special Attacks",
-        startup: `${upbStart} Frame Startup (OOS)`,
-        active: `Active on ${upbStart}–${upbStart + 6}`,
-        recovery: `${26 + (h % 8)} Frames End Lag`,
-        onBlock: `-${18 + (h % 8)} On Shield`,
-        totalFrames: `${42 + (h % 6)} Total Frames`,
-        notes: `Opción directa desde el escudo (Frame ${upbStart}) sin sufrir los 11 frames de soltar escudo.`
-      }
+    const rawMoves = [
+      // Ground Attacks (Tilts, Jabs, Dash)
+      { moveName: "Jab 1", input: "Neutral A (1)", category: "Ground Attacks", type: "jab", s: 3 + (h % 3), a: 2, r: 16, ob: -13 },
+      { moveName: "Jab 2", input: "Neutral A (2)", category: "Ground Attacks", type: "jab", s: 4 + (h % 2), a: 2, r: 18, ob: -15 },
+      { moveName: "Jab 3 / Rapid Finisher", input: "Neutral A (3)", category: "Ground Attacks", type: "jab", s: 5 + (h % 3), a: 3, r: 24, ob: -19 },
+      { moveName: "Forward Tilt (F-Tilt)", input: "Adelante + A", category: "Ground Attacks", type: "jab", s: 7 + (h % 3), a: 3, r: 19, ob: -11 },
+      { moveName: "Up Tilt (U-Tilt)", input: "Arriba + A", category: "Ground Attacks", type: "up", s: 6 + (h % 3), a: 5, r: 17, ob: -9 },
+      { moveName: "Down Tilt (D-Tilt)", input: "Abajo + A", category: "Ground Attacks", type: "low", s: 6 + (h % 2), a: 3, r: 16, ob: -8 },
+      { moveName: "Dash Attack", input: "Correr + A", category: "Ground Attacks", type: "super", s: 8 + (h % 4), a: 4, r: 22, ob: -14 },
+      // Smash Attacks
+      { moveName: "Forward Smash (F-Smash)", input: "Adelante + Smash", category: "Smash Attacks", type: "smash", s: 13 + (h % 5), a: 3, r: 31, ob: -18 },
+      { moveName: "Up Smash (U-Smash)", input: "Arriba + Smash (OOS)", category: "Smash Attacks", type: "up", s: 9 + (h % 4), a: 4, r: 28, ob: -16 },
+      { moveName: "Down Smash (D-Smash)", input: "Abajo + Smash", category: "Smash Attacks", type: "low", s: 10 + (h % 4), a: 4, r: 27, ob: -15 },
+      // Aerial Attacks
+      { moveName: "Neutral Air (Nair)", input: "Salto + A", category: "Aerial Attacks", type: "jab", s: 5 + (h % 3), a: 10, r: 8, ob: -3 },
+      { moveName: "Forward Air (Fair)", input: "Salto + Adelante A", category: "Aerial Attacks", type: "jab", s: 8 + (h % 3), a: 3, r: 10, ob: -5 },
+      { moveName: "Back Air (Bair)", input: "Salto + Atrás A", category: "Aerial Attacks", type: "smash", s: 7 + (h % 4), a: 3, r: 9, ob: -4 },
+      { moveName: "Up Air (Uair)", input: "Salto + Arriba A", category: "Aerial Attacks", type: "up", s: 6 + (h % 3), a: 5, r: 8, ob: -4 },
+      { moveName: "Down Air (Dair - Spike)", input: "Salto + Abajo A", category: "Aerial Attacks", type: "low", s: 11 + (h % 4), a: 3, r: 14, ob: -9 },
+      // Special Attacks
+      { moveName: "Neutral Special (Neutral B)", input: "B", category: "Special Attacks", type: "proj", s: 14 + (h % 5), a: 8, r: 24, ob: -10 },
+      { moveName: "Side Special (Side B)", input: "Adelante + B", category: "Special Attacks", type: "super", s: 12 + (h % 4), a: 6, r: 25, ob: -14 },
+      { moveName: "Up Special (Up B - OOS)", input: "Arriba + B", category: "Special Attacks", type: "up", s: 6 + (h % 4), a: 8, r: 30, ob: -22 },
+      { moveName: "Down Special (Down B)", input: "Abajo + B", category: "Special Attacks", type: "proj", s: 11 + (h % 5), a: 6, r: 24, ob: -12 },
+      // Grab & Throws
+      { moveName: "Standing Grab", input: "Z / R+A", category: "Grabs & Throws", type: "throw", s: 6 + (h % 2), a: 2, r: 28, ob: 0 },
+      { moveName: "Dash Grab", input: "Correr + Z", category: "Grabs & Throws", type: "throw", s: 9 + (h % 2), a: 2, r: 34, ob: 0 },
+      { moveName: "Pivot Grab", input: "Giro + Z", category: "Grabs & Throws", type: "throw", s: 10 + (h % 2), a: 2, r: 32, ob: 0 },
+      { moveName: "Final Smash", input: "Neutral B (Smash Ball)", category: "Grabs & Throws", type: "super", s: 10, a: 15, r: 30, ob: 99 }
     ];
+
+    return rawMoves.map((m) => {
+      const startStr = `${m.s} Frame Startup`;
+      const actStr = `${m.s}–${m.s + m.a - 1}`;
+      const total = m.s + m.a + m.r;
+      return {
+        moveName: m.moveName,
+        input: m.input,
+        category: m.category,
+        startup: startStr,
+        active: `Active on ${actStr}`,
+        recovery: `${m.r} Frames End Lag`,
+        onBlock: m.ob === 0 ? "Unblockable Grab" : m.ob === 99 ? "Unblockable Super" : `${m.ob} On Shield`,
+        totalFrames: `${total} Total Frames`,
+        hitboxGifUrl: makeHitboxUrl(m.type, m.moveName, `${m.s}f`, actStr),
+        notes: `Hitbox activa en los frames ${actStr} (${total} frames totales).`
+      };
+    });
   }
 
+  // 2. STREET FIGHTER 6 — MOVELIST COMPLETO (22 ATAQUES)
   if (gameId === "sf6") {
-    return [
-      {
-        moveName: "Standing Light Punch (Jab)",
-        input: "5LP",
-        category: "Ground Normals",
-        startup: "4 Frame Startup",
-        active: "Active on 4–6",
-        recovery: "7 Frames Recovery",
-        onBlock: "-1 On Block (+4 On Hit)",
-        totalFrames: "13 Total Frames",
-        notes: "Botón de 4 frames más rápido para interrumpir huecos y encadenar hasta 3 veces."
-      },
-      {
-        moveName: "Standing Medium Punch",
-        input: "5MP",
-        category: "Ground Normals",
-        startup: `${6 + (h % 2)} Frame Startup`,
-        active: "Active on 6–9",
-        recovery: "14 Frames Recovery",
-        onBlock: `+${1 + (h % 2)} On Block (+6 On Hit)`,
-        totalFrames: "22 Total Frames",
-        notes: "Herramienta positiva en bloqueo para crear Frame Traps y confirmar en Drive Rush."
-      },
-      {
-        moveName: "Crouching Medium Kick",
-        input: "2MK",
-        category: "Ground Normals",
-        startup: `${7 + (h % 2)} Frame Startup`,
-        active: "Active on 8–10",
-        recovery: "18 Frames Recovery",
-        onBlock: "-6 On Block (Cancelable DRC)",
-        totalFrames: "27 Total Frames",
-        notes: "Golpe bajo clave de footsies cancelable en Drive Rush (3 barras) para combo completo."
-      },
-      {
-        moveName: "Standing Heavy Punch",
-        input: "5HP",
-        category: "Ground Normals",
-        startup: `${9 + (h % 3)} Frame Startup`,
-        active: "Active on 10–13",
-        recovery: "21 Frames Recovery",
-        onBlock: "-3 On Block (Punish Counter +20)",
-        totalFrames: "33 Total Frames",
-        notes: "Botón principal para castigar fallos al aire (Whiff Punish) y Shimmy en la esquina."
-      },
-      {
-        moveName: "Special Projectile / Advance",
-        input: "236P / 214K",
-        category: "Special & Overdrive Moves",
-        startup: `${12 + (h % 4)} Frame Startup`,
-        active: "Active on 13–22",
-        recovery: "24 Frames Recovery",
-        onBlock: `-${3 + (h % 4)} On Block (+2 En OD)`,
-        totalFrames: "45 Total Frames",
-        notes: "Controla el espacio horizontal y desgasta el Drive Gauge del oponente."
-      },
-      {
-        moveName: "Anti-Air / Reversal Invencible",
-        input: "623P / 2HP",
-        category: "Special & Overdrive Moves",
-        startup: "5–6 Frame Startup",
-        active: "Active on 6–15",
-        recovery: "34 Frames Recovery",
-        onBlock: "-26 On Block (Invencible Aire F1)",
-        totalFrames: "45 Total Frames",
-        notes: "Frena saltos rivales al instante; la versión OD (2 barras) es invencible a todo desde el frame 1."
-      }
+    const rawMoves = [
+      // Standing Normals
+      { moveName: "Standing Light Punch", input: "5LP", category: "Standing & Crouching Normals", type: "jab", s: 4, a: 3, r: 7, ob: "-1 On Block (+4 Hit)" },
+      { moveName: "Standing Light Kick", input: "5LK", category: "Standing & Crouching Normals", type: "low", s: 5, a: 3, r: 10, ob: "-2 On Block (+2 Hit)" },
+      { moveName: "Standing Medium Punch", input: "5MP", category: "Standing & Crouching Normals", type: "jab", s: 6, a: 4, r: 14, ob: "+1 On Block (+6 Hit)" },
+      { moveName: "Standing Medium Kick", input: "5MK", category: "Standing & Crouching Normals", type: "jab", s: 8, a: 3, r: 17, ob: "-4 On Block (+3 Hit)" },
+      { moveName: "Standing Heavy Punch", input: "5HP", category: "Standing & Crouching Normals", type: "super", s: 10, a: 3, r: 21, ob: "-3 On Block (Cancel DRC)" },
+      { moveName: "Standing Heavy Kick", input: "5HK", category: "Standing & Crouching Normals", type: "super", s: 12, a: 4, r: 22, ob: "-4 On Block (+2 Hit)" },
+      // Crouching Normals
+      { moveName: "Crouching Light Punch", input: "2LP", category: "Standing & Crouching Normals", type: "jab", s: 4, a: 2, r: 8, ob: "-1 On Block (+4 Hit)" },
+      { moveName: "Crouching Light Kick", input: "2LK", category: "Standing & Crouching Normals", type: "low", s: 5, a: 2, r: 10, ob: "-2 On Block (Low)" },
+      { moveName: "Crouching Medium Punch", input: "2MP", category: "Standing & Crouching Normals", type: "jab", s: 6, a: 3, r: 14, ob: "-1 On Block (+5 Hit)" },
+      { moveName: "Crouching Medium Kick", input: "2MK", category: "Standing & Crouching Normals", type: "low", s: 7 + (h % 2), a: 3, r: 18, ob: "-6 On Block (Cancel DRC)" },
+      { moveName: "Crouching Heavy Punch", input: "2HP", category: "Standing & Crouching Normals", type: "up", s: 8, a: 5, r: 22, ob: "-10 On Block (Anti-Air)" },
+      { moveName: "Crouching Heavy Kick (Sweep)", input: "2HK", category: "Standing & Crouching Normals", type: "low", s: 9, a: 3, r: 25, ob: "-11 On Block (Hard KD)" },
+      // Jumping & Command Normals
+      { moveName: "Jumping Light / Cross-up", input: "j.LK / j.MK", category: "Command & Aerial Normals", type: "jab", s: 5, a: 7, r: 3, ob: "+3 a +7 On Block" },
+      { moveName: "Jumping Heavy Attack", input: "j.HP / j.HK", category: "Command & Aerial Normals", type: "super", s: 8, a: 5, r: 3, ob: "+8 a +11 On Block" },
+      { moveName: "Command Overhead", input: "6MP / 6MK", category: "Command & Aerial Normals", type: "super", s: 20 + (h % 3), a: 3, r: 19, ob: "-3 On Block (+2 Hit)" },
+      { moveName: "Target Combo", input: "5MP > 5LK > 5HK", category: "Command & Aerial Normals", type: "jab", s: 6, a: 3, r: 20, ob: "-6 On Block (Confirmable)" },
+      // Specials, Drive & Supers
+      { moveName: "Special 1 (Projectile / Neutral)", input: "236P", category: "Special Moves, Drive & Super Arts", type: "proj", s: 13 + (h % 3), a: 10, r: 23, ob: "-4 On Block (+2 OD)" },
+      { moveName: "Special 2 (Anti-Air / DP)", input: "623P", category: "Special Moves, Drive & Super Arts", type: "up", s: 5, a: 10, r: 34, ob: "-26 On Block (Air Invuln)" },
+      { moveName: "Special 3 (Advance / Tatsu)", input: "214K", category: "Special Moves, Drive & Super Arts", type: "super", s: 11 + (h % 3), a: 6, r: 21, ob: "-8 On Block (Knockdown)" },
+      { moveName: "Drive Impact", input: "HP+HK", category: "Special Moves, Drive & Super Arts", type: "super", s: 26, a: 2, r: 35, ob: "-3 On Block (Wall Splat)" },
+      { moveName: "Normal Throw / Back Throw", input: "LP+LK", category: "Special Moves, Drive & Super Arts", type: "throw", s: 5, a: 3, r: 23, ob: "Unblockable Grab (5f)" },
+      { moveName: "Super Art Level 3 (SA3)", input: "236236P / K", category: "Special Moves, Drive & Super Arts", type: "super", s: 7 + (h % 3), a: 12, r: 45, ob: "-32 On Block (4000+ Dmg)" }
     ];
+
+    return rawMoves.map((m) => {
+      const actStr = `${m.s}–${m.s + m.a - 1}`;
+      const total = m.s + m.a + m.r;
+      return {
+        moveName: m.moveName,
+        input: m.input,
+        category: m.category,
+        startup: `${m.s} Frame Startup`,
+        active: `Active on ${actStr}`,
+        recovery: `${m.r} Frames Recovery`,
+        onBlock: m.ob,
+        totalFrames: `${total} Total Frames`,
+        hitboxGifUrl: makeHitboxUrl(m.type, m.input, `${m.s}f`, actStr),
+        notes: `Inicio en ${m.s}f, ventana activa ${actStr}, recuperación ${m.r}f.`
+      };
+    });
   }
 
+  // 3. TEKKEN 8 — MOVELIST COMPLETO (20 ATAQUES CLAVE Y SISTEMA HEAT)
   if (gameId === "tekken8") {
-    return [
-      {
-        moveName: "High Jab String",
-        input: "1, 2",
-        category: "Standing Normals",
-        startup: "10 Frame Startup (i10)",
-        active: "Active on 10–11",
-        recovery: "17 Frames Recovery",
-        onBlock: "-1 / -3 On Block (+8 On Hit)",
-        totalFrames: "27 Total Frames",
-        notes: "Castigo universal de 10 frames y herramienta principal para iniciar el turno."
-      },
-      {
-        moveName: "Mid Check Poke",
-        input: "df+1",
-        category: "Standing Normals",
-        startup: "13 Frame Startup (i13)",
-        active: "Active on 13–14",
-        recovery: "19 Frames Recovery",
-        onBlock: `-${1 + (h % 3)} On Block (+5 On Hit)`,
-        totalFrames: "32 Total Frames",
-        notes: "Golpe medio rápido que impide que el rival se agache o abuse de pasos laterales."
-      },
-      {
-        moveName: "Standing i15 Launcher",
-        input: "df+2 / uf+4",
-        category: "Standing Normals",
-        startup: "15 Frame Startup (i15)",
-        active: "Active on 15–17",
-        recovery: "28 Frames Recovery",
-        onBlock: "-13 On Block (Launch on Hit)",
-        totalFrames: "43 Total Frames",
-        notes: "Lanzador estándar para castigar cualquier ataque bloqueado a -15 frames o peor."
-      },
-      {
-        moveName: "Power Low Poke / Sweep",
-        input: "d+2 / db+4",
-        category: "Low & Heat Attacks",
-        startup: `${18 + (h % 3)} Frame Startup`,
-        active: "Active on 19–21",
-        recovery: "26 Frames Recovery",
-        onBlock: "-13 On Block (+4c On Hit)",
-        totalFrames: "45 Total Frames",
-        notes: "Abre la guardia de rivales pasivos; en Counter Hit garantiza seguimiento o combo."
-      },
-      {
-        moveName: "Main Heat Engager",
-        input: "ff+2 / f+4",
-        category: "Low & Heat Attacks",
-        startup: `${14 + (h % 3)} Frame Startup`,
-        active: "Active on 15–18",
-        recovery: "22 Frames Recovery",
-        onBlock: "-8 On Block (+17 Heat Dash)",
-        totalFrames: "38 Total Frames",
-        notes: "Activa el estado Heat al impactar y deja a +5 en bloqueo si gastas Heat Dash."
-      }
+    const rawMoves = [
+      { moveName: "Left Jab String (10f Punish)", input: "1, 2", category: "Standing & High/Mid Pokes", type: "jab", s: 10, a: 2, r: 17, ob: "-1 / -3 On Block (+8 Hit)" },
+      { moveName: "Flash / i10 Knockdown String", input: "1, 1, 2 / 2, 1", category: "Standing & High/Mid Pokes", type: "jab", s: 10, a: 2, r: 22, ob: "-12 / -3 On Block" },
+      { moveName: "Quick Mid Check", input: "df+1", category: "Standing & High/Mid Pokes", type: "jab", s: 13, a: 2, r: 19, ob: "-2 On Block (+5 Hit)" },
+      { moveName: "Mid Follow-up Extension", input: "df+1, 2 / df+1, 4", category: "Standing & High/Mid Pokes", type: "jab", s: 13, a: 3, r: 21, ob: "-9 On Block" },
+      { moveName: "i12 Block Punisher", input: "f+2, 1 / b+1, 2", category: "Standing & High/Mid Pokes", type: "super", s: 12, a: 3, r: 24, ob: "-12 On Block (KND)" },
+      { moveName: "Homing Mid Kick (Anti-Sidestep)", input: "b+4 / df+3", category: "Standing & High/Mid Pokes", type: "jab", s: 16 + (h % 2), a: 3, r: 21, ob: "-6 On Block (Homing)" },
+      { moveName: "Keepout Long Range Mid", input: "f+4 / ff+2", category: "Standing & High/Mid Pokes", type: "super", s: 15 + (h % 3), a: 3, r: 22, ob: "-7 On Block (+4 CH)" },
+      // Launchers & While Standing
+      { moveName: "Standing i15 Uppercut Launcher", input: "df+2", category: "Launchers & While Standing (WS)", type: "up", s: 15, a: 2, r: 26, ob: "-12 / -13 On Block (Launch)" },
+      { moveName: "Hopkick Low Crush Launcher", input: "uf+4", category: "Launchers & While Standing (WS)", type: "up", s: 15, a: 3, r: 27, ob: "-13 On Block (Jumps Lows)" },
+      { moveName: "Electric / Signature Launcher", input: "f,n,d,df+2 / ff+3", category: "Launchers & While Standing (WS)", type: "up", s: 14, a: 3, r: 20, ob: "+5 / -6 On Block (Launch)" },
+      { moveName: "While Standing 11f Punish", input: "ws+4", category: "Launchers & While Standing (WS)", type: "jab", s: 11, a: 2, r: 18, ob: "-5 On Block (+6 Hit)" },
+      { moveName: "While Standing i13/i15 Launcher", input: "ws+2 / ws+1,2", category: "Launchers & While Standing (WS)", type: "up", s: 15, a: 2, r: 28, ob: "-13 On Block (Launch)" },
+      // Lows, Throws & Heat System
+      { moveName: "Generic Fast Low Poke", input: "d+4 / db+3", category: "Lows, Throws & Heat System", type: "low", s: 15 + (h % 2), a: 2, r: 21, ob: "-12 On Block (+1 Hit)" },
+      { moveName: "High-Crush Power Low / Hell Sweep", input: "d+2 / f,n,d,df+4", category: "Lows, Throws & Heat System", type: "low", s: 18 + (h % 3), a: 3, r: 26, ob: "-13 / -23 On Block (CH Launch)" },
+      { moveName: "While Running Pressure", input: "f,f,F+3 / wr+2", category: "Lows, Throws & Heat System", type: "super", s: 18, a: 4, r: 18, ob: "+6 On Block (Chip Dmg)" },
+      { moveName: "Power Crush (Armor Mid)", input: "b+3 / ub+1+2", category: "Lows, Throws & Heat System", type: "super", s: 16, a: 3, r: 24, ob: "-12 On Block (Armor F7)" },
+      { moveName: "Command Throw (1+2 Break)", input: "uf+1+2", category: "Lows, Throws & Heat System", type: "throw", s: 12, a: 3, r: 28, ob: "Throw (Break 1+2)" },
+      { moveName: "Heat Burst (Universal Armor)", input: "2+3 (R1)", category: "Lows, Throws & Heat System", type: "super", s: 16, a: 3, r: 20, ob: "+1 On Block (+2 Hit)" },
+      { moveName: "Heat Smash (Finisher)", input: "2+3 en Heat", category: "Lows, Throws & Heat System", type: "super", s: 15, a: 5, r: 22, ob: "+3 On Block (52 Dmg)" },
+      { moveName: "Rage Art (Super Invencible)", input: "df+1+2 (R2)", category: "Lows, Throws & Heat System", type: "super", s: 20, a: 6, r: 40, ob: "-15 On Block (55+ Dmg)" }
     ];
+
+    return rawMoves.map((m) => {
+      const actStr = `${m.s}–${m.s + m.a - 1}`;
+      const total = m.s + m.a + m.r;
+      return {
+        moveName: m.moveName,
+        input: m.input,
+        category: m.category,
+        startup: `${m.s} Frame Startup (i${m.s})`,
+        active: `Active on ${actStr}`,
+        recovery: `${m.r} Frames Recovery`,
+        onBlock: m.ob,
+        totalFrames: `${total} Total Frames`,
+        hitboxGifUrl: makeHitboxUrl(m.type, m.input, `i${m.s}`, actStr),
+        notes: `Inicio i${m.s}, activo en frames ${actStr}, recuperación ${m.r}f.`
+      };
+    });
   }
 
+  // 4. MORTAL KOMBAT 1 — MOVELIST COMPLETO (18 ATAQUES Y ESPECIALES)
   if (gameId === "mk1") {
-    return [
-      {
-        moveName: "Fast High Starter",
-        input: "1, 2",
-        category: "Kombo Strings",
-        startup: "7 Frame Startup",
-        active: "Active on 7–9",
-        recovery: "16 Frames Recovery",
-        onBlock: "0 / +2 On Block",
-        totalFrames: "24 Total Frames",
-        notes: "Inicio más rápido para castigar huecos y mantener la ventaja de turno."
-      },
-      {
-        moveName: "Advancing Mid Starter",
-        input: "f+3, 2 / b+1, 2",
-        category: "Kombo Strings",
-        startup: `${10 + (h % 3)} Frame Startup`,
-        active: "Active on 11–14",
-        recovery: "21 Frames Recovery",
-        onBlock: "-5 On Block (Safe)",
-        totalFrames: "34 Total Frames",
-        notes: "Golpe medio que impide el Micro-Duck y confirma directamente en tu ruta BnB."
-      },
-      {
-        moveName: "Low Opener / Sweep",
-        input: "b+3 / b+4",
-        category: "Kombo Strings",
-        startup: `${13 + (h % 4)} Frame Startup`,
-        active: "Active on 14–16",
-        recovery: "24 Frames Recovery",
-        onBlock: "-7 On Block",
-        totalFrames: "39 Total Frames",
-        notes: "Ataque bajo de largo alcance cancelable en movimiento especial o Kameo Ambush."
-      },
-      {
-        moveName: "Signature Special Launcher",
-        input: "bf+1 / db+2 (EX)",
-        category: "Special Moves",
-        startup: `${12 + (h % 5)} Frame Startup`,
-        active: "Active on 13–20",
-        recovery: "29 Frames Recovery",
-        onBlock: "-14 On Block (Cúbrelo con Kameo)",
-        totalFrames: "44 Total Frames",
-        notes: "Extensor principal de combo aéreo al gastar 1 barra de Super Meter."
-      },
-      {
-        moveName: "Down 2 (Uppercut Antiaéreo)",
-        input: "d+2",
-        category: "Special Moves",
-        startup: "9 Frame Startup",
-        active: "Active on 9–13",
-        recovery: "32 Frames Recovery",
-        onBlock: "-16 On Block (140 Dmg Crushing)",
-        totalFrames: "43 Total Frames",
-        notes: "Castiga al instante ataques High esquivados agachándose sin bloquear."
-      }
+    const rawMoves = [
+      { moveName: "Standing 1 Jab", input: "1", category: "Basic Attacks & Kombo Strings", type: "jab", s: 7, a: 2, r: 13, ob: "0 On Block (+2 Hit)" },
+      { moveName: "High Punish String", input: "1, 2, 1", category: "Basic Attacks & Kombo Strings", type: "jab", s: 7, a: 3, r: 19, ob: "-2 On Block (Safe)" },
+      { moveName: "Standing 2 String", input: "2, 1, 2", category: "Basic Attacks & Kombo Strings", type: "jab", s: 10, a: 3, r: 21, ob: "+2 On Block" },
+      { moveName: "Advancing Mid Starter", input: "f+3, 2 / b+1, 2", category: "Basic Attacks & Kombo Strings", type: "jab", s: 11 + (h % 2), a: 3, r: 22, ob: "-5 On Block (Launcher)" },
+      { moveName: "Low Kombo Starter", input: "b+3, 4", category: "Basic Attacks & Kombo Strings", type: "low", s: 13 + (h % 2), a: 3, r: 24, ob: "-7 On Block (Special Cancel)" },
+      { moveName: "Overhead Opener", input: "b+2 / f+4", category: "Basic Attacks & Kombo Strings", type: "super", s: 20 + (h % 3), a: 3, r: 23, ob: "-6 On Block (Overhead)" },
+      { moveName: "Down 1 Fast Poke", input: "d+1", category: "Basic Attacks & Kombo Strings", type: "low", s: 7, a: 2, r: 15, ob: "-8 On Block (+10 Hit)" },
+      { moveName: "Down 3 Low Poke", input: "d+3", category: "Basic Attacks & Kombo Strings", type: "low", s: 9, a: 2, r: 16, ob: "-7 On Block (+9 Hit)" },
+      { moveName: "Down 4 Long Low Poke", input: "d+4", category: "Basic Attacks & Kombo Strings", type: "low", s: 12, a: 3, r: 20, ob: "-6 On Block (+13 Hit)" },
+      { moveName: "Down 2 Uppercut (Anti-Air)", input: "d+2", category: "Basic Attacks & Kombo Strings", type: "up", s: 9, a: 4, r: 32, ob: "-16 On Block (140 Dmg)" },
+      { moveName: "Sweep (Barrido Bajo)", input: "b+4", category: "Basic Attacks & Kombo Strings", type: "low", s: 14, a: 3, r: 25, ob: "-7 On Block (Hard KD)" },
+      // Aerials, Specials & Fatal Blow
+      { moveName: "Jump In Punch / Kick", input: "j.1, 2 / j.3", category: "Aerials, Special Moves & Fatal Blow", type: "jab", s: 8, a: 6, r: 4, ob: "+4 On Block (Air String)" },
+      { moveName: "Special 1 (Projectile / Spear)", input: "bf+1 / df+1", category: "Aerials, Special Moves & Fatal Blow", type: "proj", s: 14 + (h % 3), a: 8, r: 26, ob: "-11 On Block" },
+      { moveName: "Special 2 (Launcher / Teleport)", input: "db+2 / db+3 (EX)", category: "Aerials, Special Moves & Fatal Blow", type: "up", s: 12 + (h % 3), a: 5, r: 28, ob: "-14 On Block (Launch EX)" },
+      { moveName: "Special 3 (Advancing / Slide)", input: "bf+3 / bf+4", category: "Aerials, Special Moves & Fatal Blow", type: "low", s: 11 + (h % 3), a: 6, r: 26, ob: "-15 On Block (Armor EX)" },
+      { moveName: "Forward / Back Throw", input: "1+3 (L1)", category: "Aerials, Special Moves & Fatal Blow", type: "throw", s: 10, a: 3, r: 27, ob: "Unblockable Grab (110 Dmg)" },
+      { moveName: "Kameo Ambush / Summon", input: "R1 / Adelante+R1", category: "Aerials, Special Moves & Fatal Blow", type: "proj", s: 13, a: 8, r: 18, ob: "+4 On Block (Ambush)" },
+      { moveName: "Fatal Blow (Menos del 30% Vida)", input: "L2+R2", category: "Aerials, Special Moves & Fatal Blow", type: "super", s: 18, a: 8, r: 40, ob: "-24 On Block (350 Dmg Armor)" }
     ];
+
+    return rawMoves.map((m) => {
+      const actStr = `${m.s}–${m.s + m.a - 1}`;
+      const total = m.s + m.a + m.r;
+      return {
+        moveName: m.moveName,
+        input: m.input,
+        category: m.category,
+        startup: `${m.s} Frame Startup`,
+        active: `Active on ${actStr}`,
+        recovery: `${m.r} Frames Recovery`,
+        onBlock: m.ob,
+        totalFrames: `${total} Total Frames`,
+        hitboxGifUrl: makeHitboxUrl(m.type, m.input, `${m.s}f`, actStr),
+        notes: `Inicio en ${m.s}f, activo en frames ${actStr}, recuperación ${m.r}f.`
+      };
+    });
   }
 
-  // Guilty Gear -Strive- & Dragon Ball FighterZ
-  return [
-    {
-      moveName: gameId === "gg-strive" ? "Close Slash (c.S)" : "Standing Light (5L)",
-      input: gameId === "gg-strive" ? "c.S" : "5L",
-      category: "Ground Normals",
-      startup: "7 Frame Startup",
-      active: "Active on 7–12",
-      recovery: "10 Frames Recovery",
-      onBlock: gameId === "gg-strive" ? "+3 On Block" : "-2 On Block",
-      totalFrames: "22 Total Frames",
-      notes: "Pilar de presión y arranque de las rutas de mayor daño sin escalado."
-    },
-    {
-      moveName: gameId === "gg-strive" ? "Far Slash (f.S)" : "Crouching Medium (2M)",
-      input: gameId === "gg-strive" ? "f.S" : "2M",
-      category: "Ground Normals",
-      startup: "10 Frame Startup",
-      active: "Active on 10–13",
-      recovery: "18 Frames Recovery",
-      onBlock: "-5 On Block",
-      totalFrames: "29 Total Frames",
-      notes: "Herramienta horizontal principal para controlar el suelo y confirmar en especial."
-    },
-    {
-      moveName: gameId === "gg-strive" ? "Forward Punch Anti-Air (6P)" : "Down Heavy Anti-Air (2H)",
-      input: gameId === "gg-strive" ? "6P" : "2H",
-      category: "Ground Normals",
-      startup: `${9 + (h % 3)} Frame Startup`,
-      active: "Active on 10–15",
-      recovery: "22 Frames Recovery",
-      onBlock: "-11 On Block (Upper Body Invuln)",
-      totalFrames: "34 Total Frames",
-      notes: "Antiaéreo universal con invulnerabilidad contra ataques en salto."
-    },
-    {
-      moveName: gameId === "gg-strive" ? "Crouching Dust Sweep (2D)" : "Heavy / Super Dash Launcher (5H)",
-      input: gameId === "gg-strive" ? "2D" : "5H",
-      category: "Special & System Moves",
-      startup: "11 Frame Startup",
-      active: "Active on 11–16",
-      recovery: "21 Frames Recovery",
-      onBlock: "-8 On Block (Hard Knockdown)",
-      totalFrames: "35 Total Frames",
-      notes: "Derribo fuerte para colocar setplay u Okizeme en el despertar rival."
-    },
-    {
-      moveName: "Core Special Move",
-      input: "236S / 236M",
-      category: "Special & System Moves",
-      startup: `${13 + (h % 4)} Frame Startup`,
-      active: "Active on 14–22",
-      recovery: "19 Frames Recovery",
-      onBlock: `-${3 + (h % 4)} On Block (Cancelable RC/Assist)`,
-      totalFrames: "38 Total Frames",
-      notes: "Cierra cadenas de bloqueo de forma segura o extiende rutas de esquina."
-    }
+  // 5. GUILTY GEAR -STRIVE- & DRAGON BALL FIGHTERZ — MOVELIST COMPLETO (18 ATAQUES)
+  const isGG = gameId === "gg-strive";
+  const rawMoves = [
+    { moveName: isGG ? "Standing Punch (5P)" : "Standing Light (5L)", input: isGG ? "5P" : "5L", category: "Ground Normals", type: "jab", s: 5 + (h % 2), a: 3, r: 8, ob: "-2 On Block" },
+    { moveName: isGG ? "Standing Kick (5K)" : "Auto-Combo 2nd Hit (5LL)", input: isGG ? "5K" : "5LL", category: "Ground Normals", type: "jab", s: 7, a: 4, r: 11, ob: "-3 On Block" },
+    { moveName: isGG ? "Close Slash (c.S)" : "Standing Medium (5M)", input: isGG ? "c.S" : "5M", category: "Ground Normals", type: "jab", s: 7, a: 6, r: 10, ob: isGG ? "+3 On Block" : "-5 On Block" },
+    { moveName: isGG ? "Far Slash (f.S)" : "Standing Heavy (5H)", input: isGG ? "f.S" : "5H", category: "Ground Normals", type: "super", s: 10, a: 3, r: 18, ob: "-5 On Block" },
+    { moveName: isGG ? "Standing Heavy Slash (5HS)" : "Standing Ki Blast (5S)", input: isGG ? "5HS" : "5S", category: "Ground Normals", type: "proj", s: 12, a: 4, r: 20, ob: "-6 On Block" },
+    { moveName: isGG ? "Crouching Punch (2P)" : "Crouching Light (2L)", input: isGG ? "2P" : "2L", category: "Crouching & Command Normals", type: "low", s: 5 + (h % 2), a: 3, r: 9, ob: "-2 On Block" },
+    { moveName: isGG ? "Crouching Kick (2K - Low)" : "Crouching Medium (2M - Low)", input: isGG ? "2K" : "2M", category: "Crouching & Command Normals", type: "low", s: 6 + (h % 4), a: 3, r: 12, ob: "-3 On Block (Low)" },
+    { moveName: isGG ? "Crouching Slash (2S)" : "Down Heavy Anti-Air (2H)", input: isGG ? "2S" : "2H", category: "Crouching & Command Normals", type: "up", s: 11, a: 4, r: 18, ob: "-7 On Block" },
+    { moveName: isGG ? "Crouching Heavy Slash (2HS)" : "Crouching Special (2S)", input: isGG ? "2HS" : "2S", category: "Crouching & Command Normals", type: "up", s: 13, a: 5, r: 22, ob: "-10 On Block" },
+    { moveName: isGG ? "Crouching Dust Sweep (2D)" : "Universal Overhead (6M)", input: isGG ? "2D" : "6M", category: "Crouching & Command Normals", type: isGG ? "low" : "super", s: isGG ? 10 : 24, a: 5, r: 20, ob: isGG ? "-8 On Block (HKD)" : "0 On Block (Overhead)" },
+    { moveName: isGG ? "Forward Punch Anti-Air (6P)" : "Forward Heavy Command (6H)", input: isGG ? "6P" : "6H", category: "Crouching & Command Normals", type: "up", s: 9, a: 5, r: 20, ob: "-11 On Block" },
+    // Aerials, Specials & Overdrives
+    { moveName: isGG ? "Jumping Slash (j.S)" : "Jumping Medium (j.M)", input: isGG ? "j.S" : "j.M", category: "Aerials, Specials & Supers", type: "jab", s: 7, a: 5, r: 6, ob: "Air-to-Air / Cross-up" },
+    { moveName: isGG ? "Jumping Heavy (j.HS)" : "Jumping Heavy (j.H)", input: isGG ? "j.HS" : "j.H", category: "Aerials, Specials & Supers", type: "super", s: 9, a: 5, r: 8, ob: "Deep IAD Pressure" },
+    { moveName: "Special 1 (QCF Attack)", input: isGG ? "236S / 236K" : "236L / 236M", category: "Aerials, Specials & Supers", type: "proj", s: 12 + (h % 3), a: 6, r: 18, ob: "-4 On Block" },
+    { moveName: "Special 2 (QCB Mix / Advance)", input: isGG ? "214K / 214S" : "214L / 214M", category: "Aerials, Specials & Supers", type: "super", s: 14 + (h % 3), a: 5, r: 19, ob: "-3 On Block" },
+    { moveName: isGG ? "Wild Assault (236D)" : "Dragon Rush (Throw L+M)", input: isGG ? "236D" : "DR (L+M)", category: "Aerials, Specials & Supers", type: "throw", s: isGG ? 16 : 19, a: 4, r: 20, ob: isGG ? "+2 On Block (50% Burst)" : "Unblockable Grab" },
+    { moveName: isGG ? "Ground Throw (4D / 6D)" : "Super Dash (H+S)", input: isGG ? "6D" : "SD (H+S)", category: "Aerials, Specials & Supers", type: "throw", s: isGG ? 2 : 20, a: 3, r: 28, ob: isGG ? "2f Unblockable Grab" : "0 On Block" },
+    { moveName: isGG ? "Overdrive Super (50% Tension)" : "Level 3 Super (3 Barras)", input: isGG ? "632146HS" : "214L+M / H+S", category: "Aerials, Specials & Supers", type: "super", s: 9, a: 12, r: 38, ob: "-28 On Block (Invencible F1)" }
   ];
+
+  return rawMoves.map((m) => {
+    const actStr = `${m.s}–${m.s + m.a - 1}`;
+    const total = m.s + m.a + m.r;
+    return {
+      moveName: m.moveName,
+      input: m.input,
+      category: m.category,
+      startup: `${m.s} Frame Startup`,
+      active: `Active on ${actStr}`,
+      recovery: `${m.r} Frames Recovery`,
+      onBlock: m.ob,
+      totalFrames: `${total} Total Frames`,
+      hitboxGifUrl: makeHitboxUrl(m.type, m.input, `${m.s}f`, actStr),
+      notes: `Inicio en ${m.s}f, ventana activa ${actStr}, recuperación ${m.r}f.`
+    };
+  });
+}
+
+// =========================================================================
+// GENERADOR DE PAUSAS EXPLICATIVAS EN ESPAÑOL Y SUBTÍTULOS PARA EL VÍDEO
+// =========================================================================
+function buildSpanishVideoCompilation(gameId, charObj) {
+  return {
+    subtitleLang: "Español (CC activados + Traducción paso a paso)",
+    compilationNote: `Recopilación traducida al español con subtítulos integrados y pausas de análisis táctico sobre ${charObj.name}.`,
+    pauses: [
+      {
+        timestamp: "00:45",
+        seconds: 45,
+        title: "Pausa 1 — Rango Óptimo y Botones de Neutro",
+        explanation: `Aquí pausamos el clip para observar el alcance real del botón principal de ${charObj.name}. Fíjate en cómo la hitbox golpea antes de que el hurtbox propio quede expuesto.`
+      },
+      {
+        timestamp: "02:15",
+        seconds: 135,
+        title: "Pausa 2 — Confirmación de la Ruta BnB sin perder el turno",
+        explanation: `En esta pausa vemos el frame exacto en que debes cancelar el golpe normal en el movimiento especial para que el combo sea verdadero y no pueda bloquearse.`
+      },
+      {
+        timestamp: "04:10",
+        seconds: 250,
+        title: "Pausa 3 — Presión en Esquina y Lectura de Counters",
+        explanation: `Pausa táctica: observa qué ocurre cuando el rival bloquea en la esquina y cómo cubrir tanto su intento de salto como su golpe de salida.`
+      }
+    ]
+  };
 }
 
 // =========================================================================
@@ -543,6 +483,14 @@ function buildRosterEntry(gameId, sagaNotation, wikiBaseUrl, defaultVideo, color
   const combos = raw.combos || getDefaultCombos(gameId);
   const frameDataCards = raw.frameDataCards || buildFrameDataCards(gameId, raw.name, raw.archetype);
   const matchups = raw.matchups || buildCharacterMatchups(gameId, raw, allRawInGame, colorHex);
+  const spanishCompilation = buildSpanishVideoCompilation(gameId, raw);
+
+  // Asegurar que todos los embeds de YouTube lleven subtítulos en español activados por defecto
+  const baseVideo = raw.videoUrl || defaultVideo;
+  const videoWithSpanishCC = baseVideo.includes("?")
+    ? `${baseVideo}&cc_load_policy=1&cc_lang_pref=es&hl=es`
+    : `${baseVideo}?cc_load_policy=1&cc_lang_pref=es&hl=es`;
+
   const gameplan =
     raw.gameplan ||
     `Domina el neutro con las herramientas de ${raw.archetype.toLowerCase()} de ${raw.name}. Aprovecha sus botones seguros a media distancia para confirmar en tu ruta BnB principal y gestiona tus recursos del sistema para romper la guardia rival en la esquina.`;
@@ -557,7 +505,8 @@ function buildRosterEntry(gameId, sagaNotation, wikiBaseUrl, defaultVideo, color
     recommendedSubSystem: raw.sub || getDefaultSubSystem(gameId),
     iconUrl: raw.iconUrl || getDirectPortraitUrl(gameId, raw.name, colorHex, isDLC),
     fallbackIconUrl: getFallbackIconUrl(gameId, raw.name, colorHex, isDLC),
-    videoUrl: raw.videoUrl || defaultVideo,
+    videoUrl: videoWithSpanishCC,
+    spanishCompilation,
     sourceUrl: raw.sourceUrl || `${wikiBaseUrl}${encodeURIComponent(raw.name.replace(/\s+/g, "_"))}`,
     overview:
       raw.overview ||

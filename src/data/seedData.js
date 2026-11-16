@@ -257,35 +257,92 @@ const SEED_DATA = {
 
   // Configuración Pública del Canal Oficial Independiente de YouTube del proyecto
   youtubeChannel: {
-    name: "FGC Vault Español — Guías & Frame Data",
+    name: "FGC Vault Español — Recopilaciones & Frame Data",
     handle: "@FGCVaultES",
     publicUrl: "https://www.youtube.com/@FGCVaultES",
     description:
-      "Canal oficial e independiente de FGC Vault: Guías Básicas, Guías Avanzadas de Frame Data y Guías de Personajes (Juego Base y Packs DLC) para Mortal Kombat, Street Fighter, Tekken, Dragon Ball FighterZ, Guilty Gear y Super Smash Bros.",
-    featuredVideos: [
+      "Canal oficial de FGC Vault: Recopilaciones de las mejores guías competitivas internacionales traducidas al español, con subtítulos en español integrados y pausas tácticas congeladas para explicar cada concepto, frame trap y combo paso a paso. Organizado en listas de reproducción por juego.",
+    playlistsByGame: [
       {
-        title: "Guía de Inicio y Mecánicas Universales — Mortal Kombat 1",
-        saga: "Mortal Kombat",
-        embedUrl: "https://www.youtube.com/embed/u7pTIg7vKBM"
+        gameId: "mk1",
+        gameTitle: "Mortal Kombat 1",
+        playlistTitle: "Lista de Reproducción: Mortal Kombat 1 (Traducido + Subtítulos ES + Pausas)",
+        sourcesCompiled: "Recopilación traducida de PNDK&M, Rooflemonger y Kombat Akademy",
+        embedUrl: "https://www.youtube.com/embed/u7pTIg7vKBM?cc_load_policy=1&cc_lang_pref=es&hl=es",
+        pauses: [
+          { time: "01:10", label: "Pausa Explicativa: Diferencia entre Kameo Summon y Kameo Ambush" },
+          { time: "03:25", label: "Pausa Explicativa: Ventana de 3 frames del Flawless Block contra Chip Damage" },
+          { time: "05:40", label: "Pausa Explicativa: Cómo hacer Micro-Duck a cadenas que inician en High" }
+        ]
       },
       {
-        title: "Fundamentos del Drive System y Footsies — Street Fighter 6",
-        saga: "Street Fighter",
-        embedUrl: "https://www.youtube.com/embed/k9t3cM_9vY0"
+        gameId: "sf6",
+        gameTitle: "Street Fighter 6",
+        playlistTitle: "Lista de Reproducción: Street Fighter 6 (Traducido + Subtítulos ES + Pausas)",
+        sourcesCompiled: "Recopilación traducida de Diaphone, Brian_F, Broski y SuperCombo",
+        embedUrl: "https://www.youtube.com/embed/k9t3cM_9vY0?cc_load_policy=1&cc_lang_pref=es&hl=es",
+        pauses: [
+          { time: "00:55", label: "Pausa Explicativa: Buffer de Drive Rush Cancel (DRC) desde 2MK sin malgastar barra" },
+          { time: "02:50", label: "Pausa Explicativa: Timing exacto de 4 frames para Delay Throw Tech en la esquina" },
+          { time: "05:15", label: "Pausa Explicativa: Cómo castigar con Shimmy y Punish Counter 5HP" }
+        ]
       },
       {
-        title: "Movimiento 3D, Heat System y Castigos — Tekken 8",
-        saga: "Tekken",
-        embedUrl: "https://www.youtube.com/embed/8pX3mK_vY4A"
+        gameId: "tekken8",
+        gameTitle: "Tekken 8",
+        playlistTitle: "Lista de Reproducción: Tekken 8 (Traducido + Subtítulos ES + Pausas)",
+        sourcesCompiled: "Recopilación traducida de PhiDX, MainManSWE y Wavu Wiki",
+        embedUrl: "https://www.youtube.com/embed/8pX3mK_vY4A?cc_load_policy=1&cc_lang_pref=es&hl=es",
+        pauses: [
+          { time: "01:20", label: "Pausa Explicativa: Cuándo hacer Sidestep (-1 a -4 en bloqueo) y bloquear inmediatamente" },
+          { time: "03:45", label: "Pausa Explicativa: Uso de Heat Dash (+5 en bloqueo / Lanzador en impacto)" },
+          { time: "06:05", label: "Pausa Explicativa: Tabla visual de castigos de 10f, 12f y 15f (Launch)" }
+        ]
+      },
+      {
+        gameId: "dbfz",
+        gameTitle: "Dragon Ball FighterZ",
+        playlistTitle: "Lista de Reproducción: Dragon Ball FighterZ (Traducido + Subtítulos ES + Pausas)",
+        sourcesCompiled: "Recopilación traducida de TinyTorgue, Globku y Dustloop",
+        embedUrl: "https://www.youtube.com/embed/w4N8w7V2gK8?cc_load_policy=1&cc_lang_pref=es&hl=es",
+        pauses: [
+          { time: "01:05", label: "Pausa Explicativa: Salto cancelado (jc) tras 2M > 5M en la Ruta Universal" },
+          { time: "03:15", label: "Pausa Explicativa: Special Tag en mitad de movimiento especial sin gastar barra" },
+          { time: "05:00", label: "Pausa Explicativa: Mix-up 50/50 tras Super Dash + Asistencia" }
+        ]
+      },
+      {
+        gameId: "gg-strive",
+        gameTitle: "Guilty Gear -Strive-",
+        playlistTitle: "Lista de Reproducción: Guilty Gear -Strive- (Traducido + Subtítulos ES + Pausas)",
+        sourcesCompiled: "Recopilación traducida de Sajam, Hotashi, Romolla y Dustloop",
+        embedUrl: "https://www.youtube.com/embed/k9t3cM_9vY0?cc_load_policy=1&cc_lang_pref=es&hl=es",
+        pauses: [
+          { time: "01:15", label: "Pausa Explicativa: Ejecución del Fast Roman Cancel (FRC) antes de la campana" },
+          { time: "03:30", label: "Pausa Explicativa: Uso de 6P (invulnerabilidad de torso superior) como antiaéreo" },
+          { time: "05:20", label: "Pausa Explicativa: Gestión de Wild Assault (236D) para romper el muro" }
+        ]
+      },
+      {
+        gameId: "ssbu",
+        gameTitle: "Super Smash Bros. Ultimate",
+        playlistTitle: "Lista de Reproducción: Super Smash Bros. Ultimate (Traducido + Subtítulos ES + Pausas)",
+        sourcesCompiled: "Recopilación traducida de IzAwSmash (Art of Smash) y Ultimate Frame Data",
+        embedUrl: "https://www.youtube.com/embed/ta3L35wsE6o?cc_load_policy=1&cc_lang_pref=es&hl=es",
+        pauses: [
+          { time: "01:30", label: "Pausa Explicativa: Cómo saltar los 11 frames de soltar escudo con OOS (Up-B / Up-Smash)" },
+          { time: "03:50", label: "Pausa Explicativa: Inputs paso a paso del Reverse Aerial Rush (RAR Back Air)" },
+          { time: "06:15", label: "Pausa Explicativa: Posicionamiento para cubrir las 5 opciones de Ledgetrap" }
+        ]
       }
     ],
     playlists: [
-      "Mortal Kombat 1 — Guías de Personajes y Kameos (Base + Kombat Pack 1 & Khaos Reigns)",
-      "Street Fighter 6 — Fundamentos del Drive System y Guías Year 1, 2 & 3",
-      "Tekken 8 — Movimiento 3D, Heat System y Guías Season 1, 2 & 3",
-      "Dragon Ball FighterZ — Rutas Universales, Asistencias y ToDs",
-      "Guilty Gear -Strive- — Roman Cancels y Guías Season 1-4",
-      "Super Smash Bros. Ultimate — Out of Shield, Edgeguard y Matchups"
+      "Mortal Kombat 1 — Recopilaciones en Español con Subtítulos y Pausas Tácticas",
+      "Street Fighter 6 — Recopilaciones en Español con Subtítulos y Pausas Tácticas",
+      "Tekken 8 — Recopilaciones en Español con Subtítulos y Pausas Tácticas",
+      "Dragon Ball FighterZ — Recopilaciones en Español con Subtítulos y Pausas Tácticas",
+      "Guilty Gear -Strive- — Recopilaciones en Español con Subtítulos y Pausas Tácticas",
+      "Super Smash Bros. Ultimate — Recopilaciones en Español con Subtítulos y Pausas Tácticas"
     ]
   },
 

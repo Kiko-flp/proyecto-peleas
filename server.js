@@ -147,6 +147,120 @@ app.get("/api/char-icon", async (req, res) => {
 });
 
 // =========================================================================
+// GENERADOR DE ANIMACIONES DE HITBOX EN TIEMPO REAL (ESTILO ULTIMATEFRAMEDATA)
+// Muestra la silueta del luchador en movimiento, Hurtbox (amarillo/azul) y
+// Hitboxes activas (esferas rosas/rojas translúcidas) en bucle continuo.
+// =========================================================================
+app.get("/api/hitbox-anim", (req, res) => {
+  const type = String(req.query.type || "jab").toLowerCase();
+  const move = String(req.query.move || "Attack").slice(0, 22);
+  const startup = String(req.query.startup || "5f");
+  const active = String(req.query.active || "5-7");
+
+  // Posición y forma de la hitbox según el tipo de ataque
+  let hitboxShape = `<circle class="hb-active" cx="150" cy="68" r="22" /><circle class="hb-active-inner" cx="128" cy="70" r="15" />`;
+  let limbPath = `<line class="limb-atk" x1="92" y1="68" x2="152" y2="66" stroke="#e2e8f0" stroke-width="7" stroke-linecap="round" />`;
+
+  if (type.includes("low") || type.includes("dtilt") || type.includes("sweep") || type.includes("2mk") || type.includes("2d")) {
+    hitboxShape = `<ellipse class="hb-active" cx="152" cy="112" rx="30" ry="14" /><circle class="hb-active-inner" cx="126" cy="110" r="12" />`;
+    limbPath = `<line class="limb-atk" x1="88" y1="95" x2="158" y2="114" stroke="#e2e8f0" stroke-width="8" stroke-linecap="round" />`;
+  } else if (type.includes("anti") || type.includes("up") || type.includes("uair") || type.includes("utilt") || type.includes("623") || type.includes("2h")) {
+    hitboxShape = `<ellipse class="hb-active" cx="118" cy="34" rx="26" ry="22" /><circle class="hb-active-inner" cx="106" cy="52" r="15" />`;
+    limbPath = `<line class="limb-atk" x1="90" y1="66" x2="122" y2="26" stroke="#e2e8f0" stroke-width="8" stroke-linecap="round" />`;
+  } else if (type.includes("proj") || type.includes("236") || type.includes("shot") || type.includes("beam")) {
+    hitboxShape = `<circle class="hb-proj" cx="165" cy="68" r="20" /><ellipse class="hb-active-inner" cx="145" cy="68" rx="28" ry="12" />`;
+    limbPath = `<line class="limb-atk" x1="92" y1="68" x2="125" y2="68" stroke="#e2e8f0" stroke-width="7" stroke-linecap="round" />`;
+  } else if (type.includes("throw") || type.includes("grab")) {
+    hitboxShape = `<circle class="hb-grab" cx="132" cy="68" r="24" />`;
+    limbPath = `<line class="limb-atk" x1="92" y1="66" x2="136" y2="66" stroke="#f59e0b" stroke-width="7" stroke-linecap="round" />`;
+  } else if (type.includes("super") || type.includes("smash") || type.includes("heat") || type.includes("fatal")) {
+    hitboxShape = `<circle class="hb-active" cx="154" cy="66" r="32" /><circle class="hb-active-inner" cx="126" cy="68" r="22" />`;
+    limbPath = `<line class="limb-atk" x1="92" y1="68" x2="164" y2="64" stroke="#fbbf24" stroke-width="9" stroke-linecap="round" />`;
+  }
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 145" width="220" height="145">
+    <style>
+      .bg { fill: #262930; }
+      .floor { stroke: #3f4451; stroke-width: 2; }
+      .grid-line { stroke: #313540; stroke-width: 1; stroke-dasharray: 3 3; }
+      .hurtbox { fill: rgba(56, 189, 248, 0.16); stroke: #38bdf8; stroke-width: 1.5; stroke-dasharray: 2 2; }
+      .fighter-body { fill: #cbd5e1; opacity: 0.88; }
+      .limb-atk {
+        animation: strikeAnim 1.35s infinite ease-in-out;
+        transform-origin: 85px 72px;
+      }
+      .hb-active {
+        fill: rgba(236, 72, 153, 0.52);
+        stroke: #f43f5e;
+        stroke-width: 2;
+        animation: hitboxPulse 1.35s infinite steps(1);
+      }
+      .hb-active-inner {
+        fill: rgba(244, 63, 94, 0.62);
+        stroke: #fda4af;
+        stroke-width: 1.5;
+        animation: hitboxPulse 1.35s infinite steps(1);
+      }
+      .hb-proj {
+        fill: rgba(236, 72, 153, 0.6);
+        stroke: #f43f5e;
+        stroke-width: 2;
+        animation: projMove 1.35s infinite linear;
+      }
+      .hb-grab {
+        fill: rgba(168, 85, 247, 0.55);
+        stroke: #d8b4fe;
+        stroke-width: 2;
+        animation: hitboxPulse 1.35s infinite steps(1);
+      }
+      @keyframes strikeAnim {
+        0%, 22% { transform: rotate(-18deg) translateX(-4px); opacity: 0.65; }
+        25%, 58% { transform: rotate(0deg) translateX(4px); opacity: 1; }
+        60%, 100% { transform: rotate(8deg) translateX(0px); opacity: 0.7; }
+      }
+      @keyframes hitboxPulse {
+        0%, 24% { opacity: 0; }
+        25%, 56% { opacity: 1; }
+        57%, 100% { opacity: 0; }
+      }
+      @keyframes projMove {
+        0%, 24% { opacity: 0; transform: translateX(-35px); }
+        25%, 70% { opacity: 1; transform: translateX(18px); }
+        71%, 100% { opacity: 0; transform: translateX(35px); }
+      }
+    </style>
+    <rect class="bg" width="220" height="145" />
+    <line class="grid-line" x1="0" y1="45" x2="220" y2="45" />
+    <line class="grid-line" x1="0" y1="85" x2="220" y2="85" />
+    <line class="grid-line" x1="110" y1="0" x2="110" y2="124" />
+    <line class="floor" x1="10" y1="124" x2="210" y2="124" />
+
+    <!-- Hurtbox del personaje (Azul/Cian) -->
+    <rect class="hurtbox" x="62" y="38" width="34" height="84" rx="12" />
+
+    <!-- Silueta animada del luchador -->
+    <circle class="fighter-body" cx="79" cy="48" r="10" />
+    <path class="fighter-body" d="M68 60 L90 60 L88 94 L70 94 Z" />
+    <line x1="73" y1="94" x2="64" y2="123" stroke="#94a3b8" stroke-width="6" stroke-linecap="round" />
+    <line x1="85" y1="94" x2="96" y2="123" stroke="#94a3b8" stroke-width="6" stroke-linecap="round" />
+
+    <!-- Extremidad/Arma ejecutando el ataque -->
+    ${limbPath}
+
+    <!-- Esferas de Hitbox Activa (Rosa/Rojo translúcido estilo UltimateFrameData) -->
+    ${hitboxShape}
+
+    <!-- Indicador de Fase de Frames -->
+    <rect x="6" y="6" width="208" height="16" rx="4" fill="rgba(9,13,22,0.75)" />
+    <text x="12" y="17" fill="#fda4af" font-family="monospace" font-size="9.5" font-weight="bold">HITBOX: ${move} (Start ${startup} | Act ${active})</text>
+  </svg>`;
+
+  res.setHeader("Content-Type", "image/svg+xml");
+  res.setHeader("Cache-Control", "public, max-age=86400");
+  res.send(svg);
+});
+
+// =========================================================================
 // HEALTH CHECK (Para Render.com)
 // =========================================================================
 app.get("/api/health", (req, res) => {
