@@ -1394,20 +1394,6 @@ async function hydrateCharacterVideo(game, ch, modalBody) {
   }
 }
 
-function getMoveOverlayBoxes(fc) {
-  const rawDesc = `${fc.moveName || ""} ${fc.input || ""} ${fc.category || ""}`.toLowerCase();
-  if (rawDesc.includes("low") || rawDesc.includes("sweep") || rawDesc.includes("2mk") || rawDesc.includes("2d") || rawDesc.includes("d+4") || rawDesc.includes("db+3")) {
-    return `<div class="hb-box-hurt" style="bottom:16px;left:28%;width:24%;height:48%;"></div><div class="hb-box-hit" style="bottom:14px;left:48%;width:28%;height:18%;">HITBOX LOW</div>`;
-  }
-  if (rawDesc.includes("anti-air") || rawDesc.includes("up ") || rawDesc.includes("623") || rawDesc.includes("2hp") || rawDesc.includes("2h") || rawDesc.includes("6p") || rawDesc.includes("df+2") || rawDesc.includes("uf+4")) {
-    return `<div class="hb-box-hurt" style="bottom:20px;left:28%;width:22%;height:56%;"></div><div class="hb-box-hit" style="bottom:48px;left:46%;width:24%;height:38%;">HITBOX AA</div>`;
-  }
-  if (rawDesc.includes("throw") || rawDesc.includes("grab")) {
-    return `<div class="hb-box-hurt" style="bottom:18px;left:28%;width:22%;height:54%;"></div><div class="hb-box-hit hb-box-throw" style="bottom:36px;left:45%;width:24%;height:34%;">THROW</div>`;
-  }
-  return `<div class="hb-box-hurt" style="bottom:18px;left:28%;width:22%;height:54%;"></div><div class="hb-box-hit" style="bottom:46px;left:48%;width:26%;height:22%;">HITBOX</div>`;
-}
-
 async function hydrateCharacterRealHitboxes(game, ch, modalBody) {
   if (!game || !ch || !modalBody) return;
   const cacheKey = `${game.id}:${ch.id}`;
@@ -1435,26 +1421,25 @@ async function hydrateCharacterRealHitboxes(game, ch, modalBody) {
     const entry = hbMap[moveName];
     if (!entry || !entry.url) return;
 
-    const proxyUrl = `/api/hitbox-media?url=${encodeURIComponent(entry.url)}`;
+    const mediaUrl =
+      entry.localUrl ||
+      (entry.url.startsWith("/") ? entry.url : `/api/hitbox-media?url=${encodeURIComponent(entry.url)}`);
     const mediaWrap = boxEl.querySelector(".ufd-real-hitbox-wrap");
     if (!mediaWrap) return;
 
     const fcObj = (ch.frameDataCards || []).find((c) => c.moveName === moveName);
-    const overlayBoxes = entry.hasNativeHitbox ? "" : getMoveOverlayBoxes(fcObj || { moveName });
 
     if (entry.type === "video") {
       mediaWrap.innerHTML = `
         <div class="hb-real-media-stage">
-          <video src="${proxyUrl}" autoplay loop muted playsinline></video>
-          ${overlayBoxes}
+          <video src="${mediaUrl}" autoplay loop muted playsinline></video>
           <span class="hb-overlay-tag">${entry.source}</span>
         </div>
       `;
     } else {
       mediaWrap.innerHTML = `
         <div class="hb-real-media-stage">
-          <img src="${proxyUrl}" alt="Hitbox real de ${moveName} (${ch.name})" />
-          ${overlayBoxes}
+          <img src="${mediaUrl}" alt="Hitbox real de ${moveName} (${ch.name})" />
           <span class="hb-overlay-tag">${entry.source}</span>
         </div>
       `;
@@ -1474,7 +1459,7 @@ async function hydrateCharacterRealHitboxes(game, ch, modalBody) {
         gameId: game.id,
         charImgUrl: clientPortraitCache.get(ch.id) || ch.iconUrl,
         fallbackSrc: ch.fallbackIconUrl || ch.iconUrl,
-        realHitboxUrl: proxyUrl,
+        realHitboxUrl: mediaUrl,
         realHitboxType: entry.type,
         realHitboxSource: entry.source,
         hasNativeHitbox: Boolean(entry.hasNativeHitbox)

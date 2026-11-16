@@ -7,7 +7,45 @@
  */
 
 const crypto = require("crypto");
+const fs = require("fs");
+const path = require("path");
 const hitboxCache = new Map();
+const ANIM_DIR = path.join(__dirname, "..", "..", "animaciones-personajes");
+
+function loadLocalManifest() {
+  try {
+    const manifestPath = path.join(ANIM_DIR, "manifest.json");
+    if (!fs.existsSync(manifestPath)) return {};
+    const raw = fs.readFileSync(manifestPath, "utf8").replace(/^\uFEFF/, "");
+    return JSON.parse(raw);
+  } catch (_) {
+    return {};
+  }
+}
+
+let localManifestCache = null;
+function getLocalCharHitboxes(gameId, charName) {
+  if (!localManifestCache) {
+    localManifestCache = loadLocalManifest();
+  }
+  const key = `${gameId}|${charName}`;
+  const entries = localManifestCache[key];
+  if (!entries || typeof entries !== "object") return {};
+
+  const verified = {};
+  for (const [moveName, info] of Object.entries(entries)) {
+    if (!info || !info.url) continue;
+    const rel = String(info.url).replace(/^\/+/, "");
+    const absPath = path.join(__dirname, "..", "..", rel);
+    if (fs.existsSync(absPath)) {
+      verified[moveName] = {
+        ...info,
+        localUrl: info.url
+      };
+    }
+  }
+  return verified;
+}
 
 function getSuperComboHashedUrl(fileName) {
   const firstUpper = fileName.charAt(0).toUpperCase() + fileName.slice(1);
@@ -519,19 +557,23 @@ async function resolveCharacterHitboxes(gameId, charName) {
     return hitboxCache.get(key);
   }
 
-  let data = {};
+  const localData = getLocalCharHitboxes(gameId, charName);
+  let remoteData = {};
+
   if (gameId === "ssbu") {
-    data = await resolveSsbuHitboxes(charName);
+    remoteData = await resolveSsbuHitboxes(charName);
   } else if (gameId === "sf6") {
-    data = await resolveSf6Hitboxes(charName);
+    remoteData = await resolveSf6Hitboxes(charName);
   } else if (gameId === "gg-strive" || gameId === "dbfz") {
-    data = await resolveDustloopHitboxes(gameId, charName);
+    remoteData = await resolveDustloopHitboxes(gameId, charName);
   } else if (gameId === "tekken8") {
-    data = await resolveWavuHitboxes(charName);
+    remoteData = await resolveWavuHitboxes(charName);
   }
 
-  hitboxCache.set(key, data);
-  return data;
+  // Priorizar archivos ya descargados en animaciones-personajes/ sobre URLs remotas
+  const merged = { ...remoteData, ...localData };
+  hitboxCache.set(key, merged);
+  return merged;
 }
 
 module.exports = {

@@ -189,7 +189,7 @@ function parseFrameNumbers(fc) {
   return { startupNum, activeStart, activeEnd, recoveryNum, totalFrames };
 }
 
-window.openHitboxInspector = function (fcEncoded) {
+window.openHitboxInspector = async function (fcEncoded) {
   let fc;
   try {
     fc = JSON.parse(decodeURIComponent(fcEncoded));
@@ -209,6 +209,7 @@ window.openHitboxInspector = function (fcEncoded) {
   inspectorState.realHitboxUrl = fc.realHitboxUrl || "";
   inspectorState.realHitboxType = fc.realHitboxType || "image";
   inspectorState.realHitboxSource = fc.realHitboxSource || "";
+  inspectorState.fetchingReal = !inspectorState.realHitboxUrl;
   inspectorState.moveName = fc.moveName;
   inspectorState.input = fc.translatedInput || fc.input;
   inspectorState.category = fc.category || "";
@@ -225,6 +226,9 @@ window.openHitboxInspector = function (fcEncoded) {
   if (!modal) return;
   modal.classList.remove("hidden");
 
+  const canvasBox = document.getElementById("hbInteractiveCanvas");
+  if (canvasBox) canvasBox.innerHTML = "";
+
   const slider = document.getElementById("hbFrameSlider");
   if (slider) {
     slider.min = 1;
@@ -233,6 +237,36 @@ window.openHitboxInspector = function (fcEncoded) {
   }
 
   renderInspectorFrame();
+
+  if (!inspectorState.realHitboxUrl && inspectorState.gameId && inspectorState.charName) {
+    try {
+      const targetKey = `${inspectorState.gameId}:${inspectorState.charName}:${inspectorState.moveName}`;
+      const res = await fetch(
+        `/api/char-hitboxes?gameId=${encodeURIComponent(inspectorState.gameId)}&charName=${encodeURIComponent(inspectorState.charName)}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        const entry = data?.hitboxes?.[fc.moveName];
+        if (
+          entry &&
+          entry.url &&
+          `${inspectorState.gameId}:${inspectorState.charName}:${inspectorState.moveName}` === targetKey
+        ) {
+          inspectorState.realHitboxUrl =
+            entry.localUrl ||
+            (entry.url.startsWith("/") ? entry.url : `/api/hitbox-media?url=${encodeURIComponent(entry.url)}`);
+          inspectorState.realHitboxType = entry.type || "image";
+          inspectorState.realHitboxSource = entry.source || "Wiki Oficial";
+        }
+      }
+    } catch (_) {}
+    inspectorState.fetchingReal = false;
+    if (!modal.classList.contains("hidden")) {
+      const cb = document.getElementById("hbInteractiveCanvas");
+      if (cb) cb.innerHTML = "";
+      renderInspectorFrame();
+    }
+  }
 };
 
 function stopInspectorPlayback() {
@@ -241,6 +275,8 @@ function stopInspectorPlayback() {
     clearInterval(inspectorState.timer);
     inspectorState.timer = null;
   }
+  const vid = document.getElementById("hbRealVideoEl");
+  if (vid && !vid.paused) vid.pause();
   const playBtn = document.getElementById("btnHbPlayPause");
   if (playBtn) playBtn.textContent = "▶ Reproducir Animación";
 }
@@ -268,35 +304,24 @@ function toggleInspectorPlayback() {
 function renderInspectorFrame() {
   const f = inspectorState.currentFrame;
   const {
-    charId,
     charName,
-    gameId,
-    charImgUrl,
-    fallbackSrc,
     activeStart,
     activeEnd,
     totalFrames,
     moveName,
     input,
-    category,
     onBlock
   } = inspectorState;
 
-  let phaseName = "STARTUP (Preparación — Cajas Hurtbox activas, sin Hitbox)";
+  let phaseName = "STARTUP (Preparación antes del impacto)";
   let phaseColor = "#15803d";
-  let isHitboxActive = false;
-  let extendX = 0;
 
   if (f >= activeStart && f <= activeEnd) {
-    phaseName = "VENTANA ACTIVA — ¡CAJAS DE HITBOX ACTIVAS!";
+    phaseName = "VENTANA ACTIVA — ¡FRAMES CON HITBOX ACTIVA!";
     phaseColor = "#e11d48";
-    isHitboxActive = true;
-    extendX = 18;
   } else if (f > activeEnd) {
-    phaseName = "RECUPERACIÓN / END LAG (Hurtbox extendida expuesta a castigo)";
+    phaseName = "RECUPERACIÓN / END LAG (Frames vulnerables)";
     phaseColor = "#6d28d9";
-    isHitboxActive = false;
-    extendX = 8;
   }
 
   const headerTitle = document.getElementById("hbInspectorTitle");
@@ -310,119 +335,76 @@ function renderInspectorFrame() {
     statusBanner.textContent = `FRAME ${f} de ${totalFrames} — ${phaseName}`;
   }
 
-  const rawDesc = `${moveName} ${input} ${category}`.toLowerCase();
-  let activeHitboxesHTML = "";
-  let extHurtTop = "86px";
-  let extHurtHeight = "34px";
-
-  if (rawDesc.includes("low") || rawDesc.includes("sweep") || rawDesc.includes("2mk") || rawDesc.includes("2d") || rawDesc.includes("d+3") || rawDesc.includes("d+4")) {
-    extHurtTop = "142px";
-    extHurtHeight = "28px";
-    activeHitboxesHTML = `
-      <div class="hb-box-hit" style="animation:none;opacity:1;top:134px;left:${172 + extendX}px;width:115px;height:38px;">CAJA HITBOX BAJA (LOW)</div>
-      <div class="hb-box-hit" style="animation:none;opacity:1;top:140px;left:${255 + extendX}px;width:72px;height:30px;"></div>
-    `;
-  } else if (rawDesc.includes("anti-air") || rawDesc.includes("623") || rawDesc.includes("2hp") || rawDesc.includes("2h") || rawDesc.includes("6p") || rawDesc.includes("up ") || rawDesc.includes("d+2") || rawDesc.includes("df+2") || rawDesc.includes("uf+4")) {
-    extHurtTop = "38px";
-    extHurtHeight = "64px";
-    activeHitboxesHTML = `
-      <div class="hb-box-hit" style="animation:none;opacity:1;top:24px;left:${158 + extendX}px;width:96px;height:82px;">CAJA HITBOX ANTIAÉREA</div>
-      <div class="hb-box-hit" style="animation:none;opacity:1;top:64px;left:${142 + extendX}px;width:78px;height:56px;"></div>
-    `;
-  } else if (rawDesc.includes("throw") || rawDesc.includes("grab") || rawDesc.includes("lp+lk") || rawDesc.includes("1+3")) {
-    activeHitboxesHTML = `
-      <div class="hb-box-hit hb-box-throw" style="animation:none;opacity:1;top:58px;left:${156 + extendX}px;width:92px;height:84px;">CAJA DE AGARRE (THROW)</div>
-    `;
-  } else {
-    activeHitboxesHTML = `
-      <div class="hb-box-hit" style="animation:none;opacity:1;top:68px;left:${168 + extendX}px;width:114px;height:54px;">CAJA HITBOX ACTIVA (F${f})</div>
-      <div class="hb-box-hit" style="animation:none;opacity:1;top:76px;left:${246 + extendX}px;width:76px;height:42px;"></div>
-    `;
-  }
-
-  const safeCharName = String(charName || "").replace(/'/g, "\\'");
-  const safeFallback = String(fallbackSrc || "").replace(/'/g, "\\'");
-
   const canvasBox = document.getElementById("hbInteractiveCanvas");
   if (canvasBox) {
+    const cursorPct = `${((f - 0.5) / totalFrames) * 100}%`;
+
     if (inspectorState.realHitboxUrl) {
-      const mediaTag =
-        inspectorState.realHitboxType === "video"
-          ? `<video src="${inspectorState.realHitboxUrl}" autoplay loop muted playsinline style="width:100%;height:190px;object-fit:contain;background:#3a3a3a;border-radius:6px;display:block;"></video>`
-          : `<img src="${inspectorState.realHitboxUrl}" alt="Hitbox de ${moveName}" style="width:100%;height:190px;object-fit:contain;background:#3a3a3a;border-radius:6px;display:block;" />`;
+      const existingStage = canvasBox.querySelector("[data-hb-src]");
+      if (!existingStage || existingStage.getAttribute("data-hb-src") !== inspectorState.realHitboxUrl) {
+        const mediaTag =
+          inspectorState.realHitboxType === "video"
+            ? `<video id="hbRealVideoEl" src="${inspectorState.realHitboxUrl}" loop muted playsinline preload="auto" style="width:100%;height:210px;object-fit:contain;background:#262626;border-radius:6px;display:block;"></video>`
+            : `<img id="hbRealImgEl" src="${inspectorState.realHitboxUrl}" alt="Frame real de ${moveName}" style="width:100%;height:210px;object-fit:contain;background:#262626;border-radius:6px;display:block;" />`;
 
-      canvasBox.innerHTML = `
-        <div class="hb-char-stage" style="height:245px;background:#3a3a3a;padding:8px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;font-family:var(--font-mono);font-size:0.72rem;color:#fff;margin-bottom:6px;">
-            <span><strong>${charName}</strong> • ${moveName} (${input})</span>
-            <span style="color:#fbbf24;">Fuente: ${inspectorState.realHitboxSource || "Wiki Oficial"}</span>
+        canvasBox.innerHTML = `
+          <div class="hb-char-stage" data-hb-src="${inspectorState.realHitboxUrl}" style="height:265px;background:#262626;padding:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;font-family:var(--font-mono);font-size:0.72rem;color:#fff;margin-bottom:6px;">
+              <span id="hbStageFrameLabel"><strong>${charName}</strong> • ${moveName} (${input}) — F${f}/${totalFrames}</span>
+              <span style="color:#fbbf24;">Fuente real: ${inspectorState.realHitboxSource || "Wiki Oficial"}</span>
+            </div>
+            ${mediaTag}
+            <div style="position:absolute;bottom:8px;left:14px;right:14px;height:14px;background:#07090f;border-radius:6px;overflow:hidden;display:flex;border:1px solid rgba(255,255,255,0.14);z-index:6;">
+              <div style="width:${((activeStart - 1) / totalFrames) * 100}%;background:#15803d;" title="Startup"></div>
+              <div style="width:${((activeEnd - activeStart + 1) / totalFrames) * 100}%;background:#e11d48;" title="Hitbox Activa"></div>
+              <div style="width:${((totalFrames - activeEnd) / totalFrames) * 100}%;background:#6d28d9;" title="Recovery"></div>
+            </div>
+            <div id="hbCursorEl" style="position:absolute;bottom:6px;left:calc(14px + (100% - 28px) * ${(f - 0.5) / totalFrames});width:6px;height:18px;background:#fbbf24;border-radius:3px;transform:translateX(-50%);z-index:7;"></div>
           </div>
-          ${mediaTag}
-          <div style="position:absolute;bottom:8px;left:14px;right:14px;height:14px;background:#07090f;border-radius:6px;overflow:hidden;display:flex;border:1px solid rgba(255,255,255,0.14);z-index:6;">
-            <div style="width:${((activeStart - 1) / totalFrames) * 100}%;background:#15803d;" title="Startup"></div>
-            <div style="width:${((activeEnd - activeStart + 1) / totalFrames) * 100}%;background:#e11d48;" title="Hitbox Activa"></div>
-            <div style="width:${((totalFrames - activeEnd) / totalFrames) * 100}%;background:#6d28d9;" title="Recovery"></div>
-          </div>
-          <div style="position:absolute;bottom:6px;left:calc(14px + (100% - 28px) * ${(f - 0.5) / totalFrames});width:6px;height:18px;background:#fbbf24;border-radius:3px;transform:translateX(-50%);z-index:7;"></div>
-        </div>
-      `;
+        `;
+      } else {
+        const lbl = document.getElementById("hbStageFrameLabel");
+        if (lbl) lbl.innerHTML = `<strong>${charName}</strong> • ${moveName} (${input}) — F${f}/${totalFrames}`;
+        const cur = document.getElementById("hbCursorEl");
+        if (cur) cur.style.left = `calc(14px + (100% - 28px) * ${cursorPct})`;
+      }
+
+      const vidEl = document.getElementById("hbRealVideoEl");
+      if (vidEl && inspectorState.realHitboxType === "video") {
+        if (inspectorState.playing) {
+          if (vidEl.paused) vidEl.play().catch(() => {});
+        } else {
+          if (!vidEl.paused) vidEl.pause();
+          const targetSec = Math.max(0, (f - 1) / 60);
+          if (vidEl.readyState >= 1) {
+            vidEl.currentTime = vidEl.duration ? Math.min(vidEl.duration, targetSec) : targetSec;
+          }
+        }
+      }
     } else {
+      const noticeText = inspectorState.fetchingReal
+        ? "⏳ Buscando captura/animación real del juego en wikis oficiales y carpeta local..."
+        : `📊 Frame Meter exacto (Frame ${f}/${totalFrames}). Las wikis públicas de este título no disponen de archivo de hitbox frame-a-frame para "${moveName}".`;
+
       canvasBox.innerHTML = `
-        <div class="hb-char-stage" style="height:230px;">
-          <div class="hb-stage-hud" style="font-size:0.72rem;padding:4px 10px;">
-            <span><strong>${charName}</strong> • ${moveName} (${input}) — Frame ${f}/${totalFrames}</span>
-            <span class="hb-legend-dots">
-              <span class="hb-dot-hurt">■ Hurtbox (Cuerpo)</span>
-              <span style="color:#facc15;font-weight:700;">■ Pushbox</span>
-              <span class="hb-dot-hit">■ Hitbox (Ataque)</span>
-            </span>
+        <div class="hb-char-stage" style="height:210px;background:#18191c;padding:16px;display:flex;flex-direction:column;justify-content:space-between;">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-family:var(--font-mono);font-size:0.75rem;color:#fff;">
+            <span><strong>${charName}</strong> • ${moveName} (${input})</span>
+            <span style="color:#f59e0b;">Frame ${f} / ${totalFrames}</span>
           </div>
 
-          <div style="position:absolute;bottom:34px;left:${48 + extendX}px;width:124px;height:152px;z-index:2;transition:left 0.08s;">
-            <img
-              class="hb-char-actor"
-              data-charimg="${charId}"
-              src="${charImgUrl}"
-              alt="${charName}"
-              referrerpolicy="no-referrer"
-              onload="window.handlePortraitLoad(this)"
-              onerror="window.handlePortraitError(this, '${gameId}', '${charId}', '${safeCharName}', '${safeFallback}')"
-            />
+          <div style="background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:14px 16px;font-family:var(--font-mono);font-size:0.78rem;color:#cbd5e1;line-height:1.5;">
+            ${noticeText}
           </div>
 
-          <div class="hb-box-hurt" style="bottom:34px;left:${54 + extendX}px;width:110px;height:146px;">
-            <span style="position:absolute;top:3px;left:5px;font-family:var(--font-mono);font-size:0.62rem;color:#4ade80;font-weight:700;">HURTBOX</span>
+          <div style="position:relative;height:28px;display:flex;align-items:center;">
+            <div style="width:100%;height:16px;background:#07090f;border-radius:6px;overflow:hidden;display:flex;border:1px solid rgba(255,255,255,0.14);">
+              <div style="width:${((activeStart - 1) / totalFrames) * 100}%;background:#15803d;" title="Startup"></div>
+              <div style="width:${((activeEnd - activeStart + 1) / totalFrames) * 100}%;background:#e11d48;" title="Hitbox Activa"></div>
+              <div style="width:${((totalFrames - activeEnd) / totalFrames) * 100}%;background:#6d28d9;" title="Recovery"></div>
+            </div>
+            <div style="position:absolute;top:3px;left:calc(${cursorPct});width:6px;height:22px;background:#fbbf24;border-radius:3px;transform:translateX(-50%);box-shadow:0 0 8px #fbbf24;"></div>
           </div>
-          <div class="hb-box-push" style="bottom:40px;left:${72 + extendX}px;width:74px;height:112px;"></div>
-
-          ${
-            f >= activeStart
-              ? `<div class="hb-box-hurt" style="top:${extHurtTop};left:${142 + extendX}px;width:68px;height:${extHurtHeight};"></div>`
-              : ""
-          }
-
-          ${
-            isHitboxActive
-              ? activeHitboxesHTML
-              : `
-              <div style="position:absolute;top:92px;left:210px;right:18px;font-family:var(--font-mono);font-size:0.78rem;color:#94a3b8;background:rgba(7,9,15,0.78);padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);">
-                ${
-                  f < activeStart
-                    ? `⏳ Fase Startup: faltan <strong>${activeStart - f} frame(s)</strong> para que aparezca la caja de Hitbox.`
-                    : `🛡️ Fase Recuperación: la caja de Hitbox se cerró hace <strong>${f - activeEnd} frame(s)</strong>; la Hurtbox de ${charName} sigue expuesta.`
-                }
-              </div>
-            `
-          }
-
-          <div class="hb-stage-floor" style="bottom:32px;"></div>
-
-          <div style="position:absolute;bottom:8px;left:14px;right:14px;height:14px;background:#07090f;border-radius:6px;overflow:hidden;display:flex;border:1px solid rgba(255,255,255,0.14);z-index:6;">
-            <div style="width:${((activeStart - 1) / totalFrames) * 100}%;background:#15803d;" title="Startup"></div>
-            <div style="width:${((activeEnd - activeStart + 1) / totalFrames) * 100}%;background:#e11d48;" title="Hitbox Activa"></div>
-            <div style="width:${((totalFrames - activeEnd) / totalFrames) * 100}%;background:#6d28d9;" title="Recovery"></div>
-          </div>
-          <div style="position:absolute;bottom:6px;left:calc(14px + (100% - 28px) * ${(f - 0.5) / totalFrames});width:6px;height:18px;background:#fbbf24;border-radius:3px;transform:translateX(-50%);z-index:7;box-shadow:0 0 8px #fbbf24;"></div>
         </div>
       `;
     }

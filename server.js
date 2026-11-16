@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const fs = require("fs");
 const path = require("path");
 const store = require("./src/db/store");
 const telegramBot = require("./src/bot/telegramBot");
@@ -19,6 +20,12 @@ const activeAdminSessions = new Set();
 
 app.use(cors());
 app.use(express.json());
+app.use(
+  "/animaciones-personajes",
+  express.static(path.join(__dirname, "animaciones-personajes"), {
+    maxAge: "7d"
+  })
+);
 app.use(
   express.static(path.join(__dirname, "public"), {
     etag: false,
@@ -319,6 +326,17 @@ app.get("/api/hitbox-media", async (req, res) => {
     if (!allowedHosts.includes(parsed.hostname)) {
       return res.status(403).send("Host no permitido");
     }
+
+    const baseName = path.basename(decodeURIComponent(parsed.pathname)).replace(/[^a-zA-Z0-9._-]/g, "_") || "media.bin";
+    const safeHost = parsed.hostname.replace(/[^a-zA-Z0-9.-]/g, "_");
+    const cacheDir = path.join(__dirname, "animaciones-personajes", "_cache", safeHost);
+    const cacheFile = path.join(cacheDir, baseName);
+
+    if (fs.existsSync(cacheFile)) {
+      res.setHeader("Cache-Control", "public, max-age=604800");
+      return res.sendFile(cacheFile);
+    }
+
     const extRes = await fetch(targetUrl, {
       headers: {
         "User-Agent":
@@ -331,8 +349,14 @@ app.get("/api/hitbox-media", async (req, res) => {
     }
     const contentType = extRes.headers.get("content-type") || "image/gif";
     const buf = Buffer.from(await extRes.arrayBuffer());
+
+    try {
+      fs.mkdirSync(cacheDir, { recursive: true });
+      fs.writeFileSync(cacheFile, buf);
+    } catch (_) {}
+
     res.setHeader("Content-Type", contentType);
-    res.setHeader("Cache-Control", "public, max-age=86400");
+    res.setHeader("Cache-Control", "public, max-age=604800");
     return res.send(buf);
   } catch (_) {
     return res.status(400).send("URL inválida");
