@@ -204,7 +204,7 @@ window.openHitboxInspector = function (fcEncoded) {
     "";
   inspectorState.fallbackSrc = fc.fallbackSrc || inspectorState.charImgUrl;
   inspectorState.moveName = fc.moveName;
-  inspectorState.input = fc.input;
+  inspectorState.input = fc.translatedInput || fc.input;
   inspectorState.category = fc.category || "";
   inspectorState.startupNum = nums.startupNum;
   inspectorState.activeStart = nums.activeStart;
@@ -531,12 +531,17 @@ window.initPunishCalculator = function () {
     if (!oppChar) return;
 
     const moves = oppChar.frameDataCards || [];
+    const tr = (txt) =>
+      typeof window.translateNotation === "function"
+        ? window.translateNotation(txt, game.sagaId, state.notationMode)
+        : txt;
+
     oppMoveSel.innerHTML =
       `<option value="all">Ver todos los ataques de ${oppChar.name}</option>` +
       moves
         .map(
           (m, idx) =>
-            `<option value="${idx}">${m.moveName} (${m.input}) — [${m.onBlock}]</option>`
+            `<option value="${idx}">${m.moveName} (${tr(m.input)}) — [${m.onBlock}]</option>`
         )
         .join("");
 
@@ -563,14 +568,20 @@ window.initPunishCalculator = function () {
         ? oppMovesAll
         : [oppMovesAll[Number(oppMoveSel.value)]].filter(Boolean);
 
+    const tr = (txt) =>
+      typeof window.translateNotation === "function"
+        ? window.translateNotation(txt, game.sagaId, state.notationMode)
+        : txt;
+
     outEl.innerHTML = targetMoves
       .map((oppMove) => {
         const obVal = extractOnBlockNumber(oppMove.onBlock);
+        const oppInputTr = tr(oppMove.input);
 
         if (obVal === null) {
           return `
             <div class="guide-section-item" style="border-left:4px solid #a855f7;">
-              <h4>${oppChar.name}: ${oppMove.moveName} (<code>${oppMove.input}</code>) — ${oppMove.onBlock}</h4>
+              <h4>${oppChar.name}: ${oppMove.moveName} (<code>${oppInputTr}</code>) — ${oppMove.onBlock}</h4>
               <p>Este movimiento es un agarre o propiedad especial imbloqueable: debes esquivarlo saltando, agachándote o haciendo Tech de agarre.</p>
             </div>
           `;
@@ -579,7 +590,7 @@ window.initPunishCalculator = function () {
         if (obVal >= 0) {
           return `
             <div class="guide-section-item" style="border-left:4px solid #ef4444;">
-              <h4>${oppChar.name}: ${oppMove.moveName} (<code>${oppMove.input}</code>) — <span style="color:#f87171;">+${obVal} en Bloqueo</span></h4>
+              <h4>${oppChar.name}: ${oppMove.moveName} (<code>${oppInputTr}</code>) — <span style="color:#f87171;">+${obVal} en Bloqueo</span></h4>
               <p><strong>¡Cuidado!</strong> ${oppChar.name} queda con ventaja de +${obVal} frames si bloqueas este ataque. No pulses botones normales o te hará Counter Hit; mantén el bloqueo o usa un Parry / Reversal invencible.</p>
             </div>
           `;
@@ -593,8 +604,8 @@ window.initPunishCalculator = function () {
         if (guaranteedPunishes.length === 0) {
           return `
             <div class="guide-section-item" style="border-left:4px solid #f59e0b;">
-              <h4>${oppChar.name}: ${oppMove.moveName} (<code>${oppMove.input}</code>) — <span style="color:#fbbf24;">${obVal} en Bloqueo (Seguro)</span></h4>
-              <p>Es seguro en bloqueo (${obVal}f), pero <strong>${oppChar.name} pierde su turno</strong>. Responde inmediatamente con tu golpe rápido de ${myChar.name} (<code>${myMoves[0]?.input || "Jab"}</code> de ${myMoves[0]?.startVal || 7}f) para tomar la iniciativa.</p>
+              <h4>${oppChar.name}: ${oppMove.moveName} (<code>${oppInputTr}</code>) — <span style="color:#fbbf24;">${obVal} en Bloqueo (Seguro)</span></h4>
+              <p>Es seguro en bloqueo (${obVal}f), pero <strong>${oppChar.name} pierde su turno</strong>. Responde inmediatamente con tu golpe rápido de ${myChar.name} (<code>${tr(myMoves[0]?.input || "Jab")}</code> de ${myMoves[0]?.startVal || 7}f) para tomar la iniciativa.</p>
             </div>
           `;
         }
@@ -602,7 +613,7 @@ window.initPunishCalculator = function () {
         return `
           <div class="guide-section-item" style="border-left:4px solid #10b981;">
             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
-              <h4>${oppChar.name}: ${oppMove.moveName} (<code>${oppMove.input}</code>) — <span style="color:#34d399;">${obVal} en Bloqueo (¡CASTIGABLE!)</span></h4>
+              <h4>${oppChar.name}: ${oppMove.moveName} (<code>${oppInputTr}</code>) — <span style="color:#34d399;">${obVal} en Bloqueo (¡CASTIGABLE!)</span></h4>
               <span class="base-game-badge">${guaranteedPunishes.length} castigos garantizados con ${myChar.name}</span>
             </div>
             <p style="margin-bottom:8px;font-size:0.84rem;color:#cbd5e1;">
@@ -614,7 +625,7 @@ window.initPunishCalculator = function () {
                 .map(
                   (pm) => `
                   <span class="code-input-pill" style="background:rgba(16,185,129,0.16);color:#6ee7b7;border:1px solid rgba(16,185,129,0.4);">
-                    ${pm.moveName} (${pm.input}) • Inicio ${pm.startVal}f (Margen: ${disadvantage - pm.startVal}f)
+                    ${pm.moveName} (${tr(pm.input)}) • Inicio ${pm.startVal}f (Margen: ${disadvantage - pm.startVal}f)
                   </span>
                 `
                 )

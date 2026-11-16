@@ -298,71 +298,136 @@ async function hydrateBrowserPortraits(game) {
 }
 
 // =========================================================================
-// TRADUCTOR INTERACTIVO DE NOTACIÓN DE LUCHA
+// TRADUCTOR COMPLETO DE NOTACIÓN DE COMANDOS (TÉCNICA / PS / XBOX / SWITCH)
 // =========================================================================
 function translateNotation(text, sagaId, mode) {
   if (!text || mode === "technical") return text;
 
-  const isPS = mode === "ps";
-  let out = text;
+  let out = String(text);
 
+  // 1. Movimientos direccionales universales (QCF, QCB, DP, Half Circle, Supers)
   out = out
     .replace(/\b236236/g, "↓↘→↓↘→")
     .replace(/\b214214/g, "↓↙←↓↙←")
+    .replace(/\b632146/g, "→↘↓↙←→")
+    .replace(/\b41236/g, "←↙↓↘→")
     .replace(/\b236/g, "↓↘→")
     .replace(/\b214/g, "↓↙←")
     .replace(/\b623/g, "→↓↘");
 
+  // 2. Direcciones en juegos de letras/números (MK1 y Tekken)
   if (sagaId === "mortal-kombat" || sagaId === "tekken") {
-    const map = isPS
-      ? { "1+2": "▢+△", "3+4": "✕+○", "1+3": "▢+✕", "1": "▢", "2": "△", "3": "✕", "4": "○" }
-      : { "1+2": "X+Y", "3+4": "A+B", "1+3": "X+A", "1": "X", "2": "Y", "3": "A", "4": "B" };
+    out = out
+      .replace(/\bf,n,d,df\+/gi, "→ ★ ↓ ↘+")
+      .replace(/\bf,f,F\+/g, "→→→+")
+      .replace(/\bdf\+/gi, "↘+")
+      .replace(/\bdb\+/gi, "↙+")
+      .replace(/\buf\+/gi, "↗+")
+      .replace(/\bub\+/gi, "↖+")
+      .replace(/\bbf\+/gi, "←→+")
+      .replace(/\bbd\+/gi, "←↓+")
+      .replace(/\bff\+/gi, "→→+")
+      .replace(/\bws\+/gi, "Al levantarse+")
+      .replace(/\bwr\+/gi, "Corriendo+")
+      .replace(/\bcd\+/gi, "Crouch Dash+")
+      .replace(/\bf\+/gi, "→+")
+      .replace(/\bb\+/gi, "←+")
+      .replace(/\bd\+/gi, "↓+")
+      .replace(/\bu\+/gi, "↑+")
+      .replace(/\bj\./gi, "Salto ");
+
+    const map =
+      mode === "ps"
+        ? { "1+2": "▢+△", "3+4": "✕+○", "1+3": "▢+✕", "2+3": "△+✕", "1+4": "▢+○", "1": "▢", "2": "△", "3": "✕", "4": "○", "EX": "EX (R2)" }
+        : mode === "switch"
+        ? { "1+2": "Y+X", "3+4": "B+A", "1+3": "Y+B", "2+3": "X+B", "1+4": "Y+A", "1": "Y", "2": "X", "3": "B", "4": "A", "EX": "EX (ZR)" }
+        : { "1+2": "X+Y", "3+4": "A+B", "1+3": "X+A", "2+3": "Y+A", "1+4": "X+B", "1": "X", "2": "Y", "3": "A", "4": "B", "EX": "EX (RT)" };
 
     out = out
       .replace(/1\+2/g, map["1+2"])
       .replace(/3\+4/g, map["3+4"])
       .replace(/1\+3/g, map["1+3"])
+      .replace(/2\+3/g, map["2+3"])
+      .replace(/1\+4/g, map["1+4"])
+      .replace(/\bEX\b/g, map["EX"])
       .replace(/\b1\b/g, map["1"])
       .replace(/\b2\b/g, map["2"])
       .replace(/\b3\b/g, map["3"])
       .replace(/\b4\b/g, map["4"]);
   } else if (sagaId === "street-fighter") {
-    const map = isPS
-      ? { LP: "▢", MP: "△", HP: "R1", LK: "✕", MK: "○", HK: "R2" }
-      : { LP: "X", MP: "Y", HP: "RB", LK: "A", MK: "B", HK: "RT" };
-    Object.keys(map).forEach((k) => {
-      out = out.replace(new RegExp(k, "g"), map[k]);
-    });
+    const map =
+      mode === "ps"
+        ? { LP: "▢", MP: "△", HP: "R1", LK: "✕", MK: "○", HK: "R2", PP: "2 Puños (L1)", KK: "2 Patadas (L2)" }
+        : mode === "switch"
+        ? { LP: "Y", MP: "X", HP: "R", LK: "B", MK: "A", HK: "ZR", PP: "2 Puños (L)", KK: "2 Patadas (ZL)" }
+        : { LP: "X", MP: "Y", HP: "RB", LK: "A", MK: "B", HK: "RT", PP: "2 Puños (LB)", KK: "2 Patadas (LT)" };
+
+    out = out
+      .replace(/\bj\./gi, "Salto ")
+      .replace(/\b5(LP|MP|HP|LK|MK|HK)\b/g, (_, b) => map[b])
+      .replace(/\b2(LP|MP|HP|LK|MK|HK)\b/g, (_, b) => `↓${map[b]}`)
+      .replace(/\b6(LP|MP|HP|LK|MK|HK)\b/g, (_, b) => `→${map[b]}`)
+      .replace(/\b4(LP|MP|HP|LK|MK|HK)\b/g, (_, b) => `←${map[b]}`)
+      .replace(/\b(PP|KK|LP|MP|HP|LK|MK|HK)\b/g, (m) => map[m] || m);
   } else if (sagaId === "dragon-ball-fighterz") {
-    const map = isPS
-      ? { L: "▢", M: "△", H: "○", S: "✕" }
-      : { L: "X", M: "Y", H: "B", S: "A" };
+    const map =
+      mode === "ps"
+        ? { L: "▢", M: "△", H: "○", S: "✕" }
+        : mode === "switch"
+        ? { L: "Y", M: "X", H: "A", S: "B" }
+        : { L: "X", M: "Y", H: "B", S: "A" };
+
     out = out
-      .replace(/\b2L\b/g, `↓${map.L}`)
-      .replace(/\b5L\b/g, map.L)
-      .replace(/\b2M\b/g, `↓${map.M}`)
-      .replace(/\b5M\b/g, map.M)
-      .replace(/\b2H\b/g, `↓${map.H}`)
-      .replace(/\b5H\b/g, map.H);
+      .replace(/\bj\./gi, "Salto ")
+      .replace(/\b5(L|M|H|S)\b/g, (_, b) => map[b])
+      .replace(/\b2(L|M|H|S)\b/g, (_, b) => `↓${map[b]}`)
+      .replace(/\b6(L|M|H|S)\b/g, (_, b) => `→${map[b]}`)
+      .replace(/\b4(L|M|H|S)\b/g, (_, b) => `←${map[b]}`)
+      .replace(/\bMLL\b/g, `${map.M}→${map.L}→${map.L}`)
+      .replace(/\bLLL\b/g, `${map.L}→${map.L}→${map.L}`)
+      .replace(/\bLL\b/g, `${map.L}→${map.L}`)
+      .replace(/\b(L|M|H|S)\b/g, (m) => map[m] || m);
   } else if (sagaId === "guilty-gear") {
-    const map = isPS
-      ? { P: "▢", K: "✕", S: "△", HS: "○", D: "R1" }
-      : { P: "X", K: "A", S: "Y", HS: "B", D: "RB" };
+    const map =
+      mode === "ps"
+        ? { P: "▢", K: "✕", S: "△", HS: "○", D: "R1" }
+        : mode === "switch"
+        ? { P: "Y", K: "B", S: "X", HS: "A", D: "R" }
+        : { P: "X", K: "A", S: "Y", HS: "B", D: "RB" };
+
     out = out
-      .replace(/\bHS\b/g, map.HS)
-      .replace(/\b2HS\b/g, `↓${map.HS}`)
-      .replace(/\b5HS\b/g, map.HS)
-      .replace(/\b6HS\b/g, `→${map.HS}`)
-      .replace(/\bc\.S\b/g, `Cerca-${map.S}`)
-      .replace(/\bf\.S\b/g, `Lejos-${map.S}`)
-      .replace(/\b2S\b/g, `↓${map.S}`)
-      .replace(/\b2K\b/g, `↓${map.K}`)
-      .replace(/\b5K\b/g, map.K)
-      .replace(/\b2D\b/g, `↓${map.D}`);
+      .replace(/\bj\./gi, "Salto ")
+      .replace(/\bc\.S\b/g, `Cerca ${map.S}`)
+      .replace(/\bf\.S\b/g, `Lejos ${map.S}`)
+      .replace(/\b5(HS|P|K|S|D)\b/g, (_, b) => map[b])
+      .replace(/\b2(HS|P|K|S|D)\b/g, (_, b) => `↓${map[b]}`)
+      .replace(/\b6(HS|P|K|S|D)\b/g, (_, b) => `→${map[b]}`)
+      .replace(/\b4(HS|P|K|S|D)\b/g, (_, b) => `←${map[b]}`)
+      .replace(/\b(HS|P|K|S|D)\b/g, (m) => map[m] || m);
+  } else if (sagaId === "super-smash-bros") {
+    const map =
+      mode === "ps"
+        ? { A: "✕", B: "▢", Grab: "L1 / R1" }
+        : mode === "xbox"
+        ? { A: "A", B: "X", Grab: "LB / RB" }
+        : { A: "A (Ataque)", B: "B (Especial)", Grab: "L / R / Z" };
+
+    out = out
+      .replace(/\bNeutral A\b/gi, map.A)
+      .replace(/\bAdelante \+ A\b/gi, `→ + ${map.A}`)
+      .replace(/\bArriba \+ A\b/gi, `↑ + ${map.A}`)
+      .replace(/\bAbajo \+ A\b/gi, `↓ + ${map.A}`)
+      .replace(/\bCorrer \+ A\b/gi, `Correr + ${map.A}`)
+      .replace(/\bAdelante \+ B\b/gi, `→ + ${map.B}`)
+      .replace(/\bArriba \+ B\b/gi, `↑ + ${map.B}`)
+      .replace(/\bAbajo \+ B\b/gi, `↓ + ${map.B}`)
+      .replace(/\bZ \/ R\+A\b/gi, map.Grab)
+      .replace(/\bB\b/g, map.B);
   }
 
   return out;
 }
+window.translateNotation = translateNotation;
 
 function getGameCoverBackground(game) {
   if (game.coverImage) {
@@ -1027,10 +1092,17 @@ function renderGameDetailView(gameId) {
     }
   });
 
+  const activeLegend = saga ? translateNotation(saga.notationLegend, game.sagaId, state.notationMode) : "";
   document.getElementById("gameNotationBanner").innerHTML = `
-    <strong>Notación (${saga ? saga.name : game.title}):</strong> ${
-    saga ? saga.notationLegend : ""
-  }
+    <strong>Notación (${
+      state.notationMode === "technical"
+        ? "Técnica FGC"
+        : state.notationMode === "ps"
+        ? "PlayStation"
+        : state.notationMode === "xbox"
+        ? "Xbox / PC"
+        : "Nintendo Switch"
+    }):</strong> ${activeLegend}
   `;
 
   const q = state.inGameSearchQuery.trim().toLowerCase();
@@ -1303,10 +1375,12 @@ function buildCharacterHitboxStageHTML(game, ch, fc) {
     `;
   }
 
+  const translatedInput = translateNotation(fc.input, game.sagaId, state.notationMode);
+
   return `
     <div class="hb-char-stage">
       <div class="hb-stage-hud">
-        <span>${ch.name} • ${fc.input} (${actWindow}f)</span>
+        <span>${ch.name} • ${translatedInput} (${actWindow}f)</span>
         <span class="hb-legend-dots">
           <span class="hb-dot-hurt">■ Hurtbox</span>
           <span class="hb-dot-hit">■ Hitbox</span>
@@ -1377,6 +1451,7 @@ function openCharacterModal(gameId, charId) {
             .map((fc) => {
               const inspectorPayload = {
                 ...fc,
+                translatedInput: translateNotation(fc.input, game.sagaId, state.notationMode),
                 charId: ch.id,
                 charName: ch.name,
                 gameId: game.id,
@@ -1587,7 +1662,9 @@ function openCharacterModal(gameId, charId) {
                   ? "Notación Técnica"
                   : state.notationMode === "ps"
                   ? "PlayStation (▢ △ ✕ ○)"
-                  : "Xbox (X Y A B)"
+                  : state.notationMode === "xbox"
+                  ? "Xbox (X Y A B)"
+                  : "Nintendo Switch (Y X B A)"
               }</strong>
             </span>
           </div>
@@ -1981,8 +2058,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("globalNotationSelect").addEventListener("change", (e) => {
     state.notationMode = e.target.value;
+    if (state.selectedGameId) {
+      renderGameDetailView(state.selectedGameId);
+    }
     if (state.selectedCharacter) {
       openCharacterModal(state.selectedCharacter.gameId, state.selectedCharacter.charId);
+    }
+    if (typeof window.initPunishCalculator === "function") {
+      window.initPunishCalculator();
     }
   });
 
