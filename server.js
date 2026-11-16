@@ -5,6 +5,7 @@ const path = require("path");
 const store = require("./src/db/store");
 const telegramBot = require("./src/bot/telegramBot");
 const { resolveCharacterPortraitUrl } = require("./src/utils/portraitResolver");
+const { resolveCharacterHitboxes } = require("./src/utils/hitboxResolver");
 const { FGC_EVENTS, CURATED_FGC_NEWS, getFgcNews } = require("./src/data/fgcNews");
 
 const app = express();
@@ -258,6 +259,47 @@ app.get("/api/hitbox-anim", (req, res) => {
   res.setHeader("Content-Type", "image/svg+xml");
   res.setHeader("Cache-Control", "public, max-age=86400");
   res.send(svg);
+});
+
+// =========================================================================
+// RESOLUTOR DE HITBOXES REALES DESDE ULTIMATEFRAMEDATA, DUSTLOOP, SUPERCOMBO Y WAVU
+// =========================================================================
+app.get("/api/char-hitboxes", async (req, res) => {
+  const gameId = String(req.query.gameId || "").trim();
+  const charName = String(req.query.charName || "").trim();
+  if (!gameId || !charName) {
+    return res.json({ hitboxes: {} });
+  }
+  const hitboxes = await resolveCharacterHitboxes(gameId, charName);
+  res.json({ hitboxes });
+});
+
+app.get("/api/hitbox-media", async (req, res) => {
+  const targetUrl = String(req.query.url || "").trim();
+  const allowedHosts = ["ultimateframedata.com", "www.dustloop.com", "wiki.supercombo.gg", "wavu.wiki"];
+  try {
+    const parsed = new URL(targetUrl);
+    if (!allowedHosts.includes(parsed.hostname)) {
+      return res.status(403).send("Host no permitido");
+    }
+    const extRes = await fetch(targetUrl, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        Referer: `${parsed.protocol}//${parsed.hostname}/`
+      }
+    });
+    if (!extRes.ok) {
+      return res.status(extRes.status).send("No disponible");
+    }
+    const contentType = extRes.headers.get("content-type") || "image/gif";
+    const buf = Buffer.from(await extRes.arrayBuffer());
+    res.setHeader("Content-Type", contentType);
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    return res.send(buf);
+  } catch (_) {
+    return res.status(400).send("URL inválida");
+  }
 });
 
 // =========================================================================

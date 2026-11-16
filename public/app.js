@@ -1414,6 +1414,84 @@ function buildCharacterHitboxStageHTML(game, ch, fc) {
   `;
 }
 
+const clientHitboxCache = new Map();
+
+async function hydrateCharacterRealHitboxes(game, ch, modalBody) {
+  if (!game || !ch || !modalBody) return;
+  const cacheKey = `${game.id}:${ch.id}`;
+  let hbMap = clientHitboxCache.get(cacheKey);
+
+  if (!hbMap) {
+    try {
+      const res = await fetch(
+        `/api/char-hitboxes?gameId=${encodeURIComponent(game.id)}&charName=${encodeURIComponent(ch.name)}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        hbMap = data?.hitboxes || {};
+        clientHitboxCache.set(cacheKey, hbMap);
+      }
+    } catch (_) {
+      hbMap = {};
+    }
+  }
+
+  if (!hbMap || Object.keys(hbMap).length === 0) return;
+
+  modalBody.querySelectorAll("[data-hbmove]").forEach((boxEl) => {
+    const moveName = boxEl.dataset.hbmove;
+    const entry = hbMap[moveName];
+    if (!entry || !entry.url) return;
+
+    const proxyUrl = `/api/hitbox-media?url=${encodeURIComponent(entry.url)}`;
+    const mediaWrap = boxEl.querySelector(".ufd-real-hitbox-wrap");
+    if (!mediaWrap) return;
+
+    if (entry.type === "video") {
+      mediaWrap.innerHTML = `
+        <video
+          src="${proxyUrl}"
+          autoplay loop muted playsinline
+          style="width:100%;height:142px;object-fit:contain;background:#3a3a3a;border-radius:4px;display:block;"
+        ></video>
+      `;
+    } else {
+      mediaWrap.innerHTML = `
+        <img
+          src="${proxyUrl}"
+          alt="Hitbox real de ${moveName} (${ch.name})"
+          style="width:100%;height:142px;object-fit:contain;background:#3a3a3a;border-radius:4px;display:block;"
+        />
+      `;
+    }
+
+    const cap = boxEl.querySelector(".ufd-hitbox-caption");
+    if (cap) {
+      cap.textContent = `🔍 Clic para ver frame a frame (${entry.source})`;
+    }
+
+    const fcObj = (ch.frameDataCards || []).find((c) => c.moveName === moveName);
+    if (fcObj) {
+      const updatedPayload = {
+        ...fcObj,
+        translatedInput: translateNotation(fcObj.input, game.sagaId, state.notationMode),
+        charId: ch.id,
+        charName: ch.name,
+        gameId: game.id,
+        charImgUrl: clientPortraitCache.get(ch.id) || ch.iconUrl,
+        fallbackSrc: ch.fallbackIconUrl || ch.iconUrl,
+        realHitboxUrl: proxyUrl,
+        realHitboxType: entry.type,
+        realHitboxSource: entry.source
+      };
+      boxEl.setAttribute(
+        "onclick",
+        `window.openHitboxInspector('${encodeURIComponent(JSON.stringify(updatedPayload))}')`
+      );
+    }
+  });
+}
+
 // =========================================================================
 // MODAL DE GUÍA INDIVIDUAL DE PERSONAJE
 // =========================================================================
@@ -1474,11 +1552,14 @@ function openCharacterModal(gameId, charId) {
                 <div class="ufd-bar ufd-bar-onblock">${fc.onBlock}</div>
                 <div
                   class="ufd-hitbox-box"
+                  data-hbmove="${fc.moveName.replace(/"/g, "&quot;")}"
                   title="Haz clic para abrir el Inspector de Hitbox Frame a Frame con ${ch.name}"
                   onclick="window.openHitboxInspector('${encodeURIComponent(JSON.stringify(inspectorPayload))}')"
                 >
-                  ${buildCharacterHitboxStageHTML(game, ch, fc)}
-                  <div class="ufd-hitbox-caption">🔍 Inspeccionar Hitbox Frame a Frame</div>
+                  <div class="ufd-real-hitbox-wrap" style="width:100%;">
+                    ${buildCharacterHitboxStageHTML(game, ch, fc)}
+                  </div>
+                  <div class="ufd-hitbox-caption">🔍 Clic para ver frame a frame la imagen de hitbox</div>
                 </div>
                 <div class="ufd-card-notes">${fc.notes}</div>
                 <div class="ufd-card-footer">${fc.totalFrames}</div>
@@ -1754,6 +1835,8 @@ function openCharacterModal(gameId, charId) {
     backdrop.classList.add("hidden");
     state.selectedCharacter = null;
   };
+
+  hydrateCharacterRealHitboxes(game, ch, body);
 }
 
 // =========================================================================
