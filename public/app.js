@@ -441,40 +441,59 @@ function renderGameDetailView(gameId) {
 }
 
 function renderDlcGrid(game, dlcChars) {
-  const dlcGrid = document.getElementById("dlcCharactersGrid");
+  const container = document.getElementById("dlcPacksGroupedContainer");
+  if (!container) return;
+
   const filtered =
     state.selectedDlcPackFilter === "all"
       ? dlcChars
       : dlcChars.filter((c) => c.dlcPack === state.selectedDlcPackFilter);
 
-  dlcGrid.innerHTML = filtered.map((ch) => buildCharacterCardHTML(game, ch)).join("");
-  attachCharacterCardEvents(dlcGrid, game.id);
+  const packs = [...new Set(filtered.map((c) => c.dlcPack || "DLC Pack"))];
+
+  if (packs.length === 0) {
+    container.innerHTML = `<p style="color:#94a3b8;font-size:0.86rem;">No se encontraron personajes DLC con ese filtro.</p>`;
+    return;
+  }
+
+  container.innerHTML = packs
+    .map((packName) => {
+      const charsInPack = filtered.filter((c) => (c.dlcPack || "DLC Pack") === packName);
+      return `
+        <div class="dlc-pack-subblock">
+          <div class="dlc-pack-subblock-title">
+            <span>Pack DLC: <strong>${packName}</strong></span>
+            <span class="dlc-pack-badge">${charsInPack.length} personajes</span>
+          </div>
+          <div class="portrait-select-grid">
+            ${charsInPack.map((ch) => buildCharacterCardHTML(game, ch)).join("")}
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+
+  attachCharacterCardEvents(container, game.id);
 }
 
 function buildCharacterCardHTML(game, ch) {
-  const packBadge = ch.isDLC
-    ? `<span class="dlc-pack-badge">DLC • ${ch.dlcPack}</span>`
-    : `<span class="base-game-badge">Juego Base</span>`;
-
   return `
-    <div class="char-card ${ch.isDLC ? "is-dlc" : ""}" data-charid="${ch.id}">
-      <div class="char-top-row">
-        <img class="char-avatar-img" src="${ch.iconUrl}" alt="${ch.name}" loading="lazy" />
-        <div>
-          <div class="char-name">${ch.name}</div>
-          <div class="char-archetype">${ch.archetype}</div>
-        </div>
+    <div
+      class="portrait-tile ${ch.isDLC ? "is-dlc" : ""}"
+      data-charid="${ch.id}"
+      title="${ch.name} — ${ch.archetype} (${ch.isDLC ? ch.dlcPack : "Juego Base"})"
+    >
+      <div class="portrait-img-box">
+        <img src="${ch.iconUrl}" alt="${ch.name}" loading="lazy" />
       </div>
-      <div class="char-badges-row">
-        ${packBadge}
-        <span class="diff-badge">Dif: ${ch.difficulty}</span>
-      </div>
+      <div class="portrait-name">${ch.name}</div>
+      ${ch.isDLC ? `<div class="portrait-pack-sub">${ch.dlcPack}</div>` : ""}
     </div>
   `;
 }
 
 function attachCharacterCardEvents(container, gameId) {
-  container.querySelectorAll(".char-card").forEach((card) => {
+  container.querySelectorAll("[data-charid]").forEach((card) => {
     card.addEventListener("click", () => {
       openCharacterModal(gameId, card.dataset.charid);
     });
@@ -936,13 +955,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".game-tab").forEach((tab) => {
     tab.addEventListener("click", () => {
       document.querySelectorAll(".game-tab").forEach((t) => t.classList.remove("active"));
-      document.querySelectorAll(".game-tab-content").forEach((c) => c.classList.add("hidden"));
       tab.classList.add("active");
-      document.getElementById(tab.dataset.tab).classList.remove("hidden");
-      const rosterControls = document.getElementById("rosterQuickControls");
-      if (rosterControls) {
-        rosterControls.classList.toggle("hidden", tab.dataset.tab !== "tab-roster");
-      }
     });
   });
 

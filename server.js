@@ -4,6 +4,7 @@ const cors = require("cors");
 const path = require("path");
 const store = require("./src/db/store");
 const telegramBot = require("./src/bot/telegramBot");
+const { resolveCharacterPortraitUrl } = require("./src/utils/portraitResolver");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -35,10 +36,33 @@ function hashString(str) {
   return Math.abs(h);
 }
 
-app.get("/api/char-icon", (req, res) => {
+app.get("/api/char-icon", async (req, res) => {
   const name = String(req.query.name || "Fighter");
   const game = String(req.query.game || "fgc");
   const border = String(req.query.border || "f59e0b").replace(/[^a-fA-F0-9]/g, "") || "f59e0b";
+
+  // 1. Intentar obtener el retrato oficial real del personaje (SuperCombo, Dustloop, Wavu, SmashBros, MK)
+  try {
+    const realPortraitUrl = await resolveCharacterPortraitUrl(game, name);
+    if (realPortraitUrl) {
+      const imgRes = await fetch(realPortraitUrl, {
+        headers: {
+          "User-Agent": "FGCVaultEncyclopedia/1.0 (https://fgc-vault.onrender.com)"
+        }
+      });
+      if (imgRes.ok) {
+        const contentType = imgRes.headers.get("content-type") || "image/png";
+        const arrayBuf = await imgRes.arrayBuffer();
+        res.setHeader("Content-Type", contentType);
+        res.setHeader("Cache-Control", "public, max-age=604800");
+        return res.send(Buffer.from(arrayBuf));
+      }
+    }
+  } catch (_) {
+    // Si falla la red externa, cae al retrato SVG de respaldo
+  }
+
+  // 2. Respaldo visual SVG si algún icono externo no responde
   const h = hashString(`${game}:${name}`);
 
   // Paleta de retrato única por personaje

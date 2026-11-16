@@ -97,18 +97,18 @@
       <!-- LEYENDA DE NOTACIÓN DEL JUEGO -->
       <div class="notation-banner" id="gameNotationBanner"></div>
 
-      <!-- BARRA DE NAVEGACIÓN RÁPIDA Y FILTRO DE PERSONAJES DEL JUEGO -->
+      <!-- BARRA DE NAVEGACIÓN EN EL ORDEN SOLICITADO: 1. GUÍA BÁSICA -> 2. GUÍA AVANZADA -> 3. PLANTEL DE PERSONAJES -->
       <div class="game-nav-bar">
         <div class="game-section-tabs">
-          <button class="game-tab active" data-tab="tab-roster">
-            Plantel de Personajes (Base y DLC)
-          </button>
-          <button class="game-tab" data-tab="tab-basic">
+          <a href="#sectionBasicGuide" class="game-tab active" data-scrollto="sectionBasicGuide">
             1. Guía Básica (Conceptos)
-          </button>
-          <button class="game-tab" data-tab="tab-advanced">
+          </a>
+          <a href="#sectionAdvancedGuide" class="game-tab" data-scrollto="sectionAdvancedGuide">
             2. Guía Avanzada (Competitivo)
-          </button>
+          </a>
+          <a href="#sectionCharactersRoster" class="game-tab" data-scrollto="sectionCharactersRoster">
+            3. Plantel de Personajes (Base y DLC)
+          </a>
         </div>
 
         <div class="roster-quick-controls" id="rosterQuickControls">
@@ -123,18 +123,41 @@
         </div>
       </div>
 
-      <!-- SECCIÓN A: ROSTER DE PERSONAJES (JUEGO BASE vs DLC SEPARADOS POR PACK) -->
-      <div id="tab-roster" class="game-tab-content">
+      <!-- 1. PRIMERO: GUÍA BÁSICA (VÍDEO + TEXTO) -->
+      <div id="sectionBasicGuide" class="game-flow-section">
+        <div class="section-heading-bar">
+          <h2>1. Guía Básica — Conceptos Fundamentales</h2>
+          <span>Vídeo explicativo + Guía en texto</span>
+        </div>
+        <div class="guide-split-layout" id="basicGuideContainer"></div>
+      </div>
+
+      <!-- 2. SEGUNDO: GUÍA AVANZADA (VÍDEO + TEXTO) -->
+      <div id="sectionAdvancedGuide" class="game-flow-section">
+        <div class="section-heading-bar">
+          <h2>2. Guía Avanzada — Frame Data yJuego Competitivo</h2>
+          <span>Mecánicas avanzadas en vídeo y texto</span>
+        </div>
+        <div class="guide-split-layout" id="advancedGuideContainer"></div>
+      </div>
+
+      <!-- 3. POR ÚLTIMO: PLANTEL DE PERSONAJES (MOSAICO DE ICONOS BASE vs DLC POR PACK) -->
+      <div id="sectionCharactersRoster" class="game-flow-section">
+        <div class="section-heading-bar">
+          <h2>3. Plantel de Personajes — Guías Individuales</h2>
+          <span>Haz clic en el icono de cualquier personaje para abrir su guía en vídeo y texto</span>
+        </div>
+
         <!-- BLOQUE 1: PLANTEL DEL JUEGO BASE -->
         <div class="roster-block" id="baseSectionAnchor">
           <div class="roster-block-header base-header">
             <div>
-              <h3>Plantel del Juego Base</h3>
-              <p>Personajes incluidos de serie con el juego estándar.</p>
+              <h3>Personajes del Juego Base</h3>
+              <p>Incluidos de serie con el lanzamiento del juego.</p>
             </div>
             <span class="roster-count-pill" id="baseRosterCountPill">0 personajes</span>
           </div>
-          <div class="characters-grid" id="baseCharactersGrid"></div>
+          <div class="portrait-select-grid" id="baseCharactersGrid"></div>
         </div>
 
         <!-- BLOQUE 2: PERSONAJES DLC (SEPARADOS Y ETIQUETADOS POR PACK) -->
@@ -142,27 +165,17 @@
           <div class="roster-block-header dlc-header">
             <div>
               <h3>Personajes DLC de Pago (Separados por Pack / Fighter Pass)</h3>
-              <p>Luchadores adicionales identificados según su expansión o Season Pass correspondiente.</p>
+              <p>Luchadores adicionales identificados según el Pack o Season Pass al que pertenecen.</p>
             </div>
             <div class="dlc-filter-wrap">
-              <label for="dlcPackFilterSelect">Pack DLC:</label>
+              <label for="dlcPackFilterSelect">Filtrar por Pack:</label>
               <select id="dlcPackFilterSelect">
                 <option value="all">Todos los Packs DLC</option>
               </select>
             </div>
           </div>
-          <div class="characters-grid" id="dlcCharactersGrid"></div>
+          <div id="dlcPacksGroupedContainer"></div>
         </div>
-      </div>
-
-      <!-- SECCIÓN B: GUÍA BÁSICA (VÍDEO + TEXTO) -->
-      <div id="tab-basic" class="game-tab-content hidden">
-        <div class="guide-split-layout" id="basicGuideContainer"></div>
-      </div>
-
-      <!-- SECCIÓN C: GUÍA AVANZADA (VÍDEO + TEXTO) -->
-      <div id="tab-advanced" class="game-tab-content hidden">
-        <div class="guide-split-layout" id="advancedGuideContainer"></div>
       </div>
     </section>
   </main>
