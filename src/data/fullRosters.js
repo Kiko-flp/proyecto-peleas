@@ -89,8 +89,8 @@ const GGST_DUSTLOOP_NAMES = {
 };
 
 const DBFZ_DUSTLOOP_NAMES = {
-  "Goku (Super Saiyan)": "SSJ_Goku",
-  "Vegeta (Super Saiyan)": "SSJ_Vegeta",
+  "Goku (Super Saiyan)": "Goku",
+  "Vegeta (Super Saiyan)": "Vegeta",
   "Goku (SSGSS / Blue)": "SSGSS_Goku",
   "Vegeta (SSGSS / Blue)": "SSGSS_Vegeta",
   "Gohan (Teen)": "Teen_Gohan",
@@ -106,16 +106,13 @@ const DBFZ_DUSTLOOP_NAMES = {
   "Broly (DBS)": "DBS_Broly",
   "Goku (Ultra Instinct)": "UI_Goku",
   "Gogeta (SS4)": "SS4_Gogeta",
-  "Android 21 (Lab Coat)": "Lab_Coat_Android_21"
+  "Android 21 (Lab Coat)": "Lab_Coat_Android_21",
+  "Goku (Super Saiyan 4 - DAIMA)": "Goku_(SS4,_DAIMA)"
 };
 
 function getDirectPortraitUrl(gameId, charName, colorHex = "f59e0b", isDLC = false) {
   if (gameId === "ssbu" && SSBU_SLUGS[charName]) {
     return `https://www.smashbros.com/assets_v2/img/fighter/thumb_a/${SSBU_SLUGS[charName]}.png`;
-  }
-  if (gameId === "sf6") {
-    const scName = (SF6_SUPERCOMBO_NAMES[charName] || charName).replace(/\s+/g, "_");
-    return getMediaWikiHashedUrl("https://wiki.supercombo.gg/images", `SF6_${scName}_Icon.png`);
   }
   if (gameId === "gg-strive") {
     const ggName = (GGST_DUSTLOOP_NAMES[charName] || charName).replace(/\s+/g, "_");
@@ -123,7 +120,7 @@ function getDirectPortraitUrl(gameId, charName, colorHex = "f59e0b", isDLC = fal
   }
   if (gameId === "dbfz") {
     const dbName = (DBFZ_DUSTLOOP_NAMES[charName] || charName).replace(/\s+/g, "_");
-    return getMediaWikiHashedUrl("https://www.dustloop.com/wiki/images", `DBFZ_${dbName}_Icon.png`);
+    return getMediaWikiHashedUrl("https://www.dustloop.com/wiki/images", `DBFZCE_${dbName}_Icon.png`);
   }
   if (gameId === "mk1" && MK1_CDN_SLUGS[charName]) {
     return `https://cdn-mk1.mortalkombat.com/roster/${MK1_CDN_SLUGS[charName]}/thumb.webp`;
@@ -131,18 +128,14 @@ function getDirectPortraitUrl(gameId, charName, colorHex = "f59e0b", isDLC = fal
   const slug = encodeURIComponent(charName);
   const bg = isDLC ? "2e1065" : "0f172a";
   const border = isDLC ? "a855f7" : colorHex.replace("#", "");
-  return `/api/char-icon?v=17&name=${slug}&game=${encodeURIComponent(gameId)}&bg=${bg}&border=${border}`;
+  return `/api/char-icon?v=21&name=${slug}&game=${encodeURIComponent(gameId)}&bg=${bg}&border=${border}`;
 }
 
 function getFallbackIconUrl(gameId, charName, colorHex = "f59e0b", isDLC = false) {
-  if (gameId === "sf6" && SF6_CDN_SLUGS[charName]) {
-    const s = SF6_CDN_SLUGS[charName];
-    return `https://www.streetfighter.com/6/assets/images/character/${s}/${s}.png`;
-  }
   const slug = encodeURIComponent(charName);
   const bg = isDLC ? "2e1065" : "0f172a";
   const border = isDLC ? "a855f7" : colorHex.replace("#", "");
-  return `/api/char-icon?v=17&name=${slug}&game=${encodeURIComponent(gameId)}&bg=${bg}&border=${border}`;
+  return `/api/char-icon?v=21&name=${slug}&game=${encodeURIComponent(gameId)}&bg=${bg}&border=${border}`;
 }
 
 // =========================================================================
@@ -515,6 +508,8 @@ function buildRosterEntry(gameId, sagaNotation, wikiBaseUrl, defaultVideo, color
     difficulty: raw.difficulty || "Media",
     isDLC,
     dlcPack: raw.dlcPack || null,
+    isUnreleased: Boolean(raw.isUnreleased),
+    releaseWindow: raw.releaseWindow || null,
     recommendedSubSystem: raw.sub || getDefaultSubSystem(gameId),
     iconUrl: raw.iconUrl || getDirectPortraitUrl(gameId, raw.name, colorHex, isDLC),
     fallbackIconUrl: getFallbackIconUrl(gameId, raw.name, colorHex, isDLC),
@@ -756,7 +751,7 @@ const TEKKEN8_RAW = [
   { name: "Kunimitsu", archetype: "Ninjutsu de Teletransporte / Kunai & Setsuna", difficulty: "Fácil", dlcPack: "Season 3 Character Pass" },
   { name: "Bob", archetype: "Speed & Weight / Mishima-Style Mix-up", difficulty: "Fácil", dlcPack: "Season 3 Character Pass" },
   { name: "Roger Jr.", archetype: "Boxeo Canguro / Agarres y Postura Animal", difficulty: "Media", dlcPack: "Season 3 Character Pass" },
-  { name: "Yujiro Hanma", archetype: "Invitado Baki / Demon Back & Fuerza Bruta", difficulty: "Media", dlcPack: "Season 3 Character Pass" }
+  { name: "Yujiro Hanma", archetype: "Invitado Baki / Demon Back & Fuerza Bruta", difficulty: "Media", dlcPack: "Season 3 Character Pass", isUnreleased: true, releaseWindow: "Anunciado — Invierno 2027 (Ene–Mar 2027)" }
 ];
 
 // ============================================================================
@@ -806,7 +801,8 @@ const DBFZ_RAW = [
   { name: "Master Roshi", archetype: "Sin Super Dash Estándar / Mafuba", difficulty: "Difícil", dlcPack: "FighterZ Pass 3" },
   { name: "Super Baby 2", archetype: "Zoner de Ki Blasts que Regresan / Robo de Assist", difficulty: "Media", dlcPack: "FighterZ Pass 3" },
   { name: "Gogeta (SS4)", archetype: "Doble Air Dash / Instakill Nivel 7", difficulty: "Fácil", dlcPack: "FighterZ Pass 3" },
-  { name: "Android 21 (Lab Coat)", archetype: "Debuff del 21% con Agarre / Lariats", difficulty: "Fácil", dlcPack: "Special DLC Pack" }
+  { name: "Android 21 (Lab Coat)", archetype: "Debuff del 21% con Agarre / Lariats", difficulty: "Fácil", dlcPack: "Special DLC Pack" },
+  { name: "Goku (Super Saiyan 4 - DAIMA)", archetype: "Báculo & Rushdown DAIMA", difficulty: "Fácil", dlcPack: "Dragon Ball DAIMA Pack" }
 ];
 
 // ============================================================================
@@ -844,7 +840,9 @@ const GGST_RAW = [
   { name: "Queen Dizzy", archetype: "Setplay de Hielo y Fuego / Wings of Light", difficulty: "Media", dlcPack: "GGST Season Pass 4" },
   { name: "Venom", archetype: "Control Geométrico con Bolas de Billar", difficulty: "Difícil", dlcPack: "GGST Season Pass 4" },
   { name: "Unika", archetype: "Brawler de Arma Pesada / Season 4", difficulty: "Media", dlcPack: "GGST Season Pass 4" },
-  { name: "Lucy", archetype: "Netrunner / Invitada Cyberpunk Edgerunners", difficulty: "Media", dlcPack: "GGST Season Pass 4" }
+  { name: "Lucy", archetype: "Netrunner / Invitada Cyberpunk Edgerunners", difficulty: "Media", dlcPack: "GGST Season Pass 4" },
+  { name: "Jam Kuradoberi", archetype: "Kung Fu & Cartas de Ki (Parry & Rushdown)", difficulty: "Media", dlcPack: "GGST Season Pass 5" },
+  { name: "Robo-Ky", archetype: "Zoner/Setplay Mecánico (Electricidad y Cohetes)", difficulty: "Difícil", dlcPack: "GGST Season Pass 5" }
 ];
 
 // ============================================================================

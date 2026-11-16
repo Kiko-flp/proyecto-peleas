@@ -274,9 +274,46 @@ app.get("/api/char-hitboxes", async (req, res) => {
   res.json({ hitboxes });
 });
 
+const charVideoCache = new Map();
+
+app.get("/api/char-video", async (req, res) => {
+  const gameTitle = String(req.query.gameTitle || "").trim();
+  const charName = String(req.query.charName || "").trim();
+  if (!gameTitle || !charName) return res.json({ embedUrl: null });
+
+  const cacheKey = `${gameTitle}:${charName}`;
+  if (charVideoCache.has(cacheKey)) {
+    return res.json({ embedUrl: charVideoCache.get(cacheKey) });
+  }
+
+  try {
+    const cleanChar = charName.replace(/\(.*?\)/g, "").trim();
+    const query = `${cleanChar} ${gameTitle} guide combos`;
+    const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+    const ytRes = await fetch(searchUrl, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept-Language": "es-ES,es;q=0.9,en;q=0.8"
+      }
+    });
+    if (ytRes.ok) {
+      const html = await ytRes.text();
+      const match = html.match(/"videoId":"([a-zA-Z0-9_-]{11})"/);
+      if (match && match[1]) {
+        const embedUrl = `https://www.youtube.com/embed/${match[1]}?cc_load_policy=1&cc_lang_pref=es&hl=es`;
+        charVideoCache.set(cacheKey, embedUrl);
+        return res.json({ embedUrl });
+      }
+    }
+  } catch (_) {}
+
+  return res.json({ embedUrl: null });
+});
+
 app.get("/api/hitbox-media", async (req, res) => {
   const targetUrl = String(req.query.url || "").trim();
-  const allowedHosts = ["ultimateframedata.com", "www.dustloop.com", "wiki.supercombo.gg", "wavu.wiki"];
+  const allowedHosts = ["ultimateframedata.com", "www.dustloop.com", "wiki.supercombo.gg", "wavu.wiki", "static.wikia.nocookie.net"];
   try {
     const parsed = new URL(targetUrl);
     if (!allowedHosts.includes(parsed.hostname)) {

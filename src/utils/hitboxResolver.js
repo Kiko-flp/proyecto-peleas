@@ -1,9 +1,9 @@
 /**
- * Resolutor de Hitboxes Reales desde Wikis Oficiales de Frame Data:
- * - Super Smash Bros. Ultimate: https://ultimateframedata.com/ (GIFs reales de hitboxes)
- * - Guilty Gear -Strive- & Dragon Ball FighterZ: https://www.dustloop.com/ (Hitbox PNGs y movimientos)
- * - Street Fighter 6: https://wiki.supercombo.gg/ (Imágenes de movimientos y hitboxes)
- * - Tekken 8: https://wavu.wiki/ (Clips MP4/WebP de movimientos reales)
+ * Resolutor de Hitboxes y Animaciones Reales del Juego desde Wikis Oficiales:
+ * - Super Smash Bros. Ultimate: https://ultimateframedata.com/ (GIFs animados reales de hitboxes)
+ * - Guilty Gear -Strive- & Dragon Ball FighterZ: https://www.dustloop.com/ (Hitbox PNGs y frames reales)
+ * - Tekken 8: https://wavu.wiki/ (Clips MP4/WebP reales del modo entrenamiento)
+ * - Street Fighter 6 & Mortal Kombat 1: Renders e imágenes oficiales de combate para la animación Training Mode
  */
 
 const hitboxCache = new Map();
@@ -100,27 +100,43 @@ const UFD_SLUGS = {
   "Sora": "sora"
 };
 
-const DUSTLOOP_CHAR_PREFIX = {
+const GGST_DUSTLOOP_PREFIX = {
   "Queen Dizzy": "Dizzy",
   "Asuka R#": "Asuka_R",
-  "Goku (Super Saiyan)": "SSJ_Goku",
-  "Vegeta (Super Saiyan)": "SSJ_Vegeta",
-  "Goku (SSGSS / Blue)": "SSGSS_Goku",
-  "Vegeta (SSGSS / Blue)": "SSGSS_Vegeta",
-  "Gohan (Teen)": "Teen_Gohan",
-  "Gohan (Adult)": "Adult_Gohan",
-  "Android 21 (Majin)": "Android_21",
+  "Jam Kuradoberi": "Jam_Kuradoberi",
+  "Robo-Ky": "Robo-Ky"
+};
+
+const DBFZ_DUSTLOOP_PREFIX = {
+  "Goku (Super Saiyan)": "SSJGoku",
+  "Vegeta (Super Saiyan)": "SSJVegeta",
+  "Goku (SSGSS / Blue)": "SSGSSGoku",
+  "Vegeta (SSGSS / Blue)": "SSGSSVegeta",
+  "Gohan (Teen)": "TeenGohan",
+  "Gohan (Adult)": "AdultGohan",
+  "Captain Ginyu": "Ginyu",
+  "Frieza": "Freeza",
+  "Majin Buu": "MajinBuu",
+  "Kid Buu": "KidBuu",
+  "Android 16": "Android16",
+  "Android 17": "Android17",
+  "Android 18": "Android18",
+  "Android 21 (Majin)": "Android21",
+  "Goku Black": "GokuBlack",
   "Broly (Z)": "Broly",
-  "Zamasu (Fused)": "Fused_Zamasu",
+  "Zamasu (Fused)": "FusedZamasu",
   "Vegito (SSGSS)": "Vegito",
-  "Goku (Base)": "Base_Goku",
-  "Vegeta (Base)": "Base_Vegeta",
-  "Goku (GT)": "GT_Goku",
+  "Goku (Base)": "BaseGoku",
+  "Vegeta (Base)": "BaseVegeta",
+  "Goku (GT)": "GTGoku",
   "Gogeta (SSGSS)": "Gogeta",
-  "Broly (DBS)": "DBS_Broly",
-  "Goku (Ultra Instinct)": "UI_Goku",
-  "Gogeta (SS4)": "SS4_Gogeta",
-  "Android 21 (Lab Coat)": "Lab_Coat_Android_21"
+  "Broly (DBS)": "DBSBroly",
+  "Goku (Ultra Instinct)": "UIGoku",
+  "Master Roshi": "MasterRoshi",
+  "Super Baby 2": "SuperBaby2",
+  "Gogeta (SS4)": "GogetaSS4",
+  "Android 21 (Lab Coat)": "LabCoat21",
+  "Goku (Super Saiyan 4 - DAIMA)": "SS4DaimaGoku"
 };
 
 function normalizeMoveToken(str) {
@@ -132,7 +148,7 @@ function normalizeMoveToken(str) {
 function matchBestUfdGif(gifUrls, moveName) {
   const m = moveName.toLowerCase();
   const rules = [
-    ["jab 1", ["jab1"]],
+    ["jab 1", ["jab1", "jab"]],
     ["jab 2", ["jab2"]],
     ["jab 3", ["jab3", "jabrapid"]],
     ["forward tilt", ["ftilt"]],
@@ -196,7 +212,7 @@ async function resolveSsbuHitboxes(charName) {
     moveNames.forEach((mn) => {
       const gifUrl = matchBestUfdGif(uniqueGifs, mn);
       if (gifUrl) {
-        result[mn] = { url: gifUrl, type: "image", source: "Ultimate Frame Data" };
+        result[mn] = { url: gifUrl, type: "image", hasNativeHitbox: true, source: "Ultimate Frame Data" };
       }
     });
     return result;
@@ -207,13 +223,16 @@ async function resolveSsbuHitboxes(charName) {
 
 async function resolveDustloopHitboxes(gameId, charName) {
   const prefixGame = gameId === "gg-strive" ? "GGST" : "DBFZ";
-  const charSlug = (DUSTLOOP_CHAR_PREFIX[charName] || charName).replace(/\s+/g, "_");
+  const charSlug =
+    gameId === "gg-strive"
+      ? (GGST_DUSTLOOP_PREFIX[charName] || charName).replace(/\s+/g, "_")
+      : (DBFZ_DUSTLOOP_PREFIX[charName] || charName.replace(/\s+/g, ""));
   const prefix = `${prefixGame}_${charSlug}_`;
 
   try {
     const url = `https://www.dustloop.com/wiki/api.php?action=query&list=allimages&aiprefix=${encodeURIComponent(
       prefix
-    )}&ailimit=200&format=json`;
+    )}&ailimit=250&format=json`;
     const res = await fetch(url, { headers: { "User-Agent": USER_AGENT } });
     if (!res.ok) return {};
     const data = await res.json();
@@ -221,19 +240,24 @@ async function resolveDustloopHitboxes(gameId, charName) {
     if (imgs.length === 0) return {};
 
     const result = {};
-    const findImg = (tokens) => {
-      // Priorizar imágenes _Hitbox.png primero
+    const findMoveMedia = (tokens) => {
       const hitboxMatch = imgs.find((im) => {
         const n = im.name.toLowerCase();
         return n.includes("hitbox") && tokens.some((t) => n.includes(`_${t.toLowerCase()}`));
       });
-      if (hitboxMatch) return hitboxMatch.url;
-
       const normalMatch = imgs.find((im) => {
         const n = im.name.toLowerCase();
-        return !n.includes("icon") && !n.includes("portrait") && tokens.some((t) => n.includes(`_${t.toLowerCase()}.`));
+        return (
+          !n.includes("icon") &&
+          !n.includes("portrait") &&
+          !n.includes("hitbox") &&
+          tokens.some((t) => n.includes(`_${t.toLowerCase()}.`) || n.includes(`_${t.toLowerCase()}_`))
+        );
       });
-      return normalMatch ? normalMatch.url : null;
+      return {
+        hitboxUrl: hitboxMatch ? hitboxMatch.url : null,
+        spriteUrl: normalMatch ? normalMatch.url : null
+      };
     };
 
     const moveMap =
@@ -269,9 +293,9 @@ async function resolveDustloopHitboxes(gameId, charName) {
             "Down Heavy Anti-Air (2H)": ["2H"],
             "Crouching Special (2S)": ["2S"],
             "Universal Overhead (6M)": ["6M"],
-            "Jumping Medium (j.M)": ["jM"],
-            "Jumping Heavy (j.H)": ["jH"],
-            "Special 1 (QCF Attack)": ["236L", "236M", "236S"],
+            "Jumping Medium (j.M)": ["jM", "j.M"],
+            "Jumping Heavy (j.H)": ["jH", "j.H"],
+            "Special 1 (QCF Attack)": ["236L", "236M", "236S", "Kamehameha"],
             "Special 2 (QCB Mix / Advance)": ["214L", "214M", "214S"],
             "Dragon Rush (Throw L+M)": ["DR", "DragonRush"],
             "Super Dash (H+S)": ["SD", "SuperDash"],
@@ -279,70 +303,16 @@ async function resolveDustloopHitboxes(gameId, charName) {
           };
 
     Object.entries(moveMap).forEach(([moveName, tokens]) => {
-      const foundUrl = findImg(tokens);
-      if (foundUrl) {
-        result[moveName] = { url: foundUrl, type: "image", source: "Dustloop Wiki" };
-      }
-    });
-    return result;
-  } catch (_) {
-    return {};
-  }
-}
-
-async function resolveSuperComboHitboxes(charName) {
-  const clean = charName.replace(/\s+\(.*?\)/g, "").split(" ")[0];
-  try {
-    const searchUrl = `https://wiki.supercombo.gg/w/api.php?action=query&list=search&srnamespace=6&srsearch=${encodeURIComponent(
-      `SF6 ${clean}`
-    )}&srlimit=50&format=json`;
-    const res = await fetch(searchUrl, { headers: { "User-Agent": USER_AGENT } });
-    if (!res.ok) return {};
-    const data = await res.json();
-    const titles = (data?.query?.search || []).map((s) => s.title).filter(Boolean);
-    if (titles.length === 0) return {};
-
-    const infoUrl = `https://wiki.supercombo.gg/w/api.php?action=query&titles=${encodeURIComponent(
-      titles.slice(0, 40).join("|")
-    )}&prop=imageinfo&iiprop=url&format=json`;
-    const iRes = await fetch(infoUrl, { headers: { "User-Agent": USER_AGENT } });
-    if (!iRes.ok) return {};
-    const iData = await iRes.json();
-    const pages = Object.values(iData?.query?.pages || {});
-    const imgs = pages
-      .map((p) => ({ title: (p.title || "").toLowerCase(), url: p.imageinfo?.[0]?.url }))
-      .filter((x) => x.url && !x.title.includes("icon") && !x.title.includes("portrait"));
-
-    const result = {};
-    const sf6Map = {
-      "Standing Light Punch": ["5lp"],
-      "Standing Light Kick": ["5lk"],
-      "Standing Medium Punch": ["5mp"],
-      "Standing Medium Kick": ["5mk"],
-      "Standing Heavy Punch": ["5hp"],
-      "Standing Heavy Kick": ["5hk"],
-      "Crouching Light Punch": ["2lp"],
-      "Crouching Light Kick": ["2lk"],
-      "Crouching Medium Punch": ["2mp"],
-      "Crouching Medium Kick": ["2mk"],
-      "Crouching Heavy Punch": ["2hp"],
-      "Crouching Heavy Kick (Sweep)": ["2hk"],
-      "Jumping Light / Cross-up": ["jlk", "jmk"],
-      "Jumping Heavy Attack": ["jhp", "jhk"],
-      "Command Overhead": ["6mp", "6mk"],
-      "Special 1 (Projectile / Neutral)": ["236p"],
-      "Special 2 (Anti-Air / DP)": ["623p"],
-      "Special 3 (Advance / Tatsu)": ["214k"],
-      "Drive Impact": ["di", "driveimpact"],
-      "Normal Throw / Back Throw": ["throw"],
-      "Super Art Level 3 (SA3)": ["sa3", "236236"]
-    };
-
-    Object.entries(sf6Map).forEach(([moveName, tokens]) => {
-      const hitImg = imgs.find((im) => im.title.includes("hitbox") && tokens.some((t) => im.title.includes(t)));
-      const anyImg = hitImg || imgs.find((im) => tokens.some((t) => im.title.includes(t)));
-      if (anyImg) {
-        result[moveName] = { url: anyImg.url, type: "image", source: "SuperCombo Wiki" };
+      const media = findMoveMedia(tokens);
+      const chosen = media.hitboxUrl || media.spriteUrl;
+      if (chosen) {
+        result[moveName] = {
+          url: chosen,
+          animUrl: media.spriteUrl || chosen,
+          type: "image",
+          hasNativeHitbox: Boolean(media.hitboxUrl),
+          source: "Dustloop Wiki"
+        };
       }
     });
     return result;
@@ -352,11 +322,56 @@ async function resolveSuperComboHitboxes(charName) {
 }
 
 async function resolveWavuHitboxes(charName) {
-  const first = charName.toLowerCase().replace(/[^a-z0-9]+/g, "_").split("_")[0];
+  const slugMap = {
+    "Jin Kazama": "jin",
+    "Kazuya Mishima": "kazuya",
+    "Jun Kazama": "jun",
+    "Paul Phoenix": "paul",
+    "Marshall Law": "law",
+    "King": "king",
+    "Lars Alexandersson": "lars",
+    "Jack-8": "jack-8",
+    "Ling Xiaoyu": "xiaoyu",
+    "Nina Williams": "nina",
+    "Asuka Kazama": "asuka",
+    "Leroy Smith": "leroy",
+    "Lili": "lili",
+    "Hwoarang": "hwoarang",
+    "Bryan Fury": "bryan",
+    "Claudio Serafino": "claudio",
+    "Azucena": "azucena",
+    "Raven": "raven",
+    "Leo Kliesen": "leo",
+    "Steve Fox": "steve",
+    "Kuma": "kuma",
+    "Yoshimitsu": "yoshimitsu",
+    "Shaheen": "shaheen",
+    "Sergei Dragunov": "dragunov",
+    "Feng Wei": "feng",
+    "Panda": "panda",
+    "Zafina": "zafina",
+    "Lee Chaolan": "lee",
+    "Alisa Bosconovitch": "alisa",
+    "Devil Jin": "devil-jin",
+    "Victor Chevalier": "victor",
+    "Reina": "reina",
+    "Eddy Gordo": "eddy",
+    "Lidia Sobieska": "lidia",
+    "Heihachi Mishima": "heihachi",
+    "Clive Rosfield": "clive",
+    "Anna Williams": "anna",
+    "Fahkumram": "fahkumram",
+    "Armor King": "armor-king",
+    "Kunimitsu": "kunimitsu",
+    "Bob": "bob",
+    "Roger Jr.": "roger"
+  };
+
+  const wavuSlug = slugMap[charName] || charName.toLowerCase().split(" ")[0];
   try {
     const url = `https://wavu.wiki/w/api.php?action=query&list=allimages&aiprefix=${encodeURIComponent(
-      `T8-p2-${first}-`
-    )}&ailimit=50&format=json`;
+      `T8-p2-${wavuSlug}-`
+    )}&ailimit=300&format=json`;
     const res = await fetch(url, { headers: { "User-Agent": USER_AGENT } });
     if (!res.ok) return {};
     const data = await res.json();
@@ -365,24 +380,41 @@ async function resolveWavuHitboxes(charName) {
 
     const result = {};
     const t8Map = {
-      "Left Jab String (10f Punish)": ["1,2", "1"],
-      "Flash / i10 Knockdown String": ["1,1,2", "2,1"],
-      "Quick Mid Check": ["df+1"],
+      "Left Jab String (10f Punish)": ["1,2", "1,1", "1."],
+      "Flash / i10 Knockdown String": ["1,1,2", "2,1", "2,2"],
+      "Quick Mid Check": ["df+1.", "df+1,"],
+      "Mid Follow-up Extension": ["df+1,2", "df+1,4", "f+1,2"],
+      "i12 Block Punisher": ["f+2,1", "b+1,2", "2,2", "b+1."],
+      "Homing Mid Kick (Anti-Sidestep)": ["b+4", "df+3", "b+3"],
+      "Keepout Long Range Mid": ["f+4", "ff+2", "f,f+2"],
       "Standing i15 Uppercut Launcher": ["df+2"],
-      "Hopkick Low Crush Launcher": ["uf+4"],
-      "While Standing 11f Punish": ["ws+4"],
-      "While Standing i13/i15 Launcher": ["ws+2", "ws+1,2"],
-      "Generic Fast Low Poke": ["d+4", "db+3"],
+      "Hopkick Low Crush Launcher": ["uf+4", "uf+3"],
+      "Electric / Signature Launcher": ["f,n,d,df+2", "ff+3", "df+2"],
+      "While Standing 11f Punish": ["ws+4", "ws4"],
+      "While Standing i13/i15 Launcher": ["ws+2", "ws+1,2", "ws2"],
+      "Generic Fast Low Poke": ["d+4", "db+3", "db+4"],
+      "High-Crush Power Low / Hell Sweep": ["d+2", "f,n,d,df+4", "db+2"],
+      "While Running Pressure": ["f,f,f+3", "wr+2", "fff+3"],
+      "Power Crush (Armor Mid)": ["b+3", "ub+1+2", "f+1+2"],
+      "Command Throw (1+2 Break)": ["uf+1+2", "2+4", "1+3"],
       "Heat Burst (Universal Armor)": ["2+3"],
       "Rage Art (Super Invencible)": ["df+1+2"]
     };
 
     Object.entries(t8Map).forEach(([moveName, tokens]) => {
-      const found = files.find((f) => tokens.some((t) => f.name.toLowerCase().includes(t)));
-      if (found && (found.url.endsWith(".mp4") || found.url.endsWith(".webp") || found.url.endsWith(".gif"))) {
+      const found = files.find((f) =>
+        tokens.some((t) => f.name.toLowerCase().includes(t))
+      );
+      if (
+        found &&
+        (found.url.endsWith(".mp4") ||
+          found.url.endsWith(".webp") ||
+          found.url.endsWith(".gif"))
+      ) {
         result[moveName] = {
           url: found.url,
           type: found.url.endsWith(".mp4") ? "video" : "image",
+          hasNativeHitbox: false,
           source: "Wavu Wiki"
         };
       }
@@ -404,8 +436,6 @@ async function resolveCharacterHitboxes(gameId, charName) {
     data = await resolveSsbuHitboxes(charName);
   } else if (gameId === "gg-strive" || gameId === "dbfz") {
     data = await resolveDustloopHitboxes(gameId, charName);
-  } else if (gameId === "sf6") {
-    data = await resolveSuperComboHitboxes(charName);
   } else if (gameId === "tekken8") {
     data = await resolveWavuHitboxes(charName);
   }

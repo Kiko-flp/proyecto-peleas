@@ -932,7 +932,7 @@ function renderQuickSearch() {
           const fallbackSrc = (ch.fallbackIconUrl || ch.iconUrl).replace(/'/g, "\\'");
           const safeName = ch.name.replace(/'/g, "\\'");
           return `
-            <div class="portrait-tile ${ch.isDLC ? "is-dlc" : ""}" data-quickgame="${game.id}" data-quickchar="${ch.id}">
+            <div class="portrait-tile ${ch.isDLC ? "is-dlc" : ""} ${ch.isUnreleased ? "is-locked" : ""}" data-quickgame="${game.id}" data-quickchar="${ch.id}">
               <div class="portrait-img-box">
                 <img
                   data-charimg="${ch.id}"
@@ -943,6 +943,7 @@ function renderQuickSearch() {
                   onload="window.handlePortraitLoad(this)"
                   onerror="window.handlePortraitError(this, '${game.id}', '${ch.id}', '${safeName}', '${fallbackSrc}')"
                 />
+                ${ch.isUnreleased ? `<div class="portrait-lock-badge"><span class="portrait-lock-icon">🔒</span><span class="portrait-lock-tag">Pronto</span></div>` : ""}
               </div>
               <div class="portrait-name">${ch.name}</div>
               <div class="portrait-pack-sub">${game.title}</div>
@@ -1092,17 +1093,59 @@ function renderGameDetailView(gameId) {
     }
   });
 
-  const activeLegend = saga ? translateNotation(saga.notationLegend, game.sagaId, state.notationMode) : "";
+function getControllerLegend(sagaId, mode) {
+  const legends = {
+    "mortal-kombat": {
+      technical: "1 = Puño Delantero | 2 = Puño Trasero | 3 = Patada Delantera | 4 = Patada Trasera | EX = Mejorar Especial | K = Kameo",
+      ps: "▢ = Puño Delantero | △ = Puño Trasero | ✕ = Patada Delantera | ○ = Patada Trasera | R2 = Bloqueo / EX | R1 = Kameo",
+      xbox: "X = Puño Delantero | Y = Puño Trasero | A = Patada Delantera | B = Patada Trasera | RT = Bloqueo / EX | RB = Kameo",
+      switch: "Y = Puño Delantero | X = Puño Trasero | B = Patada Delantera | A = Patada Trasera | ZR = Bloqueo / EX | R = Kameo"
+    },
+    "street-fighter": {
+      technical: "LP/MP/HP = Puño Débil/Medio/Fuerte | LK/MK/HK = Patada Débil/Media/Fuerte | ↓↘→ = Hadoken | →↓↘ = Shoryuken | DR = Drive Rush",
+      ps: "▢ = Puño Débil | △ = Puño Medio | R1 = Puño Fuerte | ✕ = Patada Débil | ○ = Patada Media | R2 = Patada Fuerte | L1/L2 = Drive",
+      xbox: "X = Puño Débil | Y = Puño Medio | RB = Puño Fuerte | A = Patada Débil | B = Patada Media | RT = Patada Fuerte | LB/LT = Drive",
+      switch: "Y = Puño Débil | X = Puño Medio | R = Puño Fuerte | B = Patada Débil | A = Patada Media | ZR = Patada Fuerte | L/ZL = Drive"
+    },
+    "tekken": {
+      technical: "1 = Puño Izquierdo | 2 = Puño Derecho | 3 = Patada Izquierda | 4 = Patada Derecha | → / ↓ = Direcciones | ws = Al levantarse",
+      ps: "▢ = Puño Izquierdo | △ = Puño Derecho | ✕ = Patada Izquierda | ○ = Patada Derecha | △+✕ (R1) = Heat Burst | R2 = Rage Art",
+      xbox: "X = Puño Izquierdo | Y = Puño Derecho | A = Patada Izquierda | B = Patada Derecha | Y+A (RB) = Heat Burst | RT = Rage Art",
+      switch: "Y = Puño Izquierdo | X = Puño Derecho | B = Patada Izquierda | A = Patada Derecha | X+B (R) = Heat Burst | ZR = Rage Art"
+    },
+    "dragon-ball-fighterz": {
+      technical: "L = Débil | M = Medio | H = Fuerte | S = Especial (Ki) | A1/A2 = Asistencias | H+S = Super Dash | 2H = Antiaéreo universal",
+      ps: "▢ = Débil (L) | △ = Medio (M) | ○ = Fuerte (H) | ✕ = Ki (S) | R2 = Super Dash | R1 = Dragon Rush | L1/L2 = Asistencias",
+      xbox: "X = Débil (L) | Y = Medio (M) | B = Fuerte (H) | A = Ki (S) | RT = Super Dash | RB = Dragon Rush | LB/LT = Asistencias",
+      switch: "Y = Débil (L) | X = Medio (M) | A = Fuerte (H) | B = Ki (S) | ZR = Super Dash | R = Dragon Rush | L/ZL = Asistencias"
+    },
+    "guilty-gear": {
+      technical: "P = Puño | K = Patada | S = Slash | HS = Heavy Slash | D = Dust | RC = Roman Cancel (RRC/PRC/YRC/BRC) | c.S = Close Slash",
+      ps: "▢ = Puño (P) | ✕ = Patada (K) | △ = Slash (S) | ○ = Heavy Slash (HS) | R1 = Dust (D) | R2 = Dash | △+○+✕ = Roman Cancel",
+      xbox: "X = Puño (P) | A = Patada (K) | Y = Slash (S) | B = Heavy Slash (HS) | RB = Dust (D) | RT = Dash | Y+B+A = Roman Cancel",
+      switch: "Y = Puño (P) | B = Patada (K) | X = Slash (S) | A = Heavy Slash (HS) | R = Dust (D) | ZR = Dash | X+A+B = Roman Cancel"
+    },
+    "super-smash-bros": {
+      technical: "Nair/Fair/Bair/Uair/Dair = Aéreos | Utilt/Ftilt/Dtilt = Tilts | USmash/FSmash/DSmash | OOS = Out of Shield | DI = Directional Influence",
+      ps: "✕ = Ataque Normal | ▢ = Especial | △/○ = Salto | L1/R1 = Agarre | L2/R2 = Escudo (Nota: SSBU es nativo de Nintendo Switch)",
+      xbox: "A = Ataque Normal | X = Especial | Y/B = Salto | LB/RB = Agarre | LT/RT = Escudo (Nota: SSBU es nativo de Nintendo Switch)",
+      switch: "A = Ataque Normal | B = Especial | X/Y = Salto | L/R/Z = Agarre | ZL/ZR = Escudo | Stick Derecho = Tilt / Smash"
+    }
+  };
+  return legends[sagaId]?.[mode] || legends[sagaId]?.technical || "";
+}
+
+  const activeLegend = saga ? getControllerLegend(game.sagaId, state.notationMode) : "";
+  const modeLabel =
+    state.notationMode === "technical"
+      ? "Notación Técnica FGC"
+      : state.notationMode === "ps"
+      ? "Mando PlayStation"
+      : state.notationMode === "xbox"
+      ? "Mando Xbox / PC"
+      : "Mando Nintendo Switch";
   document.getElementById("gameNotationBanner").innerHTML = `
-    <strong>Notación (${
-      state.notationMode === "technical"
-        ? "Técnica FGC"
-        : state.notationMode === "ps"
-        ? "PlayStation"
-        : state.notationMode === "xbox"
-        ? "Xbox / PC"
-        : "Nintendo Switch"
-    }):</strong> ${activeLegend}
+    <strong>${modeLabel}:</strong> ${activeLegend}
   `;
 
   const q = state.inGameSearchQuery.trim().toLowerCase();
@@ -1190,12 +1233,17 @@ function buildCharacterCardHTML(game, ch) {
   const cachedSrc = clientPortraitCache.get(ch.id) || ch.iconUrl;
   const fallbackSrc = (ch.fallbackIconUrl || ch.iconUrl).replace(/'/g, "\\'");
   const safeName = ch.name.replace(/'/g, "\\'");
+  const statusLabel = ch.isUnreleased
+    ? `${ch.releaseWindow || "Anunciado — Próximamente"}`
+    : ch.isDLC
+    ? ch.dlcPack
+    : "Juego Base";
 
   return `
     <div
-      class="portrait-tile ${ch.isDLC ? "is-dlc" : ""}"
+      class="portrait-tile ${ch.isDLC ? "is-dlc" : ""} ${ch.isUnreleased ? "is-locked" : ""}"
       data-charid="${ch.id}"
-      title="${ch.name} — ${ch.archetype} (${ch.isDLC ? ch.dlcPack : "Juego Base"})"
+      title="${ch.name} — ${ch.archetype} (${statusLabel})"
     >
       <div class="portrait-img-box">
         <img
@@ -1207,6 +1255,11 @@ function buildCharacterCardHTML(game, ch) {
           onload="window.handlePortraitLoad(this)"
           onerror="window.handlePortraitError(this, '${game.id}', '${ch.id}', '${safeName}', '${fallbackSrc}')"
         />
+        ${
+          ch.isUnreleased
+            ? `<div class="portrait-lock-badge"><span class="portrait-lock-icon">🔒</span><span class="portrait-lock-tag">Pronto</span></div>`
+            : ""
+        }
       </div>
       <div class="portrait-name">${ch.name}</div>
     </div>
@@ -1415,6 +1468,47 @@ function buildCharacterHitboxStageHTML(game, ch, fc) {
 }
 
 const clientHitboxCache = new Map();
+const clientCharVideoCache = new Map();
+
+async function hydrateCharacterVideo(game, ch, modalBody) {
+  if (!game || !ch || !modalBody) return;
+  const cacheKey = `${game.id}:${ch.id}`;
+  let embedUrl = clientCharVideoCache.get(cacheKey);
+  if (embedUrl === undefined) {
+    try {
+      const res = await fetch(
+        `/api/char-video?gameTitle=${encodeURIComponent(game.title)}&charName=${encodeURIComponent(ch.name)}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        embedUrl = data?.embedUrl || null;
+        clientCharVideoCache.set(cacheKey, embedUrl);
+      }
+    } catch (_) {
+      embedUrl = null;
+    }
+  }
+  if (embedUrl) {
+    const iframeEl = modalBody.querySelector("#charModalVideoIframe");
+    if (iframeEl && iframeEl.src !== embedUrl) {
+      iframeEl.src = embedUrl;
+    }
+  }
+}
+
+function getMoveOverlayBoxes(fc) {
+  const rawDesc = `${fc.moveName || ""} ${fc.input || ""} ${fc.category || ""}`.toLowerCase();
+  if (rawDesc.includes("low") || rawDesc.includes("sweep") || rawDesc.includes("2mk") || rawDesc.includes("2d") || rawDesc.includes("d+4") || rawDesc.includes("db+3")) {
+    return `<div class="hb-box-hurt" style="bottom:16px;left:28%;width:24%;height:48%;"></div><div class="hb-box-hit" style="bottom:14px;left:48%;width:28%;height:18%;">HITBOX LOW</div>`;
+  }
+  if (rawDesc.includes("anti-air") || rawDesc.includes("up ") || rawDesc.includes("623") || rawDesc.includes("2hp") || rawDesc.includes("2h") || rawDesc.includes("6p") || rawDesc.includes("df+2") || rawDesc.includes("uf+4")) {
+    return `<div class="hb-box-hurt" style="bottom:20px;left:28%;width:22%;height:56%;"></div><div class="hb-box-hit" style="bottom:48px;left:46%;width:24%;height:38%;">HITBOX AA</div>`;
+  }
+  if (rawDesc.includes("throw") || rawDesc.includes("grab")) {
+    return `<div class="hb-box-hurt" style="bottom:18px;left:28%;width:22%;height:54%;"></div><div class="hb-box-hit hb-box-throw" style="bottom:36px;left:45%;width:24%;height:34%;">THROW</div>`;
+  }
+  return `<div class="hb-box-hurt" style="bottom:18px;left:28%;width:22%;height:54%;"></div><div class="hb-box-hit" style="bottom:46px;left:48%;width:26%;height:22%;">HITBOX</div>`;
+}
 
 async function hydrateCharacterRealHitboxes(game, ch, modalBody) {
   if (!game || !ch || !modalBody) return;
@@ -1447,21 +1541,24 @@ async function hydrateCharacterRealHitboxes(game, ch, modalBody) {
     const mediaWrap = boxEl.querySelector(".ufd-real-hitbox-wrap");
     if (!mediaWrap) return;
 
+    const fcObj = (ch.frameDataCards || []).find((c) => c.moveName === moveName);
+    const overlayBoxes = entry.hasNativeHitbox ? "" : getMoveOverlayBoxes(fcObj || { moveName });
+
     if (entry.type === "video") {
       mediaWrap.innerHTML = `
-        <video
-          src="${proxyUrl}"
-          autoplay loop muted playsinline
-          style="width:100%;height:142px;object-fit:contain;background:#3a3a3a;border-radius:4px;display:block;"
-        ></video>
+        <div class="hb-real-media-stage">
+          <video src="${proxyUrl}" autoplay loop muted playsinline></video>
+          ${overlayBoxes}
+          <span class="hb-overlay-tag">${entry.source}</span>
+        </div>
       `;
     } else {
       mediaWrap.innerHTML = `
-        <img
-          src="${proxyUrl}"
-          alt="Hitbox real de ${moveName} (${ch.name})"
-          style="width:100%;height:142px;object-fit:contain;background:#3a3a3a;border-radius:4px;display:block;"
-        />
+        <div class="hb-real-media-stage">
+          <img src="${proxyUrl}" alt="Hitbox real de ${moveName} (${ch.name})" />
+          ${overlayBoxes}
+          <span class="hb-overlay-tag">${entry.source}</span>
+        </div>
       `;
     }
 
@@ -1470,7 +1567,6 @@ async function hydrateCharacterRealHitboxes(game, ch, modalBody) {
       cap.textContent = `🔍 Clic para ver frame a frame (${entry.source})`;
     }
 
-    const fcObj = (ch.frameDataCards || []).find((c) => c.moveName === moveName);
     if (fcObj) {
       const updatedPayload = {
         ...fcObj,
@@ -1482,7 +1578,8 @@ async function hydrateCharacterRealHitboxes(game, ch, modalBody) {
         fallbackSrc: ch.fallbackIconUrl || ch.iconUrl,
         realHitboxUrl: proxyUrl,
         realHitboxType: entry.type,
-        realHitboxSource: entry.source
+        realHitboxSource: entry.source,
+        hasNativeHitbox: Boolean(entry.hasNativeHitbox)
       };
       boxEl.setAttribute(
         "onclick",
@@ -1506,6 +1603,10 @@ function openCharacterModal(gameId, charId) {
   const backdrop = document.getElementById("characterModalBackdrop");
   const header = document.getElementById("charModalHeader");
   const body = document.getElementById("charModalBody");
+
+  const lockBadge = ch.isUnreleased
+    ? `<span class="dlc-pack-badge" style="background:#C05530;color:#fff;border-color:#C05530;font-size:0.78rem;">🔒 ${ch.releaseWindow || "Anunciado — Próximamente"}</span>`
+    : "";
 
   const statusBadge = ch.isDLC
     ? `<span class="dlc-pack-badge" style="font-size:0.8rem;">DLC DE PAGO — Pack: ${ch.dlcPack}</span>`
@@ -1659,6 +1760,7 @@ function openCharacterModal(gameId, charId) {
       </div>
       <div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:5px;">
+          ${lockBadge}
           ${statusBadge}
           <span class="diff-badge">Arquetipo: ${ch.archetype}</span>
           <span class="diff-badge">Dificultad: ${ch.difficulty}</span>
@@ -1837,6 +1939,7 @@ function openCharacterModal(gameId, charId) {
   };
 
   hydrateCharacterRealHitboxes(game, ch, body);
+  hydrateCharacterVideo(game, ch, body);
 }
 
 // =========================================================================

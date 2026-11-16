@@ -318,24 +318,26 @@ async function resolveCharacterPortraitUrl(gameId, charName) {
     resolvedUrl = `https://www.smashbros.com/assets_v2/img/fighter/thumb_a/${slug}.png`;
   }
 
-  // 2. STREET FIGHTER 6
+  // 2. STREET FIGHTER 6 (Street Fighter Fandom — Imágenes oficiales In-Game de SF6)
   else if (gameId === "sf6") {
-    const hubImages = await loadHubPageImages(
-      "https://wiki.supercombo.gg/w/api.php",
-      "Street_Fighter_6"
-    );
-    const match = hubImages.find((img) =>
-      keys.some(
-        (k) =>
-          img.title.includes(`sf6_${k}`) ||
-          img.title.includes(`${k}_icon`) ||
-          img.title.includes(`${k}_portrait`) ||
-          img.title.includes(`${k}.png`)
-      )
-    );
-    if (match) {
-      resolvedUrl = match.url;
-    } else {
+    try {
+      const sfSlug = exactTitles[0].replace(/\s+/g, "_");
+      const allUrl = `https://streetfighter.fandom.com/api.php?action=query&list=allimages&aiprefix=${encodeURIComponent(
+        `SF6_${sfSlug}`
+      )}&ailimit=8&format=json&origin=*`;
+      const sfRes = await fetch(allUrl, { headers: { "User-Agent": USER_AGENT } });
+      if (sfRes.ok) {
+        const sfData = await sfRes.json();
+        const sfImgs = sfData?.query?.allimages || [];
+        const bestSf =
+          sfImgs.find((x) => x.name.toLowerCase().includes("outfit_1")) ||
+          sfImgs.find((x) => x.name.toLowerCase().includes("idle")) ||
+          sfImgs[0];
+        if (bestSf?.url) resolvedUrl = bestSf.url;
+      }
+    } catch (_) {}
+
+    if (!resolvedUrl) {
       resolvedUrl = await queryPageImage(
         "https://streetfighter.fandom.com/api.php",
         [...exactTitles, charName.split(" ")[0]],
@@ -378,6 +380,7 @@ async function resolveCharacterPortraitUrl(gameId, charName) {
     const match = hubImages.find((img) =>
       keys.some(
         (k) =>
+          img.title.includes(`dbfzce_${k}`) ||
           img.title.includes(`dbfz_${k}`) ||
           img.title.includes(`${k}_icon`) ||
           img.title.includes(`${k}_portrait`)

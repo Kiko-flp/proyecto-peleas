@@ -418,7 +418,7 @@ const SEED_DATA = {
       sagaId: "mortal-kombat",
       title: "Mortal Kombat 1",
       releaseYear: 2023,
-      currentPatch: "Parche Khaos Reigns (Año 2)",
+      currentPatch: "Parche Final Khaos Reigns • Act. Dic 2025",
       subSystemName: "Sistema de Kameos",
       coverImage: "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1971870/header.jpg",
       coverGradient: "linear-gradient(135deg, #78350f 0%, #d97706 50%, #111827 100%)",
@@ -428,8 +428,8 @@ const SEED_DATA = {
       ],
       basicGuide: {
         title: "Fundamentos de Mortal Kombat 1: Dial-a-Combo, Bloqueo y Kameos",
-        videoUrl: "https://www.youtube.com/embed/ZRgcup89e-Y",
-        videoAuthor: "PNDK&M / Rooflemonger - Guía de Inicio MK1",
+        videoUrl: "https://www.youtube.com/embed/ZRgcup89e-Y?cc_load_policy=1&cc_lang_pref=es&hl=es",
+        videoAuthor: "Rooflemonger / PNDK&M - Guía de Inicio MK1",
         summary: "Mortal Kombat 1 utiliza un sistema de cadenas predefinidas ('Dial-a-Combo'), botón dedicado de bloqueo y un compañero Kameo que extiende combos, hace seguros tus ataques o abre la guardia.",
         sections: [
           {
@@ -448,8 +448,8 @@ const SEED_DATA = {
       },
       advancedGuide: {
         title: "Guía Avanzada de MK1: Flawless Block, Frame Traps, Micro-Duck y Kameo Ambush",
-        videoUrl: "https://www.youtube.com/embed/ZRgcup89e-Y",
-        videoAuthor: "Rooflemonger / PNDK&M - Mecánicas Avanzadas",
+        videoUrl: "https://www.youtube.com/embed/wtlb8MDOOzg?cc_load_policy=1&cc_lang_pref=es&hl=es",
+        videoAuthor: "PNDK&M - Mecánicas Avanzadas MK1",
         summary: "Domina el bloqueo impecable para anular el daño por chip e invertir ventajas en bloqueo, y diferencia entre Kameos Summon y Ambush.",
         sections: [
           {
@@ -480,7 +480,7 @@ const SEED_DATA = {
       sagaId: "street-fighter",
       title: "Street Fighter 6",
       releaseYear: 2023,
-      currentPatch: "Parche Season 3 (Year 3 Pass - 2026)",
+      currentPatch: "Parche Year 3 (Outfit 3) • Act. 28 May 2026",
       subSystemName: "Drive System (6 Barras)",
       coverImage: "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1364780/header.jpg",
       coverGradient: "linear-gradient(135deg, #4c1d95 0%, #ea580c 55%, #0f172a 100%)",
@@ -490,8 +490,8 @@ const SEED_DATA = {
       ],
       basicGuide: {
         title: "Fundamentos de Street Fighter 6: El Drive System, Links y Antiaéreos",
-        videoUrl: "https://www.youtube.com/embed/seXtzdiKi4Y",
-        videoAuthor: "Rooflemonger / Diaphone - Guía Base SF6",
+        videoUrl: "https://www.youtube.com/embed/seXtzdiKi4Y?cc_load_policy=1&cc_lang_pref=es&hl=es",
+        videoAuthor: "Rooflemonger - Guía Completa de Inicio SF6",
         summary: "Comienzas cada ronda con las 6 barras del Drive Gauge llenas. Gestionarlas para no caer en Burnout es la clave de la victoria.",
         sections: [
           {
@@ -506,8 +506,8 @@ const SEED_DATA = {
       },
       advancedGuide: {
         title: "Guía Avanzada SF6: Delay Tech, Shimmy, Perfect Parry y DRC Buffering",
-        videoUrl: "https://www.youtube.com/embed/seXtzdiKi4Y",
-        videoAuthor: "Brian_F / Broski - Conceptos Avanzados SF6",
+        videoUrl: "https://www.youtube.com/embed/g8LYoF0S-Lo?cc_load_policy=1&cc_lang_pref=es&hl=es",
+        videoAuthor: "Brian_F - Shimmy y Delay Tech Avanzado SF6",
         summary: "Cómo defender el bucle de esquinas (Throw Loops), ejecutar Delay Throw Tech y castigar con Shimmy.",
         sections: [
           {
@@ -538,7 +538,7 @@ const SEED_DATA = {
       sagaId: "tekken",
       title: "Tekken 8",
       releaseYear: 2024,
-      currentPatch: "Parche v3.02 (Season 3 - 2026)",
+      currentPatch: "Parche v3.03.01 (Season 3) • Act. 12 Nov 2026",
       subSystemName: "Heat System Season 3 & Chip Damage",
       coverImage: "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1778820/header.jpg",
       coverGradient: "linear-gradient(135deg, #7f1d1d 0%, #ef4444 45%, #090d16 100%)",
@@ -548,7 +548,7 @@ const SEED_DATA = {
       ],
       basicGuide: {
         title: "Fundamentos de Tekken 8: Movimiento 3D, Heat System y Sistema de Combos (Tornado)",
-        videoUrl: "https://www.youtube.com/embed/D58LncnVbXM",
+        videoUrl: "https://www.youtube.com/embed/D58LncnVbXM?cc_load_policy=1&cc_lang_pref=es&hl=es",
         videoAuthor: "PhiDX - Guía Principiantes Tekken 8",
         summary: "En Tekken mantener pulsado Atrás (b) bloquea golpes Altos y Medios. El nuevo sistema Heat se activa una vez por ronda para potenciar la ofensiva.",
         sections: [
@@ -564,8 +564,8 @@ const SEED_DATA = {
       },
       advancedGuide: {
         title: "Guía Avanzada Tekken 8: Korean Backdash (KBD), Sidestep y Castigo por Frames",
-        videoUrl: "https://www.youtube.com/embed/D58LncnVbXM",
-        videoAuthor: "PhiDX - Movimiento 3D y Castigos",
+        videoUrl: "https://www.youtube.com/embed/_5bwBUn7fcM?cc_load_policy=1&cc_lang_pref=es&hl=es",
+        videoAuthor: "PhiDX - Movimiento 3D (KBD & Sidestep)",
         summary: "Aprende a moverte en el eje Z (Sidestep / Sidewalk) para esquivar ataques lineales y cómo castigar en bloque de 10f a 15f.",
         sections: [
           {
@@ -596,7 +596,7 @@ const SEED_DATA = {
       sagaId: "dragon-ball-fighterz",
       title: "Dragon Ball FighterZ",
       releaseYear: 2018,
-      currentPatch: "Parche Rollback & Balance v1.38",
+      currentPatch: "Parche v1.50 (DAIMA) • Act. 21 Abr 2026",
       subSystemName: "3v3 Assists (A, B, C) & Sparking Blast",
       coverImage: "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/678950/header.jpg",
       coverGradient: "linear-gradient(135deg, #c2410c 0%, #facc15 55%, #0f172a 100%)",
@@ -606,7 +606,7 @@ const SEED_DATA = {
       ],
       basicGuide: {
         title: "Fundamentos de DBFZ: Ruta Universal Saiyajin, Super Dash, Vanish y Asistencias",
-        videoUrl: "https://www.youtube.com/embed/rWReD2qG7D8",
+        videoUrl: "https://www.youtube.com/embed/rWReD2qG7D8?cc_load_policy=1&cc_lang_pref=es&hl=es",
         videoAuthor: "TinyTorgue / Globku - Guía Base DBFZ",
         summary: "La mayoría de personajes de Dragon Ball FighterZ comparten la misma estructura universal de combo aéreo y cadena de presión (L > M > H > S).",
         sections: [
@@ -622,8 +622,8 @@ const SEED_DATA = {
       },
       advancedGuide: {
         title: "Guía Avanzada DBFZ: Special Tag, IAD Cross-up, Guard Cancel y Limit Break",
-        videoUrl: "https://www.youtube.com/embed/rWReD2qG7D8",
-        videoAuthor: "TinyTorgue - Mecánicas Avanzadas Parche 1.38",
+        videoUrl: "https://www.youtube.com/embed/wVRKT8O4L7g?cc_load_policy=1&cc_lang_pref=es&hl=es",
+        videoAuthor: "TinyTorgue - Mecánicas Avanzadas Parche 1.50",
         summary: "Aprovecha el Special Tag en mitad de combo y el aumento de daño de Limit Break para tu último personaje en pie.",
         sections: [
           {
@@ -650,7 +650,7 @@ const SEED_DATA = {
       sagaId: "guilty-gear",
       title: "Guilty Gear -Strive-",
       releaseYear: 2021,
-      currentPatch: "Parche Season 4",
+      currentPatch: "Parche Ver. 2.03 (Season 5) • Act. 24 Sep 2026",
       subSystemName: "Roman Cancel (RRC/PRC/YRC/BRC) & Wild Assault",
       coverImage: "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1384160/header.jpg",
       coverGradient: "linear-gradient(135deg, #9f1239 0%, #e11d48 50%, #090d16 100%)",
@@ -660,7 +660,7 @@ const SEED_DATA = {
       ],
       basicGuide: {
         title: "Fundamentos de Guilty Gear -Strive-: Gatlings, Roman Cancels y Wall Break",
-        videoUrl: "https://www.youtube.com/embed/uWfW1SgIfTQ",
+        videoUrl: "https://www.youtube.com/embed/uWfW1SgIfTQ?cc_load_policy=1&cc_lang_pref=es&hl=es",
         videoAuthor: "Rooflemonger / Sajam - Guía Base GGST",
         summary: "En Strive las esquinas se rompen (Wall Break), otorgando el estado Positive Bonus que recarga Tension y Burst a gran velocidad.",
         sections: [
@@ -676,8 +676,8 @@ const SEED_DATA = {
       },
       advancedGuide: {
         title: "Guía Avanzada GGST: Fast RC, Faultless Defense y Gestión de RISC",
-        videoUrl: "https://www.youtube.com/embed/uWfW1SgIfTQ",
-        videoAuthor: "Hotashi / Romolla - Conceptos Avanzados Strive",
+        videoUrl: "https://www.youtube.com/embed/1_3VYvvzhNE?cc_load_policy=1&cc_lang_pref=es&hl=es",
+        videoAuthor: "Guías Competitivas Roman Cancel & Fast RC",
         summary: "Cómo cancelar la animación del Roman Cancel (Fast RC) y frenar la barra de RISC con Faultless Defense.",
         sections: [
           {
@@ -704,7 +704,7 @@ const SEED_DATA = {
       sagaId: "super-smash-bros",
       title: "Super Smash Bros. Ultimate",
       releaseYear: 2018,
-      currentPatch: "Versión Final v13.0.3",
+      currentPatch: "Versión Final v13.0.4 • Act. 24 Jun 2025",
       subSystemName: "Porcentaje (%), Escudo Direccional & Parries",
       coverImage: "https://assets.nintendo.com/image/upload/c_fill,w_1200/q_auto:best/f_auto/dpr_2.0/ncom/software/switch/70010000012332/ac4d1fc9824876ce756406f0525d50c57ded4b2a666f6dfe40a6ac5c3563fad9",
       coverGradient: "linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #0f172a 100%)",
@@ -714,8 +714,8 @@ const SEED_DATA = {
       ],
       basicGuide: {
         title: "Fundamentos de Smash Ultimate: Short Hop, OOS (Out of Shield), DI y Recuperación",
-        videoUrl: "https://www.youtube.com/embed/ta3L35wsE6o",
-        videoAuthor: "IzAwSmash - Art of Smash: Beginner to Master",
+        videoUrl: "https://www.youtube.com/embed/ta3L35wsE6o?cc_load_policy=1&cc_lang_pref=es&hl=es",
+        videoAuthor: "IzAwSmash - Art of Smash: Beginner",
         summary: "Ganas subiendo el porcentaje (%) del rival y sacándolo de los márgenes del escenario (Blast Zones).",
         sections: [
           {
@@ -730,8 +730,8 @@ const SEED_DATA = {
       },
       advancedGuide: {
         title: "Guía Avanzada Smash Ultimate: Ledgetrapping, DI y RAR Back Air",
-        videoUrl: "https://www.youtube.com/embed/ta3L35wsE6o",
-        videoAuthor: "IzAwSmash - Conceptos Avanzados",
+        videoUrl: "https://www.youtube.com/embed/E7e7fYu2pdM?cc_load_policy=1&cc_lang_pref=es&hl=es",
+        videoAuthor: "IzAwSmash - Art of Smash: Advanced (Edgeguard & Ledgetrap)",
         summary: "Domina el Reverse Aerial Rush (RAR) para golpear con tu aéreo trasero corriendo hacia adelante y cubre las opciones del borde.",
         sections: [
           {
