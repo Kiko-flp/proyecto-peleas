@@ -12,7 +12,15 @@ const PRIVATE_OWNER_KEY = (process.env.ADMIN_SECRET_KEY || process.env.TELEGRAM_
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
+app.use(
+  express.static(path.join(__dirname, "public"), {
+    etag: false,
+    lastModified: false,
+    setHeaders: (res) => {
+      res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    }
+  })
+);
 
 function requirePrivateOwner(req, res, next) {
   const clientKey = (req.headers["x-admin-key"] || req.body.adminKey || "").trim();
@@ -47,14 +55,16 @@ app.get("/api/char-icon", async (req, res) => {
     if (realPortraitUrl) {
       const imgRes = await fetch(realPortraitUrl, {
         headers: {
-          "User-Agent": "FGCVaultEncyclopedia/1.0 (https://fgc-vault.onrender.com)"
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+          Accept: "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8"
         }
       });
       if (imgRes.ok) {
         const contentType = imgRes.headers.get("content-type") || "image/png";
         const arrayBuf = await imgRes.arrayBuffer();
         res.setHeader("Content-Type", contentType);
-        res.setHeader("Cache-Control", "public, max-age=604800");
+        res.setHeader("Cache-Control", "public, max-age=3600");
         return res.send(Buffer.from(arrayBuf));
       }
     }
@@ -62,7 +72,7 @@ app.get("/api/char-icon", async (req, res) => {
     // Si falla la red externa, cae al retrato SVG de respaldo
   }
 
-  // 2. Respaldo visual SVG si algún icono externo no responde
+  // 2. Respaldo visual SVG (sin caché para que reintente cargar la foto real)
   const h = hashString(`${game}:${name}`);
 
   // Paleta de retrato única por personaje
@@ -118,7 +128,7 @@ app.get("/api/char-icon", async (req, res) => {
   </svg>`;
 
   res.setHeader("Content-Type", "image/svg+xml");
-  res.setHeader("Cache-Control", "public, max-age=86400");
+  res.setHeader("Cache-Control", "no-store");
   res.send(svg);
 });
 

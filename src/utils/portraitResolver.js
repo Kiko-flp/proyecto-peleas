@@ -1,17 +1,21 @@
 /**
- * Resolutor de Retratos Oficiales de Personajes (Real Character Portraits)
- * Obtiene y sirve los iconos/retratos oficiales reales de cada personaje desde:
- * - Super Smash Bros. Ultimate: CDN oficial de Nintendo (smashbros.com/assets_v2/img/fighter/thumb_a/)
- * - Street Fighter 6: SuperCombo Wiki MediaWiki API (File:SF6_<Name>_Icon.png)
- * - Guilty Gear -Strive-: Dustloop Wiki MediaWiki API (File:GGST_<Name>_Icon.png)
- * - Dragon Ball FighterZ: Dustloop Wiki MediaWiki API (File:DBFZ_<Name>_Icon.png)
- * - Tekken 8: Wavu Wiki MediaWiki API
- * - Mortal Kombat 1: Mortal Kombat Warehouse / Wikimedia / Kombat Akademy
+ * Resolutor Avanzado de Retratos Oficiales de Personajes (Real Character Portraits)
+ * Extrae las imágenes reales de los iconos de personajes desde las Wikis Oficiales:
+ * - Street Fighter 6: SuperCombo Wiki (https://wiki.supercombo.gg/w/Street_Fighter_6)
+ * - Guilty Gear -Strive-: Dustloop Wiki (https://www.dustloop.com/w/GGST)
+ * - Dragon Ball FighterZ: Dustloop Wiki (https://www.dustloop.com/w/DBFZ)
+ * - Tekken 8: Wavu Wiki (https://wavu.wiki/t/Main_Page) & Tekken Fandom
+ * - Mortal Kombat 1: Mortal Kombat Fandom Wiki (mortalkombat.fandom.com)
+ * - Super Smash Bros. Ultimate: CDN Oficial de Nintendo (smashbros.com)
  */
 
 const portraitUrlCache = new Map();
+const gameHubImagesCache = new Map();
 
-// Mapeo exacto de slugs del CDN oficial de Nintendo para los 86 personajes de Smash Ultimate
+const USER_AGENT =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
+
+// Mapeo exacto del CDN oficial de Nintendo para los 86 personajes de Smash Ultimate
 const SSBU_SLUGS = {
   "Mario": "mario",
   "Donkey Kong": "donkey_kong",
@@ -101,85 +105,96 @@ const SSBU_SLUGS = {
   "Sora": "sora"
 };
 
-// Mapeo de nombres para la API de Dustloop (DBFZ)
-const DBFZ_FILE_NAMES = {
-  "Goku (Super Saiyan)": "SSJ_Goku",
-  "Vegeta (Super Saiyan)": "SSJ_Vegeta",
-  "Goku (SSGSS / Blue)": "SSGSS_Goku",
-  "Vegeta (SSGSS / Blue)": "SSGSS_Vegeta",
-  "Gohan (Teen)": "Teen_Gohan",
-  "Gohan (Adult)": "Adult_Gohan",
-  "Android 21 (Majin)": "Android_21",
-  "Broly (Z)": "Broly",
-  "Zamasu (Fused)": "Fused_Zamasu",
-  "Vegito (SSGSS)": "Vegito",
-  "Goku (Base)": "Base_Goku",
-  "Vegeta (Base)": "Base_Vegeta",
-  "Goku (GT)": "GT_Goku",
-  "Gogeta (SSGSS)": "Gogeta",
-  "Broly (DBS)": "DBS_Broly",
-  "Goku (Ultra Instinct)": "UI_Goku",
-  "Gogeta (SS4)": "SS4_Gogeta",
-  "Android 21 (Lab Coat)": "Lab_Coat_Android_21"
+// Alias de nombres para que coincidan con los nombres de archivo en las wikis
+const WIKI_ALIASES = {
+  "Ken Masters": ["ken", "ken_masters"],
+  "Juri Han": ["juri", "juri_han"],
+  "E. Honda": ["ehonda", "e.honda", "e_honda", "honda"],
+  "A.K.I.": ["aki", "a.k.i.", "a_k_i"],
+  "M. Bison": ["mbison", "m.bison", "m_bison", "bison", "dictator"],
+  "Dee Jay": ["deejay", "dee_jay"],
+  "Terry Bogard": ["terry", "terry_bogard"],
+  "Mai Shiranui": ["mai", "mai_shiranui"],
+  "Goku (Super Saiyan)": ["ssj_goku", "goku_ssj", "super_saiyan_goku"],
+  "Vegeta (Super Saiyan)": ["ssj_vegeta", "vegeta_ssj"],
+  "Goku (SSGSS / Blue)": ["ssgss_goku", "goku_blue", "blue_goku"],
+  "Vegeta (SSGSS / Blue)": ["ssgss_vegeta", "vegeta_blue", "blue_vegeta"],
+  "Gohan (Teen)": ["teen_gohan", "gohan_teen"],
+  "Gohan (Adult)": ["adult_gohan", "gohan_adult"],
+  "Android 21 (Majin)": ["android_21", "majin_21"],
+  "Android 21 (Lab Coat)": ["lab_coat_android_21", "labcoat"],
+  "Broly (Z)": ["broly", "z_broly"],
+  "Broly (DBS)": ["dbs_broly", "broly_dbs"],
+  "Zamasu (Fused)": ["fused_zamasu", "zamasu"],
+  "Vegito (SSGSS)": ["vegito", "ssgss_vegito"],
+  "Goku (Base)": ["base_goku", "goku_base"],
+  "Vegeta (Base)": ["base_vegeta", "vegeta_base"],
+  "Goku (GT)": ["gt_goku", "goku_gt"],
+  "Gogeta (SSGSS)": ["gogeta", "ssgss_gogeta", "gogeta_blue"],
+  "Goku (Ultra Instinct)": ["ui_goku", "ultra_instinct_goku"],
+  "Gogeta (SS4)": ["ss4_gogeta", "gogeta_ss4"],
+  "Conan the Barbarian": ["conan"]
 };
 
-// Mapeo de nombres para SuperCombo Wiki (SF6)
-const SF6_FILE_NAMES = {
-  "Ken Masters": "Ken",
-  "Juri Han": "Juri",
-  "Terry Bogard": "Terry",
-  "Mai Shiranui": "Mai"
-};
-
-/**
- * Consulta la URL real de un archivo o imagen principal en una wiki MediaWiki
- */
-async function queryMediaWikiFileUrl(apiEndpoint, fileTitles) {
-  try {
-    const titlesParam = fileTitles.map((t) => `File:${t}`).join("|");
-    const url = `${apiEndpoint}?action=query&titles=${encodeURIComponent(
-      titlesParam
-    )}&prop=imageinfo&iiprop=url&format=json&origin=*`;
-
-    const res = await fetch(url, {
-      headers: {
-        "User-Agent": "FGCVaultEncyclopedia/1.0 (https://fgc-vault.onrender.com)"
-      }
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    const pages = data?.query?.pages || {};
-    for (const pageId of Object.keys(pages)) {
-      const info = pages[pageId]?.imageinfo?.[0];
-      if (info && info.url) {
-        return info.url;
-      }
-    }
-  } catch (_) {
-    // Fallback silencioso
-  }
-  return null;
+function getSearchKeys(charName) {
+  const base = charName.toLowerCase().replace(/\(.*?\)/g, "").trim();
+  const slug1 = base.replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+  const slug2 = base.replace(/[^a-z0-9]+/g, "");
+  const firstWord = base.split(/\s+/)[0].replace(/[^a-z0-9]/g, "");
+  const custom = WIKI_ALIASES[charName] || [];
+  return [...new Set([...custom, slug1, slug2, firstWord])].filter(Boolean);
 }
 
 /**
- * Consulta la imagen principal asociada a una página de MediaWiki (pageimages)
+ * Descarga todas las URLs de imágenes incrustadas en la página principal de un juego en MediaWiki
  */
-async function queryMediaWikiPageImage(apiEndpoint, pageTitle) {
+async function loadHubPageImages(apiEndpoint, pageTitle) {
+  const cacheKey = `${apiEndpoint}:${pageTitle}`;
+  if (gameHubImagesCache.has(cacheKey)) {
+    return gameHubImagesCache.get(cacheKey);
+  }
+
+  const imageMap = [];
   try {
     const url = `${apiEndpoint}?action=query&titles=${encodeURIComponent(
       pageTitle
-    )}&prop=pageimages&piprop=original|thumbnail&pithumbsize=240&format=json&origin=*`;
+    )}&generator=images&gimlimit=500&prop=imageinfo&iiprop=url&format=json&origin=*`;
 
-    const res = await fetch(url, {
-      headers: {
-        "User-Agent": "FGCVaultEncyclopedia/1.0 (https://fgc-vault.onrender.com)"
+    const res = await fetch(url, { headers: { "User-Agent": USER_AGENT } });
+    if (res.ok) {
+      const data = await res.json();
+      const pages = data?.query?.pages || {};
+      for (const pid of Object.keys(pages)) {
+        const title = (pages[pid]?.title || "").toLowerCase();
+        const imgUrl = pages[pid]?.imageinfo?.[0]?.url;
+        if (imgUrl && !title.endsWith(".svg") && !title.includes("logo")) {
+          imageMap.push({ title, url: imgUrl });
+        }
       }
-    });
+    }
+  } catch (_) {
+    // Ignorar error de red
+  }
+
+  gameHubImagesCache.set(cacheKey, imageMap);
+  return imageMap;
+}
+
+/**
+ * Busca la imagen principal (pageimages) en una wiki Fandom o MediaWiki
+ */
+async function queryPageImage(apiEndpoint, titlesArray) {
+  try {
+    const url = `${apiEndpoint}?action=query&titles=${encodeURIComponent(
+      titlesArray.join("|")
+    )}&prop=pageimages&piprop=thumbnail|original&pithumbsize=250&format=json&origin=*`;
+
+    const res = await fetch(url, { headers: { "User-Agent": USER_AGENT } });
     if (!res.ok) return null;
     const data = await res.json();
     const pages = data?.query?.pages || {};
-    for (const pageId of Object.keys(pages)) {
-      const p = pages[pageId];
+    for (const pid of Object.keys(pages)) {
+      const p = pages[pid];
       if (p?.thumbnail?.source) return p.thumbnail.source;
       if (p?.original?.source) return p.original.source;
     }
@@ -196,6 +211,7 @@ async function resolveCharacterPortraitUrl(gameId, charName) {
   }
 
   let resolvedUrl = null;
+  const keys = getSearchKeys(charName);
 
   // 1. SUPER SMASH BROS. ULTIMATE (CDN Oficial de Nintendo)
   if (gameId === "ssbu") {
@@ -205,76 +221,104 @@ async function resolveCharacterPortraitUrl(gameId, charName) {
     resolvedUrl = `https://www.smashbros.com/assets_v2/img/fighter/thumb_a/${slug}.png`;
   }
 
-  // 2. STREET FIGHTER 6 (SuperCombo Wiki — exactos iconos de la captura del usuario)
+  // 2. STREET FIGHTER 6 (SuperCombo Wiki + Street Fighter Fandom)
   else if (gameId === "sf6") {
-    const cleanName = (SF6_FILE_NAMES[charName] || charName).replace(/\s+/g, "_");
-    resolvedUrl = await queryMediaWikiFileUrl("https://wiki.supercombo.gg/api.php", [
-      `SF6_${cleanName}_Icon.png`,
-      `SF6_${cleanName}_Portrait.png`
-    ]);
-    if (!resolvedUrl) {
-      resolvedUrl = await queryMediaWikiPageImage(
-        "https://wiki.supercombo.gg/api.php",
-        `Street_Fighter_6/${cleanName}`
-      );
-    }
-  }
-
-  // 3. GUILTY GEAR -STRIVE- (Dustloop Wiki)
-  else if (gameId === "gg-strive") {
-    const cleanName = charName.replace(/\s+/g, "_");
-    resolvedUrl = await queryMediaWikiFileUrl("https://www.dustloop.com/wiki/api.php", [
-      `GGST_${cleanName}_Icon.png`,
-      `GGST_${cleanName}_Portrait.png`
-    ]);
-    if (!resolvedUrl) {
-      resolvedUrl = await queryMediaWikiPageImage(
-        "https://www.dustloop.com/wiki/api.php",
-        `GGST/${cleanName}`
-      );
-    }
-  }
-
-  // 4. DRAGON BALL FIGHTERZ (Dustloop Wiki)
-  else if (gameId === "dbfz") {
-    const cleanName = (DBFZ_FILE_NAMES[charName] || charName).replace(/\s+/g, "_");
-    resolvedUrl = await queryMediaWikiFileUrl("https://www.dustloop.com/wiki/api.php", [
-      `DBFZ_${cleanName}_Icon.png`,
-      `DBFZ_${cleanName}_Portrait.png`
-    ]);
-    if (!resolvedUrl) {
-      resolvedUrl = await queryMediaWikiPageImage(
-        "https://www.dustloop.com/wiki/api.php",
-        `DBFZ/${cleanName}`
-      );
-    }
-  }
-
-  // 5. TEKKEN 8 (Wavu Wiki)
-  else if (gameId === "tekken8") {
-    const firstWord = charName.split(" ")[0];
-    const fullUnder = charName.replace(/\s+/g, "_");
-    resolvedUrl = await queryMediaWikiFileUrl("https://wavu.wiki/w/api.php", [
-      `T8_${fullUnder}_Icon.png`,
-      `T8_${firstWord}_Icon.png`,
-      `T8-${firstWord.toLowerCase()}-icon.png`,
-      `T8-${fullUnder.toLowerCase().replace(/_/g, "-")}-icon.png`
-    ]);
-    if (!resolvedUrl) {
-      resolvedUrl = await queryMediaWikiPageImage("https://wavu.wiki/w/api.php", fullUnder);
-    }
-    if (!resolvedUrl) {
-      resolvedUrl = await queryMediaWikiPageImage("https://wavu.wiki/w/api.php", firstWord);
-    }
-  }
-
-  // 6. MORTAL KOMBAT 1 (Mortal Kombat Fandom / Wikipedia pageimages)
-  else if (gameId === "mk1") {
-    const cleanName = charName.replace(/\s+/g, "_");
-    resolvedUrl = await queryMediaWikiPageImage(
-      "https://mortalkombat.fandom.com/api.php",
-      cleanName
+    const hubImages = await loadHubPageImages(
+      "https://wiki.supercombo.gg/api.php",
+      "Street_Fighter_6"
     );
+    const match = hubImages.find((img) =>
+      keys.some(
+        (k) =>
+          img.title.includes(`sf6_${k}`) ||
+          img.title.includes(`${k}_icon`) ||
+          img.title.includes(`${k}_portrait`) ||
+          img.title.includes(`${k}.png`)
+      )
+    );
+    if (match) {
+      resolvedUrl = match.url;
+    } else {
+      resolvedUrl = await queryPageImage("https://streetfighter.fandom.com/api.php", [
+        charName,
+        charName.split(" ")[0]
+      ]);
+    }
+  }
+
+  // 3. GUILTY GEAR -STRIVE- (Dustloop Wiki + Guilty Gear Fandom)
+  else if (gameId === "gg-strive") {
+    const hubImages = await loadHubPageImages(
+      "https://www.dustloop.com/wiki/api.php",
+      "GGST"
+    );
+    const match = hubImages.find((img) =>
+      keys.some(
+        (k) =>
+          img.title.includes(`ggst_${k}`) ||
+          img.title.includes(`${k}_icon`) ||
+          img.title.includes(`${k}_portrait`)
+      )
+    );
+    if (match) {
+      resolvedUrl = match.url;
+    } else {
+      resolvedUrl = await queryPageImage("https://guiltygear.fandom.com/api.php", [
+        charName,
+        charName.replace(/\s+\(.*?\)/, "")
+      ]);
+    }
+  }
+
+  // 4. DRAGON BALL FIGHTERZ (Dustloop Wiki + Dragon Ball Fandom)
+  else if (gameId === "dbfz") {
+    const hubImages = await loadHubPageImages(
+      "https://www.dustloop.com/wiki/api.php",
+      "DBFZ"
+    );
+    const match = hubImages.find((img) =>
+      keys.some(
+        (k) =>
+          img.title.includes(`dbfz_${k}`) ||
+          img.title.includes(`${k}_icon`) ||
+          img.title.includes(`${k}_portrait`)
+      )
+    );
+    if (match) {
+      resolvedUrl = match.url;
+    } else {
+      resolvedUrl = await queryPageImage("https://dragonballfighterz.fandom.com/api.php", [
+        charName,
+        charName.replace(/\s+\(.*?\)/, "")
+      ]);
+    }
+  }
+
+  // 5. TEKKEN 8 (Wavu Wiki + Tekken Fandom)
+  else if (gameId === "tekken8") {
+    const hubImages = await loadHubPageImages(
+      "https://wavu.wiki/w/api.php",
+      "Main_Page"
+    );
+    const match = hubImages.find((img) =>
+      keys.some((k) => img.title.includes(k))
+    );
+    if (match) {
+      resolvedUrl = match.url;
+    } else {
+      resolvedUrl = await queryPageImage("https://tekken.fandom.com/api.php", [
+        charName,
+        charName.split(" ")[0]
+      ]);
+    }
+  }
+
+  // 6. MORTAL KOMBAT 1 (Mortal Kombat Fandom Wiki)
+  else if (gameId === "mk1") {
+    resolvedUrl = await queryPageImage("https://mortalkombat.fandom.com/api.php", [
+      charName,
+      `${charName}/Mortal Kombat 1`
+    ]);
   }
 
   if (resolvedUrl) {

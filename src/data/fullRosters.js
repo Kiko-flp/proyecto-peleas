@@ -9,7 +9,7 @@ function getCharacterIconUrl(gameId, charName, colorHex = "f59e0b", isDLC = fals
   const slug = encodeURIComponent(charName);
   const bg = isDLC ? "2e1065" : "0f172a";
   const border = isDLC ? "a855f7" : colorHex.replace("#", "");
-  return `/api/char-icon?name=${slug}&game=${encodeURIComponent(gameId)}&bg=${bg}&border=${border}`;
+  return `/api/char-icon?v=5&name=${slug}&game=${encodeURIComponent(gameId)}&bg=${bg}&border=${border}`;
 }
 
 // Constructor auxiliar para completar fichas detalladas de personajes del roster completo
