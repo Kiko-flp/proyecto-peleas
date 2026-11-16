@@ -392,7 +392,7 @@ function openCommunityPage() {
   renderCommunitySection();
 }
 
-function openToolsPage(initialTab = "tool-quiz") {
+function openToolsPage(initialTab = "tool-quiz", quizMode = "general") {
   state.selectedGameId = null;
   document.getElementById("homeView").classList.add("hidden");
   document.getElementById("gameDetailView").classList.add("hidden");
@@ -408,7 +408,7 @@ function openToolsPage(initialTab = "tool-quiz") {
   });
 
   if (typeof window.initPersonalityQuiz === "function") {
-    window.initPersonalityQuiz();
+    window.initPersonalityQuiz(quizMode);
   }
   if (typeof window.initPunishCalculator === "function") {
     window.initPunishCalculator();
@@ -765,9 +765,14 @@ function renderGameDetailView(gameId) {
       </p>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-primary" id="btnOpenGameSpecificQuiz">Test: ¿Qué personaje de ${game.title} elegir?</button>
       <button class="btn btn-outline" id="btnSuggestResourceForGame">Aportar Wiki / Canal para ${game.title}</button>
     </div>
   `;
+
+  document.getElementById("btnOpenGameSpecificQuiz").addEventListener("click", () => {
+    openToolsPage("tool-quiz", game.id);
+  });
 
   document.getElementById("btnSuggestResourceForGame").addEventListener("click", () => {
     openCommunityPage();

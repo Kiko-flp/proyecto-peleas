@@ -1,11 +1,14 @@
 /**
- * FGC Vault — Módulo de Herramientas Avanzadas (v14)
+ * FGC Vault — Módulo de Herramientas Avanzadas (v15)
  * Contiene:
  * A) Calculadora Interactiva de Castigos en Bloqueo (Punish Calculator)
  * C) Reproductor con Auto-Pausa Inteligente y Superposición (Overlay) en Español
  * D) Inspector de Hitboxes Frame a Frame (⏮ -1f | ⏸ Pausa | ⏭ +1f + Barra deslizante)
  * E) Diccionario / Glosario FGC con Ventanas Flotantes (Tooltips automáticos)
- * F) Test de 10 Preguntas: "¿Qué Personaje Debería Elegir?" (Por Estilo de Juego y Personalidad)
+ * F) Sistema de Tests de 10 Preguntas (Estilo de Juego + Personalidad):
+ *    - 1 Test General (Todos los juegos)
+ *    - 6 Tests Específicos por Juego (MK1, SF6, Tekken 8, DBFZ, GGST y Smash Ultimate),
+ *      cada uno con 10 preguntas adaptadas a las mecánicas y personalidades de ese juego.
  */
 
 // =========================================================================
@@ -145,7 +148,7 @@ window.decorateTextWithGlossaryTooltips = function (rootEl) {
 };
 
 // =========================================================================
-// D. INSPECTOR DE HITBOXES FRAME A FRAME (CON DESLIZADOR Y CONTROLES)
+// D. INSPECTOR DE HITBOXES FRAME A FRAME
 // =========================================================================
 const inspectorState = {
   moveName: "",
@@ -156,7 +159,6 @@ const inspectorState = {
   recoveryNum: 18,
   totalFrames: 25,
   onBlock: "-4 On Block",
-  type: "jab",
   currentFrame: 5,
   playing: false,
   timer: null,
@@ -195,7 +197,7 @@ window.openHitboxInspector = function (fcEncoded) {
   inspectorState.recoveryNum = nums.recoveryNum;
   inspectorState.totalFrames = nums.totalFrames;
   inspectorState.onBlock = fc.onBlock;
-  inspectorState.currentFrame = nums.activeStart; // Empezar en el primer frame activo para ver la hitbox
+  inspectorState.currentFrame = nums.activeStart;
   stopInspectorPlayback();
 
   const modal = document.getElementById("hitboxInspectorModalBackdrop");
@@ -287,24 +289,20 @@ function renderInspectorFrame() {
         <line x1="190" y1="0" x2="190" y2="180" stroke="#293040" stroke-dasharray="4 4" />
         <line x1="20" y1="180" x2="360" y2="180" stroke="#475569" stroke-width="3" />
 
-        <!-- Hurtbox del personaje (Azul/Cian) -->
         <rect x="${105 + extendX * 0.4}" y="58" width="52" height="120" rx="16"
           fill="rgba(56, 189, 248, 0.18)" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4 3" />
         <text x="${108 + extendX * 0.4}" y="52" fill="#38bdf8" font-family="monospace" font-size="10">HURTBOX</text>
 
-        <!-- Silueta del luchador en el frame f -->
         <circle cx="${131 + extendX * 0.4}" cy="74" r="14" fill="#e2e8f0" />
         <path d="M${115 + extendX * 0.4} 90 L${147 + extendX * 0.4} 90 L${144 + extendX * 0.4} 140 L${118 + extendX * 0.4} 140 Z" fill="#cbd5e1" />
         <line x1="${122 + extendX * 0.4}" y1="140" x2="${110 + extendX * 0.4}" y2="178" stroke="#94a3b8" stroke-width="8" stroke-linecap="round" />
         <line x1="${140 + extendX * 0.4}" y1="140" x2="${154 + extendX * 0.4}" y2="178" stroke="#94a3b8" stroke-width="8" stroke-linecap="round" />
 
-        <!-- Extremidad de ataque posicionada según el frame exacto -->
         <g transform="rotate(${limbAngle}, ${142 + extendX}, 102)">
           <line x1="${142 + extendX}" y1="102" x2="${238 + extendX * 2}" y2="98"
             stroke="${isHitboxActive ? "#fbbf24" : "#94a3b8"}" stroke-width="11" stroke-linecap="round" />
         </g>
 
-        <!-- Esferas de Hitbox Activa (SOLO visibles durante los frames activos) -->
         ${
           isHitboxActive
             ? `
@@ -319,7 +317,6 @@ function renderInspectorFrame() {
           `
         }
 
-        <!-- Barra de línea temporal de frames en la base -->
         <rect x="20" y="190" width="340" height="10" rx="4" fill="#0f172a" />
         <rect x="20" y="190" width="${((activeStart - 1) / totalFrames) * 340}" height="10" fill="#15803d" />
         <rect x="${20 + ((activeStart - 1) / totalFrames) * 340}" y="190" width="${((activeEnd - activeStart + 1) / totalFrames) * 340}" height="10" fill="#e11d48" />
@@ -352,7 +349,6 @@ window.triggerVideoTacticalPauseOverlay = function (iframeId, overlayId, videoUr
 
   if (pauseOverlayTimer) clearInterval(pauseOverlayTimer);
 
-  // Llevar el vídeo al segundo de la pausa y mostrar la superposición explicativa en español
   if (iframe && videoUrl) {
     const baseUrl = videoUrl.split("?")[0];
     iframe.src = `${baseUrl}?start=${pauseObj.seconds || 0}&autoplay=0&cc_load_policy=1&cc_lang_pref=es&hl=es`;
@@ -562,147 +558,537 @@ window.initPunishCalculator = function () {
 };
 
 // =========================================================================
-// F. TEST DE 10 PREGUNTAS: "¿QUÉ PERSONAJE DEBERÍA ELEGIR?" (JUEGO + PERSONALIDAD)
+// F. SISTEMA DE TESTS DE 10 PREGUNTAS:
+//    1) TEST GENERAL (TODOS LOS JUEGOS)
+//    2) TEST ESPECÍFICO DE 10 PREGUNTAS POR CADA JUEGO (MK1, SF6, TEKKEN 8, DBFZ, GGST, SSBU)
 // =========================================================================
-const QUIZ_10_QUESTIONS = [
-  {
-    num: 1,
-    category: "Cómo Quieres Jugar — Distancia Ideal",
-    question: "1. ¿En qué distancia de la pantalla te sientes más cómodo durante el combate?",
-    options: [
-      { label: "Pegado al rival sin dejarle respirar (Cuerpo a cuerpo total)", tags: ["rushdown", "presion", "mix-up"] },
-      { label: "A media distancia, entrando y saliendo con golpes precisos", tags: ["all-rounder", "shoto", "footsies", "whiff", "swordie"] },
-      { label: "Desde el otro lado de la pantalla controlando el espacio con proyectiles o trampas", tags: ["zoner", "trapper", "alcance"] },
-      { label: "Avanzando como un muro imparable para cazar al rival con un agarre letal", tags: ["grappler", "heavy", "powerhouse", "brawler"] }
-    ]
-  },
-  {
-    num: 2,
-    category: "Personalidad en Combate — Mentalidad",
-    question: "2. ¿Cómo describirías tu personalidad y temperamento cuando compites?",
-    options: [
-      { label: "Impaciente, explosivo y audaz: prefiero llevar siempre la iniciativa", tags: ["rushdown", "velocidad", "ofensivo"] },
-      { label: "Calculador, paciente y analítico: me gusta leer los hábitos del rival y castigar", tags: ["defensivo", "parry", "contraataque", "whiff", "equilibrado"] },
-      { label: "Creativo, caótico e impredecible: disfruto confundiendo la mente del oponente", tags: ["mix-up", "setplay", "puppet", "tricky", "invisibilidad"] },
-      { label: "Implacable, dominante y directo: pocos golpes pero que hagan temblar la barra de vida", tags: ["grappler", "powerhouse", "heavy", "brawler", "daño"] }
-    ]
-  },
-  {
-    num: 3,
-    category: "Cómo Quieres Jugar — Cómo Abrir la Guardia",
-    question: "3. Cuando el oponente se cierra en defensa, ¿cómo prefieres romper su guardia?",
-    options: [
-      { label: "Con un 50/50 rápido de alto/bajo o cruzándole por encima en el aire", tags: ["mix-up", "rushdown", "aereo"] },
-      { label: "Con agarres de comando que le obliguen a tener miedo de bloquear", tags: ["grappler", "strike-throw"] },
-      { label: "Desgastando su barra de bloqueo desde lejos hasta que salte desesperado", tags: ["zoner", "chip", "trapper"] },
-      { label: "Con cadenas seguras en bloqueo que atrapen cualquier botón que intente tocar (Frame Traps)", tags: ["frame", "all-rounder", "shoto", "brawler"] }
-    ]
-  },
-  {
-    num: 4,
-    category: "Personalidad — Arquetipo y Carisma",
-    question: "4. ¿Con qué tipo de personaje o estética conectas más por tu personalidad?",
-    options: [
-      { label: "Artista marcial disciplinado, héroe clásico o espadachín honorable", tags: ["shoto", "all-rounder", "swordie", "equilibrado"] },
-      { label: "Villano imponente, antihéroe oscuro o maestro de poderes prohibidos", tags: ["mishima", "zoner", "powerhouse", "vortex"] },
-      { label: "Ninja veloz, asesino acrobático o luchador rebelde de alta energía", tags: ["rushdown", "movilidad", "ninja", "velocidad"] },
-      { label: "Coloso de fuerza bruta, luchador de wrestling o personaje excéntrico y único", tags: ["grappler", "heavy", "tricky", "puppet"] }
-    ]
-  },
+
+// Banco de preguntas comunes de Estilo de Juego + Personalidad (Preguntas 5 a 10 para completar los 10 ítems de cada juego)
+const SHARED_PERSONALITY_AND_PLAYSTYLE_TAIL = [
   {
     num: 5,
     category: "Cómo Quieres Jugar — Exigencia Técnica",
-    question: "5. ¿Qué nivel de dificultad técnica y práctica en modo entrenamiento buscas?",
+    question: "5. ¿Qué nivel de dificultad técnica y práctica en entrenamiento prefieres?",
     options: [
-      { label: "Fácil e intuitivo: quiero combos directos para centrarme en ganar la partida ya", diff: "Fácil", tags: ["simple"] },
-      { label: "Dificultad media: un equilibrio entre buena profundidad y ejecución consistente", diff: "Media", tags: ["versatil"] },
-      { label: "Alta dificultad: me encantan los retos técnicos, posturas múltiples o Just Frames", diff: "Difícil", tags: ["postura", "puppet", "mishima"] }
+      { label: "Fácil e intuitivo: quiero combos directos para centrarme en leer al rival", diff: "Fácil", tags: ["simple", "fácil"] },
+      { label: "Dificultad media: buen equilibrio entre profundidad y consistencia en torneo", diff: "Media", tags: ["versatil", "equilibrado"] },
+      { label: "Alta dificultad: disfruto dominando personajes técnicos, posturas o ejecuciones precisas", diff: "Difícil", tags: ["postura", "puppet", "mishima", "difícil"] }
     ]
   },
   {
     num: 6,
-    category: "Personalidad — Reacción Bajo Presión",
-    question: "6. Estás acorralado en la esquina con poca vida. ¿Qué te pide el cuerpo hacer?",
+    category: "Personalidad — Reacción Bajo Presión en la Esquina",
+    question: "6. Estás acorralado contra el muro con poca vida. ¿Cómo reacciona tu personalidad?",
     options: [
-      { label: "Lanzar un ataque invencible o un Parry arriesgado para cambiar las tornas al instante", tags: ["parry", "contraataque", "shoto", "reversals"] },
-      { label: "Escapar usando teletransporte, vuelo o movilidad extrema", tags: ["movilidad", "teleport", "aereo", "evasion"] },
-      { label: "Aguantar firme con armadura y borrarle la vida de dos golpes en cuanto falle", tags: ["armadura", "heavy", "grappler", "comeback"] },
-      { label: "Bloquear con calma fría y salir con un poke rápido y seguro", tags: ["all-rounder", "footsies", "defensivo"] }
+      { label: "Sin miedo: lanzo un Parry o ataque invencible para robar el turno al instante", tags: ["parry", "contraataque", "shoto", "reversals"] },
+      { label: "Escurridizo: escapo usando teletransporte, vuelo o movilidad aérea", tags: ["movilidad", "teleport", "aereo", "evasion"] },
+      { label: "Imparable: aguanto con armadura y borro la vida rival de un solo golpe pesado", tags: ["armadura", "heavy", "grappler", "powerhouse"] },
+      { label: "Frío y paciente: bloqueo hasta ver el hueco exacto para castigar con precisión", tags: ["all-rounder", "footsies", "defensivo", "whiff"] }
     ]
   },
   {
     num: 7,
     category: "Cómo Quieres Jugar — Velocidad vs. Potencia",
-    question: "7. Si tuvieras que elegir entre velocidad de movimiento o daño por impacto, ¿qué priorizas?",
+    question: "7. Entre velocidad de movimiento o potencia de daño por golpe, ¿qué eliges?",
     options: [
-      { label: "Velocidad máxima: correr, saltar con doble Air Dash y abrumar con mil impactos", tags: ["velocidad", "rushdown", "aereo", "glass"] },
-      { label: "Equilibrio total: buena caminata, buenos proyectiles y daño sólido", tags: ["all-rounder", "shoto", "equilibrado"] },
-      { label: "Potencia devastadora: no me importa moverme más despacio si cada golpe quita un 40%", tags: ["powerhouse", "heavy", "grappler", "brawler"] }
+      { label: "Velocidad vertiginosa: quiero cruzar la pantalla y abrumar con ataques rápidos", tags: ["velocidad", "rushdown", "aereo", "glass", "rápido"] },
+      { label: "Equilibrio completo: buena velocidad de paso y buen daño en cualquier situación", tags: ["all-rounder", "shoto", "equilibrado", "versátil"] },
+      { label: "Potencia demoledora: prefiero golpes pesados que quiten media barra de vida", tags: ["powerhouse", "heavy", "grappler", "brawler", "daño"] }
     ]
   },
   {
     num: 8,
-    category: "Cómo Quieres Jugar — Recursos y Mecánicas Especiales",
-    question: "8. ¿Qué mecánica especial te resulta más divertida de gestionar en partida?",
+    category: "Personalidad — Carisma e Identidad de tu Luchador",
+    question: "8. ¿Con qué personalidad y carisma de personaje te sientes más identificado?",
     options: [
-      { label: "Subir de nivel, cargar stocks o potenciar mis ataques durante la ronda", tags: ["nivel", "stocks", "carga", "instakill"] },
-      { label: "Colocar trampas, clones o proyectiles en pantalla para encerrar al rival", tags: ["setplay", "trapper", "clones", "zoner"] },
-      { label: "Cambiar entre distintas posturas de combate (Stances) con múltiples opciones", tags: ["postura", "stance", "mix-up"] },
-      { label: "Sin complicaciones de contadores extra: mis puños, patadas y barras universales", tags: ["shoto", "all-rounder", "rushdown", "brawler"] }
+      { label: "Maestro marcial disciplinado, héroe honorable o luchador clásico", tags: ["shoto", "all-rounder", "swordie", "karate", "equilibrado"] },
+      { label: "Villano imponente, antihéroe oscuro o usuario de poderes sombríos", tags: ["mishima", "oscuridad", "caos", "veneno", "zoner", "powerhouse"] },
+      { label: "Guerrero rebelde, ninja veloz, asesino letal o prodigio acrobático", tags: ["rushdown", "ninja", "movilidad", "sigilo", "velocidad"] },
+      { label: "Coloso carismático, luchador de wrestling o mente maestra impredecible", tags: ["grappler", "heavy", "tricky", "puppet", "setplay"] }
     ]
   },
   {
     num: 9,
-    category: "Personalidad — Qué te da más Satisfacción",
-    question: "9. ¿Qué momento te produce mayor satisfacción cuando ganas una partida?",
+    category: "Cómo Quieres Jugar — Cómo Abrir la Guardia Rival",
+    question: "9. ¿Cuál es tu forma favorita de romper a un oponente que no deja de bloquear?",
     options: [
-      { label: "Adivinar exactamente lo que iba a hacer el rival y destruirle con un agarre o Counter", tags: ["grappler", "counter", "parry", "mishima"] },
-      { label: "Ejecutar un combo largo y estilizado llevando al rival de punta a punta del escenario", tags: ["rushdown", "corner", "combo"] },
-      { label: "Ganar por frustración rival sin dejar que se acerque a mí en toda la ronda", tags: ["zoner", "alcance", "keepout"] },
-      { label: "Dominar el centro del escenario con fundamentos limpios y sin fisuras", tags: ["all-rounder", "shoto", "fundamentos"] }
+      { label: "Obligarle a adivinar un 50/50 constante entre golpe bajo, overhead o cruce", tags: ["mix-up", "50/50", "overhead", "postura"] },
+      { label: "Intimidarle con agarres de comando e imbloqueables de alto daño", tags: ["grappler", "agarre", "strike-throw"] },
+      { label: "Desgastarle desde lejos con proyectiles, trampas y daño residual (Chip)", tags: ["zoner", "chip", "trapper", "proyectil"] },
+      { label: "Hacer que falle un golpe al aire (Whiff) y castigarle con un combo óptimo", tags: ["whiff", "alcance", "footsies", "counter"] }
     ]
   },
   {
     num: 10,
-    category: "Preferencia de Juego",
-    question: "10. ¿Para qué juego quieres ver tus personajes ideales recomendados?",
+    category: "Personalidad — Tu Mayor Satisfacción al Ganar",
+    question: "10. ¿Qué te produce mayor satisfacción personal al cerrar una ronda?",
     options: [
-      { label: "Mostrar mis mejores personajes en TODOS los juegos a la vez", gameFilter: "all", tags: [] },
-      { label: "Mortal Kombat 1 o Street Fighter 6 (Lucha 2D tradicional)", gameFilter: "2d", tags: [] },
-      { label: "Tekken 8 (Lucha 3D)", gameFilter: "tekken8", tags: [] },
-      { label: "Dragon Ball FighterZ, Guilty Gear -Strive- o Super Smash Bros. Ultimate", gameFilter: "anime_smash", tags: [] }
+      { label: "Leer la mente del rival como un libro abierto con un Counter o agarre letal", tags: ["counter", "parry", "grappler", "mishima"] },
+      { label: "Ejecutar un combo largo y vistoso llevando al rival de punta a punta al muro", tags: ["rushdown", "combo", "corner"] },
+      { label: "Ganar controlando toda la pantalla sin que el rival haya podido ni tocarme", tags: ["zoner", "alcance", "keepout", "trapper"] },
+      { label: "Ganar por fundamentos puros adaptándome a cualquier situación de la partida", tags: ["all-rounder", "shoto", "equilibrado", "fundamentos"] }
     ]
   }
 ];
 
+const QUIZ_BANKS = {
+  // 1. TEST GENERAL (TODOS LOS JUEGOS)
+  general: {
+    title: "Test General FGC (Todos los Juegos)",
+    subtitle: "Descubre qué personajes de los 6 juegos encajan mejor con tu forma de jugar y tu personalidad.",
+    targetGameId: "all",
+    questions: [
+      {
+        num: 1,
+        category: "Cómo Quieres Jugar — Distancia en Pantalla",
+        question: "1. ¿En qué distancia de la pantalla te sientes más cómodo durante el combate?",
+        options: [
+          { label: "Pegado al rival sin dejarle respirar (Cuerpo a cuerpo asfixiante)", tags: ["rushdown", "presión", "mix-up"] },
+          { label: "A media distancia, controlando el espacio con golpes de buen alcance", tags: ["all-rounder", "shoto", "footsies", "whiff", "swordie"] },
+          { label: "Desde lejos, dominando la pantalla con proyectiles o trampas", tags: ["zoner", "trapper", "alcance"] },
+          { label: "Avanzando con fuerza para atrapar al rival con agarres o golpes pesados", tags: ["grappler", "heavy", "powerhouse", "brawler"] }
+        ]
+      },
+      {
+        num: 2,
+        category: "Personalidad — Temperamento Competitivo",
+        question: "2. ¿Cómo describes tu personalidad cuando juegas una partida competitiva?",
+        options: [
+          { label: "Agresivo, audaz y eléctrico: quiero llevar el ritmo del combate siempre", tags: ["rushdown", "velocidad", "ofensivo"] },
+          { label: "Calculador, sereno y metódico: espero el error del rival para castigar", tags: ["defensivo", "parry", "contraataque", "whiff", "equilibrado"] },
+          { label: "Creativo, travieso e impredecible: me encanta engañar y confundir", tags: ["mix-up", "setplay", "puppet", "tricky", "invisibilidad"] },
+          { label: "Dominante e intimidante: prefiero que el rival tenga miedo de acercarse", tags: ["grappler", "powerhouse", "heavy", "daño"] }
+        ]
+      },
+      {
+        num: 3,
+        category: "Cómo Quieres Jugar — Mecánicas de Sistema",
+        question: "3. ¿Qué tipo de sistema de combate disfrutas más?",
+        options: [
+          { label: "Combos con asistencias o compañeros en pantalla (Kameos / 3v3 Assists)", tags: ["kameo", "setplay", "point", "anchor"] },
+          { label: "Duelo 1 contra 1 puro de suelo, footsies y gestión de barra (Drive / Tension)", tags: ["shoto", "footsies", "all-rounder", "rushdown"] },
+          { label: "Combate 3D con pasos laterales (Sidestep), posturas y muros explosivos", tags: ["mishima", "postura", "counter"] },
+          { label: "Libertad total de plataformas, saltos múltiples y sacar al rival del escenario", tags: ["aereo", "swordie", "bair"] }
+        ]
+      },
+      {
+        num: 4,
+        category: "Cómo Quieres Jugar — Recursos Especiales",
+        question: "4. ¿Qué te gusta hacer durante el transcurso de la ronda?",
+        options: [
+          { label: "Subir niveles, cargar medidores propios o desbloquear transformaciones", tags: ["nivel", "stocks", "carga", "instakill", "arsene"] },
+          { label: "Plagar el escenario de clones, bombas o proyectiles de control", tags: ["setplay", "trapper", "clones", "zoner"] },
+          { label: "Alternar entre distintas posturas de ataque para ser impredecible", tags: ["postura", "stance", "mix-up"] },
+          { label: "Ir directo al grano con mis ataques normales y especiales sin recargas extra", tags: ["shoto", "all-rounder", "rushdown", "brawler"] }
+        ]
+      },
+      ...SHARED_PERSONALITY_AND_PLAYSTYLE_TAIL
+    ]
+  },
+
+  // 2. TEST ESPECÍFICO: MORTAL KOMBAT 1
+  mk1: {
+    title: "Test de Mortal Kombat 1 (10 Preguntas)",
+    subtitle: "Encuentra tu luchador ideal entre los 35 personajes (Juego Base, Kombat Pack 1 y Khaos Reigns).",
+    targetGameId: "mk1",
+    questions: [
+      {
+        num: 1,
+        category: "Mortal Kombat 1 — Plan de Juego en Neutro",
+        question: "1. En Mortal Kombat 1, ¿cómo quieres dominar el inicio de la ronda?",
+        options: [
+          { label: "Castigando fallos a media distancia con arpón, espadas o látigos largos", tags: ["whiff", "alcance", "mid-range"] },
+          { label: "Entrando con presión cuerpo a cuerpo, Frame Traps y daño por Chip en bloqueo", tags: ["rushdown", "presión", "chip", "frame"] },
+          { label: "Controlando el escenario con clones de hielo/sombra, portales o proyectiles", tags: ["zoner", "clones", "portales", "setplay"] },
+          { label: "Con invisibilidad, teletransportes o vuelo para sorprender por cualquier ángulo", tags: ["invisibilidad", "teletransporte", "vuelo", "mix-up"] }
+        ]
+      },
+      {
+        num: 2,
+        category: "Mortal Kombat 1 — Sinergia con tu Kameo",
+        question: "2. ¿Para qué quieres usar principalmente a tu compañero Kameo (R1)?",
+        options: [
+          { label: "Para hacer seguros mis ataques arriesgados y mantenerme pegado presionando", tags: ["rushdown", "presión", "chip"] },
+          { label: "Para crear un 50/50 imposible de bloquear (Overhead + Bajo simultáneo)", tags: ["mix-up", "invisibilidad", "clones"] },
+          { label: "Para extender combos de más del 40-45% de daño desde cualquier toque", tags: ["whiff", "daño", "powerhouse", "vuelo"] },
+          { label: "Para controlar toda la pantalla con proyectiles, bombas o redes de captura", tags: ["zoner", "setplay", "bombas", "trampas"] }
+        ]
+      },
+      {
+        num: 3,
+        category: "Personalidad en MK1 — Identidad en el Torneo",
+        question: "3. ¿Con qué facción o personalidad del universo de Mortal Kombat 1 conectas más?",
+        options: [
+          { label: "Ninjas clásicos (Lin Kuei / Shirai Ryu: fuego, hielo, humo, ácido o sombras)", tags: ["whiff", "clones", "invisibilidad", "teletransporte"] },
+          { label: "Campeones marciales y realeza del Mundo Exterior (fuego, rayos, abanicos, magia)", tags: ["shoto", "rushdown", "zoner", "levitate"] },
+          { label: "Hechiceros oscuros, cibernéticos (Cyrax/Sektor) o señores de la guerra implacables", tags: ["portales", "bombas", "misiles", "hacha", "grappler"] },
+          { label: "Invitados icónicos del cine y cómics (Omni-Man, Homelander, Ghostface, Conan, T-1000)", tags: ["viltrumita", "vuelo", "sigilo", "metal", "bárbaro"] }
+        ]
+      },
+      {
+        num: 4,
+        category: "Mortal Kombat 1 — Herramienta Favorita",
+        question: "4. ¿Qué herramienta específica de MK1 te resulta más divertida de usar?",
+        options: [
+          { label: "Controlar un espíritu/marioneta (Sento) o clon para atacar en sándwich", tags: ["puppet", "clon", "setplay"] },
+          { label: "Vuelo libre en el aire (Levitate / Air Dash) para dominar desde arriba", tags: ["vuelo", "levitate", "aérea"] },
+          { label: "Agarres de comando, armadura o parries que destrozan al rival de cerca", tags: ["grappler", "parries", "armadura", "powerhouse"] },
+          { label: "Cadenas rápidas de 7-9 frames y proyectiles sólidos sin complicaciones", tags: ["shoto", "rushdown", "frame"] }
+        ]
+      },
+      ...SHARED_PERSONALITY_AND_PLAYSTYLE_TAIL
+    ]
+  },
+
+  // 3. TEST ESPECÍFICO: STREET FIGHTER 6
+  sf6: {
+    title: "Test de Street Fighter 6 (10 Preguntas)",
+    subtitle: "Encuentra tu Main entre los 30 luchadores de SF6 (Juego Base y Pases de Año 1, 2 y 3).",
+    targetGameId: "sf6",
+    questions: [
+      {
+        num: 1,
+        category: "Street Fighter 6 — Uso del Drive Gauge",
+        question: "1. En Street Fighter 6 empiezas con 6 barras verdes de Drive. ¿Cómo prefieres gastarlas?",
+        options: [
+          { label: "Lanzando Drive Rush en neutro para entrar a toda velocidad con ventaja (+frames)", tags: ["rushdown", "corner", "movilidad"] },
+          { label: "Haciendo 2MK cancelado en Drive Rush para confirmar combos y llevar a la esquina", tags: ["shoto", "footsies", "equilibrado"] },
+          { label: "Usando proyectiles OD y control de espacio para agotar el Drive rival (Burnout)", tags: ["zoner", "portales", "veneno"] },
+          { label: "Avanzando con Parry y armadura para conectar un agarre de comando devastador", tags: ["grappler", "armadura", "medallas", "brawler"] }
+        ]
+      },
+      {
+        num: 2,
+        category: "Street Fighter 6 — Arquetipo de Combate",
+        question: "2. ¿Qué estilo de Street Fighter 6 va más con tu forma de pensar?",
+        options: [
+          { label: "Shoto versátil (Hadoken, Shoryuken antiaéreo y patada giratoria)", tags: ["shoto", "denjin", "equilibrado"] },
+          { label: "Rushdown de presión constante, Divekicks, fintas o latas explosivas en esquina", tags: ["rushdown", "divekick", "fintas", "latas"] },
+          { label: "Grappler o Brawler pesado: un par de lecturas correctas y se acabó la ronda", tags: ["grappler", "brawler", "armadura", "piledriver", "medallas"] },
+          { label: "Zoner táctico de largo alcance (Sonic Boom, extremidades largas, veneno o portales)", tags: ["zoner", "portales", "veneno", "extremidades"] }
+        ]
+      },
+      {
+        num: 3,
+        category: "Street Fighter 6 — Mecánica de Recurso Propio",
+        question: "3. Muchos personajes de SF6 tienen un recurso único. ¿Cuál te llama más la atención?",
+        options: [
+          { label: "Cargas elementales o stocks para potenciar mis especiales (Denjin, Fuha, Viento, Bebida)", tags: ["denjin", "fuha", "viento", "bebida"] },
+          { label: "Subir medallas de agarre (Nivel 1 a 5) o plantar minas explosivas (Psycho Mine)", tags: ["medallas", "mine", "grappler"] },
+          { label: "Fintas de movimiento, posturas técnicas o gadgets de alta ejecución", tags: ["postura", "fintas", "gadgets", "capoeira"] },
+          { label: "Prefiero no depender de contadores extra y centrarme en el Drive System puro", tags: ["shoto", "rushdown", "divekick", "grappler"] }
+        ]
+      },
+      {
+        num: 4,
+        category: "Personalidad en SF6 — Tu Actitud en el Ring",
+        question: "4. ¿Con qué personalidad de luchador de Street Fighter 6 te identificas más?",
+        options: [
+          { label: "El buscador de la perfección marcial (Ryu, Luke, Ken, Sagat, Terry)", tags: ["shoto", "muay", "equilibrado"] },
+          { label: "El depredador agresivo y despiadado (Akuma, M. Bison, Juri, A.K.I.)", tags: ["glass", "mine", "fuha", "veneno"] },
+          { label: "El espectáculo carismático y lleno de ritmo (Dee Jay, Kimberly, Rashid, Mai, Elena)", tags: ["fintas", "ninja", "movilidad", "abanicos", "capoeira"] },
+          { label: "La fuerza imparable del coliseo (Marisa, Zangief, Manon, Alex, E. Honda)", tags: ["armadura", "grappler", "medallas", "carga"] }
+        ]
+      },
+      ...SHARED_PERSONALITY_AND_PLAYSTYLE_TAIL
+    ]
+  },
+
+  // 4. TEST ESPECÍFICO: TEKKEN 8
+  tekken8: {
+    title: "Test de Tekken 8 (10 Preguntas)",
+    subtitle: "Encuentra tu personaje ideal entre los 44 luchadores de Tekken 8 (Base + Seasons 1, 2 y 3).",
+    targetGameId: "tekken8",
+    questions: [
+      {
+        num: 1,
+        category: "Tekken 8 — Enfoque del Combate 3D",
+        question: "1. En Tekken 8, ¿cuál quieres que sea tu arma principal para ganar?",
+        options: [
+          { label: "Dominio Mishima: Wave Dash, Electric (EWGF) y un Vortex 50/50 letal", tags: ["mishima", "vortex", "sentai", "warrior"] },
+          { label: "Presión infinita con posturas (Stances), cadenas de patadas o fintas de boxeo", tags: ["posturas", "flamingo", "boxeador", "sentai", "capoeira"] },
+          { label: "Cazar botones rivales con Counter Hits devastadores y muros explosivos", tags: ["counter", "powerhouse", "deathfist", "muay"] },
+          { label: "Evasión extrema, Parries, Sabakis o cadenas de agarres imposibles de romper", tags: ["evasión", "parries", "grappler", "sidestep", "ninjutsu"] }
+        ]
+      },
+      {
+        num: 2,
+        category: "Tekken 8 — Cómo Usas el Heat System",
+        question: "2. Cuando activas el estado Heat en Tekken 8, ¿qué buscas hacer?",
+        options: [
+          { label: "Lanzar Electrics sin ejecución perfecta o potenciar mis barridos bajos", tags: ["mishima", "vortex", "devil"] },
+          { label: "Asfixiar el bloqueo rival con daño residual (Chip) usando armas, motosierras o pistolas", tags: ["pistolas", "motosierras", "espada", "eikons"] },
+          { label: "Forzar una adivinanza 50/50 garantizada tras correr con un Heat Engager", tags: ["mix-up", "posturas", "powerhouse", "grappler"] },
+          { label: "Recuperar vida (curación) o tener un contraataque listo si el rival se precipita", tags: ["curación", "defensivo", "contraataques", "parries"] }
+        ]
+      },
+      {
+        num: 3,
+        category: "Tekken 8 — Movimiento y Complejidad",
+        question: "3. ¿Qué tipo de catálogo de movimientos prefieres manejar en Tekken 8?",
+        options: [
+          { label: "Directo y contundente: pocos movimientos clave pero de enorme impacto", tags: ["simple", "powerhouse", "keepout", "starburst"] },
+          { label: "Fluido con transiciones automáticas a posturas de ataque", tags: ["posturas", "sentai", "libertador", "capoeira"] },
+          { label: "Artes marciales tradicionales con pokes evasivos y excelente Sidestep", tags: ["sidestep", "kenpo", "karate", "bajiquan"] },
+          { label: "Técnico y único: Just Frames, múltiples cadenas de agarres o trucos ninja", tags: ["just", "grappler", "ninjutsu", "flash", "boxeador"] }
+        ]
+      },
+      {
+        num: 4,
+        category: "Personalidad en Tekken 8 — Tu Estilo en el Torneo del Puño de Hierro",
+        question: "4. ¿Qué perfil de luchador de Tekken 8 encaja mejor con tu personalidad?",
+        options: [
+          { label: "Linaje Mishima / Kazama: ambición, rayos y poder absoluto (Jin, Kazuya, Reina, Heihachi)", tags: ["mishima", "kazama", "sentai"] },
+          { label: "Luchador implacable de contacto puro (Bryan, Paul,Steve, Armor King, Fahkumram, Yujiro)", tags: ["counter", "powerhouse", "boxeador", "grappler", "muay", "baki"] },
+          { label: "Maestro elegante, veloz o de armas (Victor, Clive, Kunimitsu, Lee, Lili, Lars)", tags: ["espada", "eikons", "ninjutsu", "sidestep", "posturas"] },
+          { label: "Especialista impredecible o irreverente (Yoshimitsu, Xiaoyu, Kuma, Roger Jr., Azucena)", tags: ["flash", "evasión", "bear", "canguro", "libertador"] }
+        ]
+      },
+      ...SHARED_PERSONALITY_AND_PLAYSTYLE_TAIL
+    ]
+  },
+
+  // 5. TEST ESPECÍFICO: DRAGON BALL FIGHTERZ
+  dbfz: {
+    title: "Test de Dragon Ball FighterZ (10 Preguntas)",
+    subtitle: "Descubre tus personajes ideales (y tu equipo 3v3: Point, Mid y Anchor) entre los 44 luchadores.",
+    targetGameId: "dbfz",
+    questions: [
+      {
+        num: 1,
+        category: "Dragon Ball FighterZ — Tu Rol Favorito en el Equipo 3v3",
+        question: "1. En un equipo de 3 personajes de DBFZ, ¿en qué posición disfrutas más brillando?",
+        options: [
+          { label: "Point (1º en salir): quiero abrir al rival respaldado por mis dos asistencias", tags: ["point", "mix-up", "loops", "presión"] },
+          { label: "Mid (2º en salir): quiero dominar el neutro, tener buena asistencia y daño masivo", tags: ["mid", "alcance", "espada", "contraataques"] },
+          { label: "Anchor (Último en pie): quiero remontar partidas 1 contra 3 con Limit Break y Sparking", tags: ["anchor", "beam", "todoterreno", "daño"] },
+          { label: "Todoterreno flexible: quiero un personaje que funcione bien en cualquier posición", tags: ["todoterreno", "lariat", "fácil"] }
+        ]
+      },
+      {
+        num: 2,
+        category: "Dragon Ball FighterZ — Cómo Ganar el Neutro",
+        question: "2. A la velocidad de Dragon Ball FighterZ, ¿cómo prefieres controlar la pantalla?",
+        options: [
+          { label: "Con Kamehamehas (Beams) y Ki Blasts que cubran todo el ángulo horizontal", tags: ["beam", "zoner", "ki"] },
+          { label: "Cruzando la pantalla al instante con un Lariat, espada de Ki o teletransporte", tags: ["lariat", "teleport", "espada", "velocidad"] },
+          { label: "Con armadura de gigante, agarres imbloqueables o barreras defensivas", tags: ["grappler", "armadura", "barrera"] },
+          { label: "Con contraataques (Counters), esquivas automáticas o doble Air Dash aéreo", tags: ["contraataques", "defensivo", "reversals", "air dash"] }
+        ]
+      },
+      {
+        num: 3,
+        category: "Dragon Ball FighterZ — Estilo de Presión en Bloqueo",
+        question: "3. Cuando tienes al rival bloqueando tus cadenas con asistencias, ¿qué buscas?",
+        options: [
+          { label: "Mezclar varios golpes bajos (2L/2M), saltos rápidos (IAD) y teletransportes", tags: ["mix-up", "point", "loops", "flips"] },
+          { label: "Invocar ayudantes (Saibamen, Fuerzas Ginyu, Androide 17 o Fantasmas) para encerrarlo", tags: ["setplay", "invocación", "fantasmas", "barrera"] },
+          { label: "Subir niveles (Gohan Adulto / Gogeta SS4) o aplicar debuffs (Lab Coat 21)", tags: ["niveles", "instakill", "debuff"] },
+          { label: "Agarrarlo o romper su paciencia con ataques de alcance enorme", tags: ["grappler", "alcance", "patadas"] }
+        ]
+      },
+      {
+        num: 4,
+        category: "Personalidad en DBFZ — Tu Energía Saiyajin",
+        question: "4. ¿Con qué grupo de luchadores de Dragon Ball conectas más por personalidad?",
+        options: [
+          { label: "Guerreros Saiyajin y Fusiones imparables (Goku, Vegeta, Vegito, Gogeta, Gohan, Bardock)", tags: ["anchor", "point", "lariat", "patadas", "instakill"] },
+          { label: "Villanos icónicos y destructores (Cell, Frieza, Kid Buu, Broly, Zamasu, Baby, Janemba)", tags: ["perfect", "zoner", "grappler", "vuelo", "teletransporte"] },
+          { label: "Androides implacables (Androide 16, 17, 18, Androide 21 Majin / Lab Coat)", tags: ["grappler", "barrera", "absorción", "debuff"] },
+          { label: "Maestros tácticos y asesinos de élite (Hit, Piccolo, Trunks, Jiren, Beerus, Roshi)", tags: ["contraataques", "orbes", "flips", "esferas", "mafuba"] }
+        ]
+      },
+      ...SHARED_PERSONALITY_AND_PLAYSTYLE_TAIL
+    ]
+  },
+
+  // 6. TEST ESPECÍFICO: GUILTY GEAR -STRIVE-
+  "gg-strive": {
+    title: "Test de Guilty Gear -Strive- (10 Preguntas)",
+    subtitle: "Encuentra tu personaje ideal entre los 32 luchadores de GGST (Juego Base y Seasons 1, 2, 3 y 4).",
+    targetGameId: "gg-strive",
+    questions: [
+      {
+        num: 1,
+        category: "Guilty Gear -Strive- — Ritmo de Combate",
+        question: "1. En Guilty Gear -Strive- los personajes tienen estilos extremos. ¿Cuál buscas tú?",
+        options: [
+          { label: "Rushdown explosivo de corta distancia: botones positivos (+frames), agarre y daño brutal", tags: ["rushdown", "strike-throw", "dandy", "carrera"] },
+          { label: "Dominio de media y larga distancia con espadas enormes, guadañas, látigos o Yo-Yo", tags: ["esquina", "espadas", "zoner", "yo-yo", "alcance"] },
+          { label: "Mix-up de alta velocidad, vuelo Hoverdash o proyectiles de setplay en el despertar", tags: ["mix-up", "hoverdash", "velocidad", "setplay"] },
+          { label: "Especialista único: Grappler colosal (Potemkin), Marioneta (Zato/Jack-O) o Mago (Asuka)", tags: ["grappler", "puppet", "siervos", "cartas", "billar"] }
+        ]
+      },
+      {
+        num: 2,
+        category: "Guilty Gear -Strive- — Gestión de Recursos y Medidores",
+        question: "2. ¿Qué relación quieres tener con los medidores especiales en Guilty Gear -Strive-?",
+        options: [
+          { label: "Solo quiero gestionar la barra universal de Tension (Roman Cancel) y Burst (Wild Assault)", tags: ["rushdown", "all-rounder", "shock", "carga"] },
+          { label: "Me gusta controlar un medidor de riesgo/recompensa (Blood Gauge de Nago o Jealous Rage de A.B.A)", tags: ["blood", "celos", "samurái"] },
+          { label: "Quiero gestionar munición, concentración, estamina o hechizos (Happy Chaos, Sin, Asuka)", tags: ["pistola", "stamina", "cartas"] },
+          { label: "Prefiero colocar objetos en pantalla (Yo-Yo, Espadas, Siervos, Tatamis, Bolas de Billar)", tags: ["yo-yo", "siervos", "tatami", "billar", "hielo"] }
+        ]
+      },
+      {
+        num: 3,
+        category: "Guilty Gear -Strive- — Cómo Romper el Muro (Wall Break)",
+        question: "3. ¿Cómo prefieres llevar al rival hasta el Wall Break para ganar Positive Bonus?",
+        options: [
+          { label: "Con un Counter Hit masivo de Heavy Slash o Pilebunker que borre el 60% de la vida", tags: ["daño", "dandy", "behemoth", "samurái"] },
+          { label: "Abase de velocidad, Rekka infinita, delfines o carreras imparables", tags: ["rekka", "delfín", "carrera", "velocidad"] },
+          { label: "Atrapando al rival con una cuerda (Tether), un Parry de 1 frame o un Potemkin Buster", tags: ["parry", "tether", "grappler", "autoguard"] },
+          { label: "Encerrándolo en la esquina con espadas, proyectiles o ataques de marioneta", tags: ["esquina", "espadas", "puppet", "zoner", "hielo"] }
+        ]
+      },
+      {
+        num: 4,
+        category: "Personalidad en GGST — Tu Espíritu Rockero",
+        question: "4. ¿Con qué personalidad del universo de Guilty Gear -Strive- vibras más?",
+        options: [
+          { label: "Rebelde directo, feroz y sin filtros (Sol, Slayer, Baiken, Giovanna, Johnny)", tags: ["strike-throw", "dandy", "parry", "carrera", "mist"] },
+          { label: "Estratega elegante, caballeroso o místico (Ky, Nagoriyuki, Testament, Queen Dizzy, Venom)", tags: ["shock", "samurái", "stain", "hielo", "billar"] },
+          { label: "Energía desbordante, carisma y velocidad (May, Bridget, Elphelt, Sin, Chipp, Millia)", tags: ["delfín", "yo-yo", "rekka", "stamina", "velocidad", "disco"] },
+          { label: "Enigmático, caótico o fuera de toda norma (Happy Chaos, Faust, Zato-1, A.B.A, Bedman?, Lucy)", tags: ["pistola", "aleatorios", "puppet", "celos", "error", "netrunner"] }
+        ]
+      },
+      ...SHARED_PERSONALITY_AND_PLAYSTYLE_TAIL
+    ]
+  },
+
+  // 7. TEST ESPECÍFICO: SUPER SMASH BROS. ULTIMATE
+  ssbu: {
+    title: "Test de Super Smash Bros. Ultimate (10 Preguntas)",
+    subtitle: "Encuentra tu Main ideal entre los 86 luchadores de Smash Ultimate (Base + Fighters Pass Vol. 1 y 2).",
+    targetGameId: "ssbu",
+    questions: [
+      {
+        num: 1,
+        category: "Super Smash Bros. Ultimate — Estilo en el Escenario",
+        question: "1. En Smash Ultimate, ¿cómo prefieres dominar el escenario y subir el porcentaje (%) rival?",
+        options: [
+          { label: "Con una espada de buen alcance (Swordie) espaciando Back Air y Fair seguros en escudo", tags: ["swordie", "espada", "bair", "distancia"] },
+          { label: "A máxima velocidad (Rushdown / Fast Faller) encadenando combos verticales y malabares", tags: ["rushdown", "fast faller", "escalera", "velocidad"] },
+          { label: "Controlando el escenario con proyectiles, trampas, bloques o ítems (Zoner / Trapper)", tags: ["zoner", "trapper", "bloques", "proyectiles", "bomba"] },
+          { label: "Con el poder de un peso pesado (Heavy / Grappler) que mata de 3 golpes a 70%", tags: ["heavy", "super heavy", "grappler", "armor"] }
+        ]
+      },
+      {
+        num: 2,
+        category: "Super Smash Bros. Ultimate — Cómo Cerrar el Stock (KO)",
+        question: "2. Cuando el rival ya está por encima de 100%, ¿cómo te gusta quitarle la vida (Stock)?",
+        options: [
+          { label: "Saltando fuera del escenario a perseguirlo con un Edgeguard profundo o Spike (Dair)", tags: ["edgeguard", "combate aéreo", "saltos", "bair"] },
+          { label: "Encerrándolo en el borde del escenario (Ledgetrap) con trampas, proyectiles o escudos", tags: ["ledgetrap", "trapper", "zoner", "bombas"] },
+          { label: "Con una confirmación rápida desde un golpe ligero o un Up-B / Up-Smash desde el escudo (OOS)", tags: ["oos", "up-smash", "climhazzard", "confirm"] },
+          { label: "Con una mecánica especial de Comeback o un golpe devastador (Arsene, KO Punch, EWGF, Limit)", tags: ["arsene", "touch of death", "limit", "waft", "aura"] }
+        ]
+      },
+      {
+        num: 3,
+        category: "Super Smash Bros. Ultimate — Mecánicas Únicas",
+        question: "3. ¿Qué tipo de personaje de Smash Ultimate te atrae más dominar?",
+        options: [
+          { label: "Personaje de fundamentos puros y honestos (Mario, Lucina, Wolf, Cloud, Pit, Fox)", tags: ["all-rounder", "fundamentos", "swordie", "honesto"] },
+          { label: "Personaje con comandos de juego de lucha tradicional (Kazuya, Terry, Ryu, Ken)", tags: ["comandos", "inputs", "touch of death"] },
+          { label: "Creador de jugadas de 200 IQ con recursos o objetos (Steve, Pac-Man, Snake, Peach, Shulk)", tags: ["bloques", "trapper", "float", "monado", "granadas"] },
+          { label: "Personaje con cambio de forma o compañero (Pyra/Mythra, Pokémon Trainer, Joker, Rosalina)", tags: ["mythra", "squirtle", "arsene", "puppet"] }
+        ]
+      },
+      {
+        num: 4,
+        category: "Personalidad en Smash — Tu Espíritu Nintendo / Crossover",
+        question: "4. ¿Con qué tipo de icono de los videojuegos conectas más por tu personalidad?",
+        options: [
+          { label: "Héroes y espadachines legendarios (Link, Cloud, Sephiroth, Sora, Roy, Byleth, Joker)", tags: ["swordie", "espada", "arsene", "magia"] },
+          { label: "Velocistas y luchadores de acción rápida (Fox, Falco, Sonic, Pikachu, Captain Falcon, Sheik)", tags: ["velocidad", "fast faller", "brawler", "mobility"] },
+          { label: "Reyes y colosos intimidantes (Bowser, Ganondorf, Donkey Kong, King K. Rool, Ridley, Kazuya)", tags: ["super heavy", "heavy", "grappler", "touch of death"] },
+          { label: "Estrategas creativos y tiradores (Steve, Samus, Snake, R.O.B., Pac-Man, Mega Man)", tags: ["bloques", "zoner", "trapper", "gyro"] }
+        ]
+      },
+      ...SHARED_PERSONALITY_AND_PLAYSTYLE_TAIL
+    ]
+  }
+};
+
 const quizState = {
+  mode: "general", // general | mk1 | sf6 | tekken8 | dbfz | gg-strive | ssbu
   currentStep: 0,
   answers: new Array(10).fill(null)
 };
 
-window.initPersonalityQuiz = function () {
+window.initPersonalityQuiz = function (mode = null) {
+  if (mode && QUIZ_BANKS[mode]) {
+    quizState.mode = mode;
+  }
   quizState.currentStep = 0;
   quizState.answers = new Array(10).fill(null);
+  renderQuizModeSelector();
   renderQuizStep();
 };
+
+function renderQuizModeSelector() {
+  const modeBar = document.getElementById("quizModeSelectorBar");
+  if (!modeBar) return;
+
+  const modes = [
+    { id: "general", label: "Test General (Todos los Juegos)" },
+    { id: "mk1", label: "Test Mortal Kombat 1" },
+    { id: "sf6", label: "Test Street Fighter 6" },
+    { id: "tekken8", label: "Test Tekken 8" },
+    { id: "dbfz", label: "Test Dragon Ball FighterZ" },
+    { id: "gg-strive", label: "Test Guilty Gear -Strive-" },
+    { id: "ssbu", label: "Test Smash Bros. Ultimate" }
+  ];
+
+  modeBar.innerHTML = modes
+    .map(
+      (m) => `
+      <button
+        class="saga-tab-btn ${quizState.mode === m.id ? "active" : ""}"
+        data-quizmode="${m.id}"
+      >
+        ${m.label}
+      </button>
+    `
+    )
+    .join("");
+
+  modeBar.querySelectorAll("[data-quizmode]").forEach((btn) => {
+    btn.onclick = () => {
+      window.initPersonalityQuiz(btn.dataset.quizmode);
+    };
+  });
+}
 
 function renderQuizStep() {
   const container = document.getElementById("quizContainerBox");
   if (!container) return;
 
-  if (quizState.currentStep >= QUIZ_10_QUESTIONS.length) {
-    renderQuizRecommendations(container);
+  const activeBank = QUIZ_BANKS[quizState.mode] || QUIZ_BANKS.general;
+  const questions = activeBank.questions;
+
+  if (quizState.currentStep >= questions.length) {
+    renderQuizRecommendations(container, activeBank);
     return;
   }
 
-  const qObj = QUIZ_10_QUESTIONS[quizState.currentStep];
-  const progressPct = Math.round(((quizState.currentStep + 1) / QUIZ_10_QUESTIONS.length) * 100);
+  const qObj = questions[quizState.currentStep];
+  const progressPct = Math.round(((quizState.currentStep + 1) / questions.length) * 100);
 
   container.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #293548;">
+      <div>
+        <h3 style="font-family:var(--font-display);font-size:1.25rem;color:#fbbf24;">${activeBank.title}</h3>
+        <p style="font-size:0.82rem;color:#94a3b8;">${activeBank.subtitle}</p>
+      </div>
+      <span class="base-game-badge">10 Preguntas (Juego + Personalidad)</span>
+    </div>
+
     <div style="margin-bottom:14px;">
       <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.8rem;color:#fbbf24;margin-bottom:6px;">
         <span>${qObj.category}</span>
-        <span>Pregunta ${qObj.num} de 10 (${progressPct}%)</span>
+        <span>Pregunta ${qObj.num} de ${questions.length} (${progressPct}%)</span>
       </div>
       <div style="width:100%;height:8px;background:#090d16;border-radius:999px;overflow:hidden;border:1px solid #293548;">
         <div style="width:${progressPct}%;height:100%;background:linear-gradient(90deg,#f59e0b,#ec4899);"></div>
@@ -732,7 +1118,7 @@ function renderQuizStep() {
           ? `<button class="btn btn-outline" id="btnQuizPrev">⬅ Pregunta anterior</button>`
           : `<span></span>`
       }
-      <button class="btn btn-outline" id="btnQuizRestart">Reiniciar test</button>
+      <button class="btn btn-outline" id="btnQuizRestart">Reiniciar este test</button>
     </div>
   `;
 
@@ -755,86 +1141,84 @@ function renderQuizStep() {
 
   const restartBtn = document.getElementById("btnQuizRestart");
   if (restartBtn) {
-    restartBtn.onclick = () => window.initPersonalityQuiz();
+    restartBtn.onclick = () => window.initPersonalityQuiz(quizState.mode);
   }
 }
 
-function renderQuizRecommendations(container) {
+function renderQuizRecommendations(container, activeBank) {
   const tagWeights = {};
   let preferredDiff = null;
-  let gameFilter = "all";
 
   quizState.answers.forEach((ans) => {
     if (!ans) return;
     if (ans.diff) preferredDiff = ans.diff;
-    if (ans.gameFilter) gameFilter = ans.gameFilter;
     (ans.tags || []).forEach((t) => {
-      tagWeights[t] = (tagWeights[t] || 0) + 1;
+      tagWeights[t.toLowerCase()] = (tagWeights[t.toLowerCase()] || 0) + 1;
     });
   });
 
-  // Evaluar los 271 personajes según afinidad con las 10 respuestas
-  let targetGames = state.games;
-  if (gameFilter === "2d") {
-    targetGames = state.games.filter((g) => g.id === "mk1" || g.id === "sf6");
-  } else if (gameFilter === "tekken8") {
-    targetGames = state.games.filter((g) => g.id === "tekken8");
-  } else if (gameFilter === "anime_smash") {
-    targetGames = state.games.filter((g) => ["dbfz", "gg-strive", "ssbu"].includes(g.id));
-  }
+  const isSingleGame = activeBank.targetGameId !== "all";
+  const targetGames = isSingleGame
+    ? state.games.filter((g) => g.id === activeBank.targetGameId)
+    : state.games;
 
   const scored = [];
   targetGames.forEach((game) => {
     game.characters.forEach((ch) => {
-      let score = 50;
-      const textBlob = `${ch.archetype} ${ch.overview} ${ch.gameplan}`.toLowerCase();
+      let score = 56;
+      const textBlob = `${ch.name} ${ch.archetype} ${ch.overview} ${ch.gameplan} ${ch.recommendedSubSystem || ""}`.toLowerCase();
 
       Object.keys(tagWeights).forEach((tag) => {
         if (textBlob.includes(tag)) {
-          score += tagWeights[tag] * 11;
+          score += tagWeights[tag] * 10;
         }
       });
 
       if (preferredDiff && ch.difficulty === preferredDiff) {
-        score += 14;
+        score += 12;
       }
 
-      const matchPct = Math.min(99, Math.max(76, score));
+      const matchPct = Math.min(99, Math.max(78, score));
       scored.push({ game, ch, score, matchPct });
     });
   });
 
   scored.sort((a, b) => b.score - a.score);
 
-  // Seleccionar el mejor personaje de cada juego objetivo (hasta 6 recomendaciones principales)
   const topRecommendations = [];
-  const usedGames = new Set();
-
-  scored.forEach((item) => {
-    if (topRecommendations.length < 6 && (!usedGames.has(item.game.id) || targetGames.length < 3)) {
-      topRecommendations.push(item);
-      usedGames.add(item.game.id);
-    }
-  });
+  if (isSingleGame) {
+    // En el test específico de un juego, mostrar el Top 6 de mejores personajes de ese juego
+    scored.slice(0, 6).forEach((item) => topRecommendations.push(item));
+  } else {
+    // En el test general, mostrar el mejor personaje de cada uno de los 6 juegos
+    const usedGames = new Set();
+    scored.forEach((item) => {
+      if (topRecommendations.length < 6 && !usedGames.has(item.game.id)) {
+        topRecommendations.push(item);
+        usedGames.add(item.game.id);
+      }
+    });
+  }
 
   container.innerHTML = `
     <div class="ufd-section-banner" style="margin-top:0;">
-      Resultado de tus 10 Respuestas — Tus Personajes Ideales (Estilo de Juego + Personalidad)
+      Resultados de ${activeBank.title} — Tus Personajes Ideales
     </div>
     <p style="font-size:0.88rem;color:#cbd5e1;margin-bottom:16px;">
-      Según tu forma de jugar y tu temperamento competitivo, estos son los luchadores que mejor encajan contigo:
+      Basado en tus 10 respuestas sobre cómo quieres jugar y tu personalidad competitiva, estos son tus luchadores recomendados:
     </p>
 
     <div class="news-grid">
       ${topRecommendations
-        .map(({ game, ch, matchPct }) => {
+        .map(({ game, ch, matchPct }, rankIdx) => {
           const cachedSrc = clientPortraitCache.get(ch.id) || ch.iconUrl;
+          const dlcBadge = ch.isDLC ? `DLC (${ch.dlcPack})` : "Juego Base";
           return `
             <div class="video-panel-card" style="display:flex;flex-direction:column;justify-content:space-between;gap:12px;">
               <div>
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                  <span class="news-cat-badge">${matchPct}% Afinidad Contigo</span>
-                  <span class="news-saga-badge">${game.title}</span>
+                  <span class="news-cat-badge">#${rankIdx + 1} • ${matchPct}% Afinidad</span>
+                  <span class="news-saga-badge">${game.title} (${dlcBadge})</span>
                 </div>
                 <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;">
                   <div class="portrait-img-box" style="width:64px;height:64px;flex-shrink:0;">
@@ -842,11 +1226,11 @@ function renderQuizRecommendations(container) {
                   </div>
                   <div>
                     <h4 style="font-family:var(--font-display);font-size:1.2rem;">${ch.name}</h4>
-                    <div style="font-size:0.78rem;color:#fbbf24;">${ch.archetype} • Dificultad: ${ch.difficulty}</div>
+                    <div style="font-size:0.78rem;color:#fbbf24;">${ch.archetype} • Dif: ${ch.difficulty}</div>
                   </div>
                 </div>
                 <p style="font-size:0.82rem;color:#cbd5e1;">
-                  <strong>Por qué encaja con tu personalidad y juego:</strong> ${ch.overview}
+                  <strong>Por qué encaja con tu juego y personalidad:</strong> ${ch.overview}
                 </p>
               </div>
               <button class="btn btn-primary" data-openrecgame="${game.id}" data-openrecchar="${ch.id}" style="width:100%;justify-content:center;">
@@ -858,8 +1242,13 @@ function renderQuizRecommendations(container) {
         .join("")}
     </div>
 
-    <div style="margin-top:18px;text-align:center;">
-      <button class="btn btn-outline" id="btnRepeatQuiz10">🔄 Volver a hacer el Test de 10 Preguntas</button>
+    <div style="margin-top:18px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-outline" id="btnRepeatQuiz10">Repetir este Test de 10 Preguntas</button>
+      ${
+        isSingleGame
+          ? `<button class="btn btn-outline" id="btnSwitchToGeneralQuiz">Hacer el Test General (Todos los Juegos)</button>`
+          : ""
+      }
     </div>
   `;
 
@@ -873,14 +1262,17 @@ function renderQuizRecommendations(container) {
     };
   });
 
-  document.getElementById("btnRepeatQuiz10").onclick = () => window.initPersonalityQuiz();
+  document.getElementById("btnRepeatQuiz10").onclick = () => window.initPersonalityQuiz(quizState.mode);
+  const genBtn = document.getElementById("btnSwitchToGeneralQuiz");
+  if (genBtn) {
+    genBtn.onclick = () => window.initPersonalityQuiz("general");
+  }
 }
 
 // =========================================================================
-// INICIALIZACIÓN DEL CENTRO DE HERRAMIENTAS (TEST 10 PREGUNTAS, CALCULADORA, GLOSARIO E INSPECTOR)
+// INICIALIZACIÓN DEL CENTRO DE HERRAMIENTAS
 // =========================================================================
 document.addEventListener("DOMContentLoaded", () => {
-  // Controles del modal Inspector de Hitboxes Frame a Frame
   const hbSlider = document.getElementById("hbFrameSlider");
   const btnPrevF = document.getElementById("btnHbPrevFrame");
   const btnNextF = document.getElementById("btnHbNextFrame");
@@ -920,7 +1312,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Renderizar lista del Glosario FGC en la pestaña de herramientas
   const glossaryGrid = document.getElementById("glossaryCardsGrid");
   const glossarySearch = document.getElementById("glossarySearchInput");
   const renderGlossary = (filterText = "") => {
