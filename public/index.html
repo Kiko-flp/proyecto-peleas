@@ -3,127 +3,119 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="referrer" content="no-referrer" />
   <title>FGC Vault — Enciclopedia y Guías de Juegos de Lucha</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=16" />
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css?v=17" />
 </head>
 <body>
-  <!-- TOP NAVIGATION BAR (LIMPIA, SIN BOTONES DE BOT DE TELEGRAM NI APORTAR DLC ANTIGUO) -->
+  <!-- BARRA DE NAVEGACIÓN MINIMALISTA DE DISEÑO EDITORIAL -->
   <header class="topbar">
     <div class="container topbar-inner">
-      <div class="brand" id="btnHomeBrand" title="Volver a Todos los juegos">
+      <div class="brand" id="btnHomeBrand" title="Volver al inicio">
         <div class="brand-mark">FGC</div>
-        <div>
+        <div class="brand-text">
           <span class="brand-title">FGC VAULT</span>
-          <span class="brand-subtitle">ENCICLOPEDIA COMPETITIVA DE LUCHA</span>
+          <span class="brand-subtitle">ENCICLOPEDIA & FRAME DATA</span>
         </div>
       </div>
 
+      <nav class="topbar-nav" aria-label="Navegación principal">
+        <button class="nav-link active" id="btnNavHome">Juegos</button>
+        <button class="nav-link" id="btnOpenToolsView">Test y Calculadora</button>
+        <button class="nav-link" id="btnOpenNewsView">Noticias y Eventos</button>
+        <button class="nav-link" id="btnOpenCommunityView">Comunidad</button>
+        <button class="nav-link nav-link-yt" id="btnOpenYoutubeModal">
+          <span class="yt-dot"></span> Canal YouTube
+        </button>
+      </nav>
+
       <div class="topbar-actions">
-        <!-- Selector global de notación de botones -->
-        <div class="notation-switcher" title="Traduce automáticamente la notación de los combos">
-          <label for="globalNotationSelect">Notación:</label>
+        <div class="notation-switcher" title="Traduce automáticamente la notación de los ataques y combos">
+          <label for="globalNotationSelect">Mando:</label>
           <select id="globalNotationSelect">
-            <option value="technical">Técnica FGC (1,2,3 / 236P)</option>
+            <option value="technical">Técnica (1,2,3 / 236P)</option>
             <option value="ps">PlayStation (▢ △ ✕ ○)</option>
             <option value="xbox">Xbox / PC (X Y A B)</option>
           </select>
         </div>
-
-        <button class="btn btn-primary" id="btnOpenToolsView">
-          Test Personaje y Calculadora
-        </button>
-
-        <button class="btn btn-outline" id="btnOpenNewsView">
-          Noticias y Competitivo
-        </button>
-
-        <button class="btn btn-outline" id="btnOpenCommunityView">
-          Wikis, Canales y Qué Falta
-        </button>
-
-        <button class="btn btn-youtube" id="btnOpenYoutubeModal">
-          Canal de YouTube
-        </button>
       </div>
     </div>
   </header>
 
-  <!-- MAIN CONTENT -->
+  <!-- CONTENIDO PRINCIPAL -->
   <main class="container main-content">
-    <!-- VISTA 1: PÁGINA PRINCIPAL (TODOS LOS JUEGOS) -->
+    <!-- VISTA 1: PORTADA PRINCIPAL (DISEÑO LIMPIO Y MINIMALISTA) -->
     <section id="homeView">
       <div class="hero-banner">
         <div class="hero-text">
-          <div class="hero-pill">FUENTES VERIFICADAS: SUPERCOMBO • DUSTLOOP • WAVU • KOMBAT AKADEMY • ULTIMATE FRAME DATA</div>
-          <h1>Enciclopedia de Guías y Frame Data de Juegos de Lucha</h1>
+          <div class="hero-pill">ENCICLOPEDIA COMPETITIVA • SUPERCOMBO • DUSTLOOP • WAVU • ULTIMATE FRAME DATA</div>
+          <h1>Domina tus Juegos de Lucha Favoritos</h1>
           <p>
-            Selecciona un juego para acceder a sus tres páginas dedicadas:
-            <strong>1. Guía Básica</strong>, <strong>2. Guía Avanzada</strong> y
-            <strong>3. Plantel Completo de Personajes</strong> (Juego Base y Packs DLC).
+            Guías paso a paso en español, Frame Data con Hitboxes animadas y planteles completos actualizados.
           </p>
+
+          <!-- ACCIONES RÁPIDAS INTEGRADAS EN EL HERO -->
+          <div class="hero-quick-actions">
+            <button class="btn btn-primary" id="btnPromoOpenQuiz">
+              🎯 Test de 10 Preguntas: ¿Qué Personaje Elegir?
+            </button>
+            <button class="btn btn-outline" id="btnPromoOpenPunish">
+              🛡️ Calculadora de Castigos en Bloqueo
+            </button>
+          </div>
         </div>
+
         <div class="hero-stats" id="heroStatsBox"></div>
       </div>
 
-      <!-- BARRA DE ACCESO RÁPIDO Y BUSCADOR GLOBAL -->
+      <!-- BARRA DE FILTRO POR SAGA Y BUSCADOR INSTANTÁNEO -->
       <div class="catalog-toolbar">
         <div class="saga-tabs" id="sagaTabsContainer"></div>
-        <input
-          type="search"
-          id="searchGameOrCharInput"
-          class="search-input"
-          placeholder="Buscar juego, personaje o pack DLC (ej. Scorpion, Akuma, Armor King, Sagat)..."
-        />
+        <div class="search-wrap">
+          <input
+            type="search"
+            id="searchGameOrCharInput"
+            class="search-input"
+            placeholder="Buscar juego, personaje o pack DLC (ej. Scorpion, Akuma, Armor King)..."
+          />
+        </div>
       </div>
 
-      <!-- RESULTADOS RÁPIDOS DE PERSONAJES -->
+      <!-- RESULTADOS INSTANTÁNEOS DE PERSONAJES AL ESCRIBIR -->
       <div id="quickCharSearchResults" class="quick-char-results hidden"></div>
 
-      <!-- ACCESO DIRECTO AL TEST DE 10 PREGUNTAS Y CALCULADORA DE CASTIGOS -->
-      <div class="tools-promo-strip">
-        <div>
-          <strong>¿No sabes qué personaje elegir o cómo castigar un ataque rival en bloqueo?</strong>
-          <span>Haz el Test de 10 Preguntas (Estilo de juego + Personalidad) o usa la Calculadora de Castigos por Frames.</span>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="btn btn-primary" id="btnPromoOpenQuiz">Hacer Test de 10 Preguntas</button>
-          <button class="btn btn-outline" id="btnPromoOpenPunish">Calculadora de Castigos</button>
-        </div>
-      </div>
-
-      <!-- GRID DE JUEGOS CON IMAGEN DE PORTADA OFICIAL -->
+      <!-- CATÁLOGO VISUAL DE JUEGOS -->
       <div class="games-grid" id="gamesGridContainer"></div>
 
-      <!-- BLOQUE DESTACADO DE NOTICIAS DE JUEGOS DE LUCHA Y COMPETITIVO EN PORTADA -->
+      <!-- AVANCE LIMPIO DE NOTICIAS Y TORNEOS EN PORTADA -->
       <div class="home-news-preview">
         <div class="section-heading-bar">
           <div>
-            <h2>Últimas Noticias de Juegos de Lucha y Competitivo (FGC & Esports)</h2>
-            <span>Fuentes fiables: EVO.gg • Capcom Pro Tour • Tekken World Tour • Arc World Tour • EventHubs</span>
+            <h2>Actualidad FGC, Eventos y Torneos</h2>
+            <span>Cobertura de EVO, Capcom Pro Tour, Tekken World Tour, Arc World Tour y parches</span>
           </div>
-          <button class="btn btn-outline" id="btnSeeAllNews">Ver todas las noticias ➔</button>
+          <button class="btn btn-outline" id="btnSeeAllNews">Ver calendario y noticias ➔</button>
         </div>
         <div class="news-grid" id="homeNewsPreviewGrid"></div>
       </div>
     </section>
 
-    <!-- VISTA 1.5: PÁGINA COMPLETA DE NOTICIAS FGC Y COMPETITIVO -->
+    <!-- VISTA 1.5: NOTICIAS Y CALENDARIO DE EVENTOS (CON FECHA DE INICIO Y FIN) -->
     <section id="newsView" class="hidden">
       <div class="breadcrumb-bar">
-        <button class="btn-back" id="btnBackFromNews">Volver a Todos los juegos</button>
-        <span style="font-size:0.8rem;color:#94a3b8;">Actualización continua desde fuentes oficiales del circuito competitivo</span>
+        <button class="btn-back" id="btnBackFromNews">← Volver a Juegos</button>
+        <span class="breadcrumb-hint">Calendario competitivo internacional y notas de parche</span>
       </div>
 
-      <div class="hero-banner" style="margin-bottom:20px;">
-        <div class="hero-text">
-          <div class="hero-pill">ACTUALIDAD FGC & TORNEOS INTERNACIONALES</div>
-          <h1>Noticias de Juegos de Lucha y Competitivo</h1>
+      <div class="page-intro-header">
+        <div>
+          <div class="hero-pill">CIRCUITO COMPETITIVO & ESPORTS</div>
+          <h1>Eventos, Torneos y Noticias FGC</h1>
           <p>
-            Cobertura verificada de torneos Majors (<strong>EVO, Capcom Cup, Tekken World Tour, Arc World Tour, Final Kombat</strong>),
-            notas de parche y lanzamientos de personajes DLC.
+            Consulta cuándo empieza y cuándo termina cada gran torneo del circuito y filtra las últimas noticias por fecha.
           </p>
         </div>
       </div>
@@ -132,32 +124,31 @@
         <div class="saga-tabs" id="newsCategoryTabs">
           <button class="saga-tab-btn active" data-newscat="all">Todo (Eventos y Noticias)</button>
           <button class="saga-tab-btn" data-newscat="events-only">Solo Eventos (Inicio y Fin)</button>
-          <button class="saga-tab-btn" data-newscat="Competitivo / Torneos">Competitivo y Torneos</button>
-          <button class="saga-tab-btn" data-newscat="Parches y DLC">Parches y Nuevos DLC</button>
-          <button class="saga-tab-btn" data-newscat="Juegos de Lucha General">Juegos de Lucha en General</button>
+          <button class="saga-tab-btn" data-newscat="Competitivo / Torneos">Torneos</button>
+          <button class="saga-tab-btn" data-newscat="Parches y DLC">Parches y DLC</button>
+          <button class="saga-tab-btn" data-newscat="Juegos de Lucha General">General</button>
         </div>
       </div>
 
-      <!-- BARRA DE FILTRADO POR FECHA Y TEXTO PARA BUSCAR NOTICIAS Y EVENTOS -->
       <div class="news-filter-bar">
-        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+        <div class="filter-inputs-row">
           <div class="date-filter-group">
-            <label for="newsSearchInput">Buscar noticia, evento, juego o sede:</label>
-            <input type="search" id="newsSearchInput" placeholder="Ej. EVO, Capcom Cup, Tekken, Singapur, Tokio..." style="min-width:240px;" />
+            <label for="newsSearchInput">Buscar evento o noticia</label>
+            <input type="search" id="newsSearchInput" placeholder="Ej. EVO, Capcom Cup, Tekken, Tokio..." />
           </div>
 
           <div class="date-filter-group">
-            <label for="newsDateFrom">Desde fecha:</label>
+            <label for="newsDateFrom">Desde</label>
             <input type="date" id="newsDateFrom" />
           </div>
 
           <div class="date-filter-group">
-            <label for="newsDateTo">Hasta fecha:</label>
+            <label for="newsDateTo">Hasta</label>
             <input type="date" id="newsDateTo" />
           </div>
 
           <div class="date-filter-group">
-            <label for="newsQuickPeriod">Periodo rápido:</label>
+            <label for="newsQuickPeriod">Periodo</label>
             <select id="newsQuickPeriod">
               <option value="all">Cualquier fecha</option>
               <option value="30d">Últimos 30 días</option>
@@ -169,56 +160,56 @@
           </div>
         </div>
 
-        <div style="display:flex;gap:8px;align-items:center;">
-          <span id="newsFilteredCountLabel" style="font-size:0.8rem;color:#fbbf24;font-weight:600;"></span>
-          <button class="btn btn-outline" id="btnResetNewsFilters">Limpiar filtros</button>
+        <div class="filter-actions-row">
+          <span id="newsFilteredCountLabel" class="filter-count-pill"></span>
+          <button class="btn btn-outline" id="btnResetNewsFilters">Limpiar</button>
         </div>
       </div>
 
-      <!-- BLOQUE 1: CALENDARIO DE EVENTOS Y TORNEOS (CON FECHA DE INICIO Y FECHA DE FIN) -->
-      <div id="eventsCalendarSection" style="margin-bottom:32px;">
+      <div id="eventsCalendarSection" style="margin-bottom:36px;">
         <div class="section-heading-bar">
-          <h2>Calendario de Eventos y Torneos (Fecha de Inicio y Fecha de Fin)</h2>
-          <span>Torneos oficiales Majors, Finales Mundiales y circuitos de la FGC</span>
+          <div>
+            <h2>Calendario de Eventos y Torneos</h2>
+            <span>Fechas oficiales de inicio y finalización de cada evento</span>
+          </div>
         </div>
         <div class="news-grid" id="eventsGridContainer"></div>
       </div>
 
-      <!-- BLOQUE 2: LISTADO DE NOTICIAS DE JUEGOS DE LUCHA Y COMPETITIVO -->
       <div id="newsArticlesSection">
         <div class="section-heading-bar">
-          <h2>Noticias de Juegos de Lucha y Competitivo</h2>
-          <span>Actualidad, resultados de torneos y notas de parche</span>
+          <div>
+            <h2>Últimas Noticias y Notas de Parche</h2>
+            <span>Actualidad verificada de las 6 sagas principales</span>
+          </div>
         </div>
         <div class="news-grid" id="fullNewsGridContainer"></div>
       </div>
     </section>
 
-    <!-- VISTA 1.8: COMUNIDAD — AÑADIR WIKIS / CANALES DE YOUTUBE Y RESUMEN DE LO QUE FALTA -->
+    <!-- VISTA 1.8: COMUNIDAD — WIKIS, CANALES Y HOJA DE RUTA -->
     <section id="communityView" class="hidden">
       <div class="breadcrumb-bar">
-        <button class="btn-back" id="btnBackFromCommunity">Volver a Todos los juegos</button>
-        <span style="font-size:0.8rem;color:#94a3b8;">Fuentes de la comunidad y hoja de ruta de contenido pendiente</span>
+        <button class="btn-back" id="btnBackFromCommunity">← Volver a Juegos</button>
+        <span class="breadcrumb-hint">Directorio colaborativo de fuentes y hoja de ruta</span>
       </div>
 
-      <div class="hero-banner" style="margin-bottom:24px;">
-        <div class="hero-text">
-          <div class="hero-pill">COLABORACIÓN COMUNITARIA Y HOJA DE RUTA</div>
-          <h1>Wikis, Canales de YouTube y Resumen de lo que Falta</h1>
+      <div class="page-intro-header">
+        <div>
+          <div class="hero-pill">DIRECTORIO & COLABORACIÓN</div>
+          <h1>Wikis, Canales y Hoja de Ruta</h1>
           <p>
-            Aquí cualquier usuario puede aportar nuevas <strong>Wikis, canales de YouTube, guías o documentos de referencia</strong>
-            e indicar qué contenido falta y a qué juego o personaje corresponde para su valoración.
+            Aporta nuevas fuentes de referencia o consulta qué ampliaciones están en valoración.
           </p>
         </div>
       </div>
 
       <div class="guide-split-layout" style="margin-bottom:32px;">
-        <!-- FORMULARIO PARA QUE LA GENTE AÑADA WIKIS, CANALES DE YOUTUBE Y QUÉ FALTA -->
         <div class="video-panel-card">
-          <div class="hero-pill">APORTAR FUENTE O REPORTAR QUÉ FALTA</div>
-          <h3>Añadir Wiki, Canal de YouTube o Recurso</h3>
-          <p style="font-size:0.84rem;color:#94a3b8;margin-bottom:14px;">
-            Completa los datos para sumar una fuente fiable y detallar qué parte falta ampliar.
+          <div class="hero-pill">APORTAR RECURSO</div>
+          <h3>Añadir Wiki, Canal de YouTube o Sugerencia</h3>
+          <p style="font-size:0.86rem;color:var(--text-muted);margin-bottom:16px;">
+            Comparte una fuente fiable e indica qué contenido ayuda a completar.
           </p>
           <form id="communityResourceForm" class="form-grid">
             <div class="form-group">
@@ -227,32 +218,32 @@
                 <option value="Wiki / Frame Data">Wiki / Base de Frame Data</option>
                 <option value="Canal de YouTube">Canal de YouTube / Creador FGC</option>
                 <option value="Guía / Hoja de Cálculo">Guía Escrita / Hoja de Cálculo</option>
-                <option value="Sugerencia de Contenido">Sugerencia de Juego o Personaje que falta</option>
+                <option value="Sugerencia de Contenido">Sugerencia de Juego o Personaje</option>
               </select>
             </div>
 
             <div class="form-group">
-              <label>¿A qué Juego o Saga corresponde?</label>
+              <label>Juego o Saga</label>
               <input
                 type="text"
                 id="commTargetGameInput"
-                placeholder="Ej. Tekken 8, Mortal Kombat 11, KOF XV..."
+                placeholder="Ej. Tekken 8, Street Fighter 6..."
                 required
               />
             </div>
 
             <div class="form-group">
-              <label>Nombre de la Wiki, Canal o Recurso</label>
+              <label>Nombre del Recurso</label>
               <input
                 type="text"
                 id="commTitleInput"
-                placeholder="Ej. SuperCombo Wiki, Canal de Rooflemonger..."
+                placeholder="Ej. SuperCombo Wiki, Rooflemonger..."
                 required
               />
             </div>
 
             <div class="form-group">
-              <label>Enlace (URL de la Wiki o Canal)</label>
+              <label>Enlace (URL)</label>
               <input
                 type="url"
                 id="commUrlInput"
@@ -262,7 +253,7 @@
             </div>
 
             <div class="form-group full-width">
-              <label>Descripción de la fuente</label>
+              <label>Descripción</label>
               <input
                 type="text"
                 id="commDescInput"
@@ -272,45 +263,43 @@
             </div>
 
             <div class="form-group full-width">
-              <label>Resumen de qué falta y a qué corresponde (para valorarlo)</label>
+              <label>Qué falta cubrir y a qué corresponde</label>
               <textarea
                 id="commMissingInput"
                 rows="3"
-                placeholder="Explica qué parte falta en la web (ej. 'Faltan los combos de Armor King en Tekken 8' o 'Falta añadir Street Fighter III: 3rd Strike') y cómo ayuda este recurso..."
+                placeholder="Explica qué parte amplía o qué falta añadir en la web..."
                 required
               ></textarea>
             </div>
 
             <div class="form-group">
-              <label>Tu Nombre / Alias</label>
+              <label>Tu Alias</label>
               <input type="text" id="commAuthorInput" placeholder="Ej. Jugador_FGC" required />
             </div>
 
             <div class="form-group" style="justify-content:flex-end;">
               <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">
-                Publicar Aporte y Enviar para Valoración
+                Publicar Aporte
               </button>
             </div>
           </form>
         </div>
 
-        <!-- RESUMEN ESTRUCTURADO DE LO QUE FALTA Y A QUÉ CORRESPONDE PARA VALORARLO -->
         <div class="text-panel-card">
-          <div class="hero-pill">ESTADO DEL PROYECTO PARA VALORACIÓN</div>
-          <h3>Resumen de lo que Falta y a qué Corresponde</h3>
-          <p style="font-size:0.84rem;color:#94a3b8;margin-bottom:12px;">
-            Desglose de ampliaciones pendientes organizadas por área y juego objetivo para valorar las próximas prioridades del proyecto:
+          <div class="hero-pill">HOJA DE RUTA</div>
+          <h3>Resumen de Ampliaciones en Valoración</h3>
+          <p style="font-size:0.86rem;color:var(--text-muted);margin-bottom:14px;">
+            Prioridades actuales del proyecto organizadas por juego y área técnica:
           </p>
           <div id="missingContentRoadmapList"></div>
         </div>
       </div>
 
-      <!-- DIRECTORIO DE WIKIS Y CANALES DE YOUTUBE AÑADIDOS -->
       <div class="roster-block">
         <div class="roster-block-header">
           <div>
-            <h3>Directorio de Wikis, Canales de YouTube y Fuentes de la Comunidad</h3>
-            <p>Fuentes fiables registradas para aprender y verificar datos de cada saga.</p>
+            <h3>Directorio de Wikis y Canales de la Comunidad</h3>
+            <p>Fuentes verificadas registradas para consultar datos de cada saga.</p>
           </div>
           <span class="roster-count-pill" id="communityResourcesCountPill">0 recursos</span>
         </div>
@@ -318,66 +307,64 @@
       </div>
     </section>
 
-    <!-- VISTA 1.9: HERRAMIENTAS INTERACTIVAS (TEST 10 PREGUNTAS + CALCULADORA DE CASTIGOS + GLOSARIO FGC) -->
+    <!-- VISTA 1.9: HERRAMIENTAS INTERACTIVAS (TEST 10 PREGUNTAS + CALCULADORA + GLOSARIO) -->
     <section id="toolsView" class="hidden">
       <div class="breadcrumb-bar">
-        <button class="btn-back" id="btnBackFromTools">Volver a Todos los juegos</button>
-        <span style="font-size:0.8rem;color:#94a3b8;">Herramientas interactivas de análisis y recomendación FGC</span>
+        <button class="btn-back" id="btnBackFromTools">← Volver a Juegos</button>
+        <span class="breadcrumb-hint">Recomendador de personajes, calculadora de castigos y glosario</span>
       </div>
 
-      <div class="game-nav-bar" style="position:static;margin-bottom:20px;">
+      <div class="game-nav-bar" style="position:static;margin-bottom:22px;">
         <div class="game-section-tabs">
           <button class="game-tab active" data-tooltab="tool-quiz">
-            1. Test de 10 Preguntas: ¿Qué Personaje Elegir? (Juego y Personalidad)
+            1. Test de 10 Preguntas (Personaje Ideal)
           </button>
           <button class="game-tab" data-tooltab="tool-punish">
-            2. Calculadora de Castigos en Bloqueo (Punish Calculator)
+            2. Calculadora de Castigos en Bloqueo
           </button>
           <button class="game-tab" data-tooltab="tool-glossary">
-            3. Diccionario y Glosario FGC
+            3. Glosario FGC
           </button>
         </div>
       </div>
 
-      <!-- SUB-VISTA A: TEST DE 10 PREGUNTAS (TEST GENERAL + UN TEST ESPECÍFICO POR JUEGO) -->
       <div id="tool-quiz" class="tool-subview">
-        <div class="catalog-toolbar" style="margin-bottom:14px;">
+        <div class="catalog-toolbar" style="margin-bottom:16px;">
           <div>
-            <strong style="font-size:0.84rem;color:#cbd5e1;display:block;margin-bottom:6px;">
-              Elige el Test General o el Test Específico de un Juego:
-            </strong>
-            <div class="saga-tabs" id="quizModeSelectorBar"></div>
+            <span class="section-eyebrow">SELECCIONA EL MODO DEL TEST (GENERAL O POR JUEGO)</span>
+            <div class="saga-tabs" id="quizModeSelectorBar" style="margin-top:8px;"></div>
           </div>
         </div>
         <div class="roster-block" id="quizContainerBox"></div>
       </div>
 
-      <!-- SUB-VISTA B: CALCULADORA DE CASTIGOS EN BLOQUEO -->
       <div id="tool-punish" class="tool-subview hidden">
         <div class="roster-block">
           <div class="roster-block-header">
             <div>
-              <h3>Calculadora Interactiva de Castigos en Bloqueo (Punish Calculator)</h3>
-              <p>Elige tu personaje y el personaje rival para saber exactamente con qué botones puedes castigar cada uno de sus ataques en bloqueo.</p>
+              <h3>Calculadora de Castigos en Bloqueo (Punish Calculator)</h3>
+              <p>Compara los frames de inicio de tu personaje contra la desventaja en bloqueo del ataque rival.</p>
             </div>
           </div>
 
           <div class="news-filter-bar" style="margin-bottom:20px;">
-            <div class="date-filter-group" style="flex:1;min-width:190px;">
-              <label for="punishGameSelect">1. Juego:</label>
-              <select id="punishGameSelect"></select>
-            </div>
-            <div class="date-filter-group" style="flex:1;min-width:190px;">
-              <label for="punishMyCharSelect">2. Tu Personaje (Defensor):</label>
-              <select id="punishMyCharSelect"></select>
-            </div>
-            <div class="date-filter-group" style="flex:1;min-width:190px;">
-              <label for="punishOppCharSelect">3. Personaje Rival (Atacante):</label>
-              <select id="punishOppCharSelect"></select>
-            </div>
-            <div class="date-filter-group" style="flex:1.3;min-width:220px;">
-              <label for="punishOppMoveSelect">4. Ataque bloqueado del Rival:</label>
-              <select id="punishOppMoveSelect"></select>
+            <div class="filter-inputs-row" style="width:100%;">
+              <div class="date-filter-group" style="flex:1;min-width:190px;">
+                <label for="punishGameSelect">1. Juego</label>
+                <select id="punishGameSelect"></select>
+              </div>
+              <div class="date-filter-group" style="flex:1;min-width:190px;">
+                <label for="punishMyCharSelect">2. Tu Personaje (Defensor)</label>
+                <select id="punishMyCharSelect"></select>
+              </div>
+              <div class="date-filter-group" style="flex:1;min-width:190px;">
+                <label for="punishOppCharSelect">3. Personaje Rival (Atacante)</label>
+                <select id="punishOppCharSelect"></select>
+              </div>
+              <div class="date-filter-group" style="flex:1.3;min-width:220px;">
+                <label for="punishOppMoveSelect">4. Ataque bloqueado</label>
+                <select id="punishOppMoveSelect"></select>
+              </div>
             </div>
           </div>
 
@@ -385,45 +372,44 @@
         </div>
       </div>
 
-      <!-- SUB-VISTA C: DICCIONARIO / GLOSARIO INTERACTIVO FGC -->
       <div id="tool-glossary" class="tool-subview hidden">
         <div class="roster-block">
           <div class="roster-block-header">
             <div>
-              <h3>Diccionario y Glosario de Términos de Juegos de Lucha</h3>
-              <p>Además de pasar el ratón por las palabras subrayadas en las guías, aquí puedes buscar cualquier concepto competitivo.</p>
+              <h3>Diccionario y Glosario Competitivo FGC</h3>
+              <p>Busca cualquier término de juegos de lucha explicado de forma sencilla.</p>
             </div>
-            <input type="search" id="glossarySearchInput" class="in-game-search" placeholder="Buscar término (ej. Shimmy, Oki, OOS, KBD)..." />
+            <input type="search" id="glossarySearchInput" class="in-game-search" placeholder="Buscar término (ej. Shimmy, Oki, OOS)..." />
           </div>
           <div class="news-grid" id="glossaryCardsGrid"></div>
         </div>
       </div>
     </section>
 
-    <!-- VISTA 2: HUB DEL JUEGO CON 3 PÁGINAS SEPARADAS MANTENIENDO EL MENÚ -->
+    <!-- VISTA 2: HUB DEL JUEGO (DISEÑO UNIFICADO Y LIMPIO CON 3 PÁGINAS) -->
     <section id="gameDetailView" class="hidden">
       <div class="breadcrumb-bar">
-        <button class="btn-back" id="btnBackToCatalog">Volver a Todos los juegos</button>
+        <button class="btn-back" id="btnBackToCatalog">← Todos los juegos</button>
         <div class="sources-strip" id="gameOfficialSources"></div>
       </div>
 
-      <!-- CABECERA DEL JUEGO CON IMAGEN OFICIAL DE FONDO -->
+      <!-- CABECERA CINEMÁTICA DEL JUEGO -->
       <div class="game-header-banner" id="gameHeaderBanner"></div>
 
-      <!-- LEYENDA DE NOTACIÓN DEL JUEGO -->
+      <!-- LEYENDA DE NOTACIÓN COMPACTA -->
       <div class="notation-banner" id="gameNotationBanner"></div>
 
-      <!-- MENÚ FIJO PERSISTENTE PARA CAMBIAR ENTRE LAS 3 PÁGINAS DEL JUEGO -->
+      <!-- NAVEGACIÓN DE LAS 3 PÁGINAS DEL JUEGO -->
       <div class="game-nav-bar">
         <div class="game-section-tabs">
           <button class="game-tab active" data-subpage="page-basic">
-            1. Guía Básica (Conceptos)
+            1. Guía Básica
           </button>
           <button class="game-tab" data-subpage="page-advanced">
-            2. Guía Avanzada (Competitivo)
+            2. Guía Avanzada
           </button>
           <button class="game-tab" data-subpage="page-roster">
-            3. Plantel de Personajes (Base y DLC)
+            3. Plantel de Personajes
           </button>
         </div>
 
@@ -432,7 +418,7 @@
             type="search"
             id="inGameCharSearch"
             class="in-game-search"
-            placeholder="Filtrar personaje en este juego..."
+            placeholder="Filtrar luchador..."
           />
           <a href="#baseSectionAnchor" class="quick-jump-link">Juego Base</a>
           <a href="#dlcSectionAnchor" class="quick-jump-link dlc-jump">Packs DLC</a>
@@ -442,14 +428,16 @@
       <!-- PÁGINA 1: GUÍA BÁSICA -->
       <div id="page-basic" class="game-subpage">
         <div class="section-heading-bar">
-          <h2>1. Guía Básica — Conceptos Fundamentales</h2>
-          <span>Página 1 de 3 • Vídeo explicativo + Guía en texto</span>
+          <div>
+            <h2>1. Guía Básica — Conceptos Fundamentales</h2>
+            <span>Vídeo explicativo y fundamentos esenciales del sistema</span>
+          </div>
         </div>
         <div class="guide-split-layout" id="basicGuideContainer"></div>
         <div class="subpage-pagination">
           <span></span>
           <button class="btn btn-primary" data-goto-subpage="page-advanced">
-            Siguiente página: 2. Guía Avanzada ➔
+            Siguiente: 2. Guía Avanzada ➔
           </button>
         </div>
       </div>
@@ -457,16 +445,18 @@
       <!-- PÁGINA 2: GUÍA AVANZADA -->
       <div id="page-advanced" class="game-subpage hidden">
         <div class="section-heading-bar">
-          <h2>2. Guía Avanzada — Frame Data y Juego Competitivo</h2>
-          <span>Página 2 de 3 • Mecánicas avanzadas en vídeo y texto</span>
+          <div>
+            <h2>2. Guía Avanzada — Frame Data y Competitivo</h2>
+            <span>Mecánicas de alto nivel, gestión de recursos y toma de turnos</span>
+          </div>
         </div>
         <div class="guide-split-layout" id="advancedGuideContainer"></div>
         <div class="subpage-pagination">
           <button class="btn btn-outline" data-goto-subpage="page-basic">
-            ⬅ Página anterior: 1. Guía Básica
+            ← Anterior: 1. Guía Básica
           </button>
           <button class="btn btn-primary" data-goto-subpage="page-roster">
-            Siguiente página: 3. Plantel de Personajes ➔
+            Siguiente: 3. Plantel de Personajes ➔
           </button>
         </div>
       </div>
@@ -474,15 +464,17 @@
       <!-- PÁGINA 3: PLANTEL DE PERSONAJES -->
       <div id="page-roster" class="game-subpage hidden">
         <div class="section-heading-bar">
-          <h2>3. Plantel de Personajes — Guías Individuales</h2>
-          <span>Página 3 de 3 • Haz clic en el icono de cualquier personaje para abrir su guía individual</span>
+          <div>
+            <h2>3. Plantel de Personajes</h2>
+            <span>Selecciona cualquier luchador para ver su guía, combos, matchups y todas sus hitboxes</span>
+          </div>
         </div>
 
         <div class="roster-block" id="baseSectionAnchor">
           <div class="roster-block-header base-header">
             <div>
-              <h3>Personajes del Juego Base</h3>
-              <p>Incluidos de serie con el lanzamiento del juego.</p>
+              <h3>Plantel del Juego Base</h3>
+              <p>Luchadores incluidos de serie con el lanzamiento estándar.</p>
             </div>
             <span class="roster-count-pill" id="baseRosterCountPill">0 personajes</span>
           </div>
@@ -492,11 +484,11 @@
         <div class="roster-block dlc-block" id="dlcSectionAnchor">
           <div class="roster-block-header dlc-header">
             <div>
-              <h3>Personajes DLC de Pago (Separados por Pack / Season Pass)</h3>
-              <p>Luchadores adicionales agrupados según el Pack o Season Pass al que pertenecen.</p>
+              <h3>Expansiones y Personajes DLC (Por Season Pass)</h3>
+              <p>Luchadores adicionales agrupados por pase de temporada o expansión.</p>
             </div>
             <div class="dlc-filter-wrap">
-              <label for="dlcPackFilterSelect">Filtrar por Pack:</label>
+              <label for="dlcPackFilterSelect">Temporada:</label>
               <select id="dlcPackFilterSelect">
                 <option value="all">Todos los Packs DLC</option>
               </select>
@@ -507,7 +499,7 @@
 
         <div class="subpage-pagination">
           <button class="btn btn-outline" data-goto-subpage="page-advanced">
-            ⬅ Página anterior: 2. Guía Avanzada
+            ← Anterior: 2. Guía Avanzada
           </button>
           <span></span>
         </div>
@@ -523,13 +515,13 @@
     </div>
   </div>
 
-  <!-- MODAL: CANAL OFICIAL PÚBLICO DE YOUTUBE DEL PROYECTO -->
+  <!-- MODAL: CANAL OFICIAL PÚBLICO DE YOUTUBE -->
   <div class="modal-backdrop hidden" id="youtubeModalBackdrop">
     <div class="modal-card char-modal-card">
       <div class="modal-header">
         <div>
           <h3>Canal Oficial de YouTube — FGC Vault</h3>
-          <p class="modal-sub">Guías en vídeo y listas de reproducción organizadas por saga.</p>
+          <p class="modal-sub">Recopilaciones traducidas al español con subtítulos y pausas tácticas.</p>
         </div>
         <button class="btn-close-modal" id="btnCloseYoutubeModal">✕</button>
       </div>
@@ -537,40 +529,40 @@
     </div>
   </div>
 
-  <!-- MODAL: INSPECTOR DE HITBOXES FRAME A FRAME (⏮ -1f | ⏸ PAUSA | ⏭ +1f) -->
+  <!-- MODAL: INSPECTOR DE HITBOXES FRAME A FRAME -->
   <div class="modal-backdrop hidden" id="hitboxInspectorModalBackdrop">
     <div class="modal-card">
       <div class="modal-header">
         <div>
           <h3 id="hbInspectorTitle">Inspector de Hitbox Frame a Frame</h3>
-          <p class="modal-sub">Desliza frame por frame para ver cuándo se activa la Hitbox (Rosa) y cuándo queda expuesta la Hurtbox (Azul).</p>
+          <p class="modal-sub">Desliza frame por frame para analizar Startup, Ventana Activa (Hitbox) y Recuperación (Hurtbox).</p>
         </div>
         <button class="btn-close-modal" id="btnCloseHitboxInspector">✕</button>
       </div>
       <div class="modal-body">
-        <div id="hbPhaseBanner" class="ufd-bar ufd-bar-startup" style="text-align:center;border-radius:8px;margin-bottom:12px;font-size:0.9rem;">
+        <div id="hbPhaseBanner" class="ufd-bar ufd-bar-startup" style="text-align:center;border-radius:10px;margin-bottom:14px;font-size:0.9rem;">
           FRAME 1 — STARTUP
         </div>
         <div id="hbInteractiveCanvas" style="margin-bottom:14px;"></div>
 
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
-          <span style="font-family:var(--font-mono);font-size:0.78rem;color:#94a3b8;">F1</span>
-          <input type="range" id="hbFrameSlider" min="1" max="35" value="5" style="flex:1;accent-color:#f59e0b;cursor:pointer;" />
-          <span style="font-family:var(--font-mono);font-size:0.78rem;color:#94a3b8;">Fin</span>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+          <span style="font-family:var(--font-mono);font-size:0.78rem;color:var(--text-muted);">F1</span>
+          <input type="range" id="hbFrameSlider" min="1" max="35" value="5" style="flex:1;accent-color:var(--accent-primary);cursor:pointer;" />
+          <span style="font-family:var(--font-mono);font-size:0.78rem;color:var(--text-muted);">Fin</span>
         </div>
 
         <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
-          <button class="btn btn-outline" id="btnHbPrevFrame">⏮ Frame Anterior (-1f)</button>
-          <button class="btn btn-primary" id="btnHbPlayPause">▶ Reproducir Animación</button>
-          <button class="btn btn-outline" id="btnHbNextFrame">⏭ Frame Siguiente (+1f)</button>
+          <button class="btn btn-outline" id="btnHbPrevFrame">⏮ -1 Frame</button>
+          <button class="btn btn-primary" id="btnHbPlayPause">▶ Reproducir</button>
+          <button class="btn btn-outline" id="btnHbNextFrame">⏭ +1 Frame</button>
         </div>
 
-        <div id="hbFrameMetaInfo" style="display:flex;justify-content:space-around;flex-wrap:wrap;gap:8px;font-size:0.8rem;background:#090d16;padding:10px;border-radius:8px;border:1px solid #293548;"></div>
+        <div id="hbFrameMetaInfo" class="hb-meta-strip"></div>
       </div>
     </div>
   </div>
 
-  <script src="/features.js?v=16"></script>
-  <script src="/app.js?v=16"></script>
+  <script src="/features.js?v=17"></script>
+  <script src="/app.js?v=17"></script>
 </body>
 </html>

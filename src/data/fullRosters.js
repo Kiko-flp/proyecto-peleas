@@ -50,7 +50,7 @@ const SSBU_SLUGS = {
   "Mii Swordfighter": "mii_fighter", "Mii Gunner": "mii_fighter", "Piranha Plant": "piranha_plant",
   "Joker": "joker", "Hero": "dq_hero", "Banjo & Kazooie": "banjo_and_kazooie", "Terry": "terry",
   "Byleth": "byleth", "Min Min": "minmin", "Steve": "steve", "Sephiroth": "sephiroth",
-  "Pyra / Mythra": "homura", "Kazuya": "kazuya", "Sora": "sora"
+  "Pyra / Mythra": "pyra", "Kazuya": "kazuya", "Sora": "sora"
 };
 
 const SF6_CDN_SLUGS = {
@@ -83,6 +83,11 @@ const SF6_SUPERCOMBO_NAMES = {
   "Mai Shiranui": "Mai"
 };
 
+const GGST_DUSTLOOP_NAMES = {
+  "Queen Dizzy": "Dizzy",
+  "Asuka R#": "Asuka_R%E2%99%AF"
+};
+
 const DBFZ_DUSTLOOP_NAMES = {
   "Goku (Super Saiyan)": "SSJ_Goku",
   "Vegeta (Super Saiyan)": "SSJ_Vegeta",
@@ -113,12 +118,12 @@ function getDirectPortraitUrl(gameId, charName, colorHex = "f59e0b", isDLC = fal
     return getMediaWikiHashedUrl("https://wiki.supercombo.gg/images", `SF6_${scName}_Icon.png`);
   }
   if (gameId === "gg-strive") {
-    const ggName = charName.replace(/\s+/g, "_");
-    return getMediaWikiHashedUrl("https://www.dustloop.com/w/images", `GGST_${ggName}_Icon.png`);
+    const ggName = (GGST_DUSTLOOP_NAMES[charName] || charName).replace(/\s+/g, "_");
+    return getMediaWikiHashedUrl("https://www.dustloop.com/wiki/images", `GGST_${ggName}_Icon.png`);
   }
   if (gameId === "dbfz") {
     const dbName = (DBFZ_DUSTLOOP_NAMES[charName] || charName).replace(/\s+/g, "_");
-    return getMediaWikiHashedUrl("https://www.dustloop.com/w/images", `DBFZ_${dbName}_Icon.png`);
+    return getMediaWikiHashedUrl("https://www.dustloop.com/wiki/images", `DBFZ_${dbName}_Icon.png`);
   }
   if (gameId === "mk1" && MK1_CDN_SLUGS[charName]) {
     return `https://cdn-mk1.mortalkombat.com/roster/${MK1_CDN_SLUGS[charName]}/thumb.webp`;
@@ -126,7 +131,7 @@ function getDirectPortraitUrl(gameId, charName, colorHex = "f59e0b", isDLC = fal
   const slug = encodeURIComponent(charName);
   const bg = isDLC ? "2e1065" : "0f172a";
   const border = isDLC ? "a855f7" : colorHex.replace("#", "");
-  return `/api/char-icon?v=10&name=${slug}&game=${encodeURIComponent(gameId)}&bg=${bg}&border=${border}`;
+  return `/api/char-icon?v=17&name=${slug}&game=${encodeURIComponent(gameId)}&bg=${bg}&border=${border}`;
 }
 
 function getFallbackIconUrl(gameId, charName, colorHex = "f59e0b", isDLC = false) {
@@ -137,7 +142,7 @@ function getFallbackIconUrl(gameId, charName, colorHex = "f59e0b", isDLC = false
   const slug = encodeURIComponent(charName);
   const bg = isDLC ? "2e1065" : "0f172a";
   const border = isDLC ? "a855f7" : colorHex.replace("#", "");
-  return `/api/char-icon?v=10&name=${slug}&game=${encodeURIComponent(gameId)}&bg=${bg}&border=${border}`;
+  return `/api/char-icon?v=17&name=${slug}&game=${encodeURIComponent(gameId)}&bg=${bg}&border=${border}`;
 }
 
 // =========================================================================
@@ -460,18 +465,26 @@ function buildCharacterMatchups(gameId, charObj, allRawInGame, colorHex) {
   };
 
   return {
-    favorable: [fav1, fav2].map((opp) => ({
-      opponentName: opp.name,
-      opponentArchetype: opp.archetype,
-      opponentIcon: getDirectPortraitUrl(gameId, opp.name, colorHex, Boolean(opp.dlcPack)),
-      reason: getFavReason(opp)
-    })),
-    counters: [cnt1, cnt2].map((opp) => ({
-      opponentName: opp.name,
-      opponentArchetype: opp.archetype,
-      opponentIcon: getDirectPortraitUrl(gameId, opp.name, colorHex, Boolean(opp.dlcPack)),
-      reason: getCounterReason(opp)
-    }))
+    favorable: [fav1, fav2].map((opp) => {
+      const oppSlug = opp.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      return {
+        opponentId: `${gameId}-${oppSlug}`,
+        opponentName: opp.name,
+        opponentArchetype: opp.archetype,
+        opponentIcon: getDirectPortraitUrl(gameId, opp.name, colorHex, Boolean(opp.dlcPack)),
+        reason: getFavReason(opp)
+      };
+    }),
+    counters: [cnt1, cnt2].map((opp) => {
+      const oppSlug = opp.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      return {
+        opponentId: `${gameId}-${oppSlug}`,
+        opponentName: opp.name,
+        opponentArchetype: opp.archetype,
+        opponentIcon: getDirectPortraitUrl(gameId, opp.name, colorHex, Boolean(opp.dlcPack)),
+        reason: getCounterReason(opp)
+      };
+    })
   };
 }
 

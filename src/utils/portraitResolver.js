@@ -1,12 +1,12 @@
 /**
  * Resolutor Avanzado de Retratos Oficiales de Personajes (Real Character Portraits)
- * Extrae las imágenes reales de los iconos de personajes desde las Wikis Oficiales:
- * - Street Fighter 6: SuperCombo Wiki (https://wiki.supercombo.gg/w/Street_Fighter_6)
- * - Guilty Gear -Strive-: Dustloop Wiki (https://www.dustloop.com/w/GGST)
- * - Dragon Ball FighterZ: Dustloop Wiki (https://www.dustloop.com/w/DBFZ)
- * - Tekken 8: Wavu Wiki (https://wavu.wiki/t/Main_Page) & Tekken Fandom
- * - Mortal Kombat 1: Mortal Kombat Fandom Wiki (mortalkombat.fandom.com)
- * - Super Smash Bros. Ultimate: CDN Oficial de Nintendo (smashbros.com)
+ * Cubre los 271 personajes de los 6 juegos combinando:
+ * - Street Fighter 6: SuperCombo Wiki + Street Fighter Fandom
+ * - Guilty Gear -Strive-: Dustloop Wiki (/wiki/api.php) + Guilty Gear Fandom + Cyberpunk Fandom (Lucy)
+ * - Dragon Ball FighterZ: Dustloop Wiki (/wiki/api.php) + Dragon Ball FighterZ Fandom + Dragon Ball Fandom
+ * - Tekken 8: Wavu Wiki + Tekken Fandom + Final Fantasy Fandom (Clive) + Baki Fandom (Yujiro)
+ * - Mortal Kombat 1: Mortal Kombat Fandom + Invincible / The Boys / Scream / Terminator / Wikipedia
+ * - Super Smash Bros. Ultimate: CDN Oficial de Nintendo + SmashWiki (ssbwiki.com)
  */
 
 const portraitUrlCache = new Map();
@@ -15,7 +15,7 @@ const gameHubImagesCache = new Map();
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 
-// Mapeo exacto del CDN oficial de Nintendo para los 86 personajes de Smash Ultimate
+// Mapeo exacto del CDN oficial de Nintendo para Super Smash Bros. Ultimate
 const SSBU_SLUGS = {
   "Mario": "mario",
   "Donkey Kong": "donkey_kong",
@@ -100,12 +100,86 @@ const SSBU_SLUGS = {
   "Min Min": "minmin",
   "Steve": "steve",
   "Sephiroth": "sephiroth",
-  "Pyra / Mythra": "homura",
+  "Pyra / Mythra": "pyra",
   "Kazuya": "kazuya",
   "Sora": "sora"
 };
 
-// Alias de nombres para que coincidan con los nombres de archivo en las wikis
+// Mapeo de títulos exactos en Wikis para personajes con variantes, invitados o nombres compuestos
+const EXACT_WIKI_TITLES = {
+  // MK1
+  "General Shao": ["General Shao", "Shao Kahn"],
+  "Takeda Takahashi": ["Takeda Takahashi", "Takeda"],
+  "Omni-Man": ["Omni-Man"],
+  "Peacemaker": ["Peacemaker", "Christopher Smith"],
+  "Homelander": ["Homelander"],
+  "Ghostface": ["Ghostface", "Ghostface (identity)"],
+  "Conan the Barbarian": ["Conan the Barbarian", "Conan"],
+  "T-1000": ["T-1000"],
+  // SF6
+  "Ken Masters": ["Ken Masters", "Ken"],
+  "Juri Han": ["Juri Han", "Juri"],
+  "E. Honda": ["E. Honda", "Edmond Honda"],
+  "A.K.I.": ["A.K.I."],
+  "M. Bison": ["M. Bison", "Dictator"],
+  "Dee Jay": ["Dee Jay"],
+  "Terry Bogard": ["Terry Bogard", "Terry"],
+  "Mai Shiranui": ["Mai Shiranui", "Mai"],
+  "C. Viper": ["Crimson Viper", "C. Viper"],
+  "Sagat": ["Sagat"],
+  "Alex": ["Alex"],
+  "Ingrid": ["Ingrid"],
+  // Tekken 8
+  "Jack-8": ["Jack-8", "Jack"],
+  "Armor King": ["Armor King II", "Armor King"],
+  "Kunimitsu": ["Kunimitsu II", "Kunimitsu"],
+  "Roger Jr.": ["Roger Jr.", "Roger"],
+  "Clive Rosfield": ["Clive Rosfield"],
+  "Yujiro Hanma": ["Yujiro Hanma"],
+  "Miary Zo": ["Miary Zo", "Tekken 8"],
+  // DBFZ
+  "Goku (Super Saiyan)": ["Goku (Super Saiyan)", "Super Saiyan Goku"],
+  "Vegeta (Super Saiyan)": ["Vegeta (Super Saiyan)", "Super Saiyan Vegeta"],
+  "Goku (SSGSS / Blue)": ["Goku (SSGSS)", "SSGSS Goku"],
+  "Vegeta (SSGSS / Blue)": ["Vegeta (SSGSS)", "SSGSS Vegeta"],
+  "Gohan (Teen)": ["Gohan (Teen)", "Teen Gohan"],
+  "Gohan (Adult)": ["Gohan (Adult)", "Adult Gohan"],
+  "Android 21 (Majin)": ["Android 21", "Android 21 (Majin)"],
+  "Android 21 (Lab Coat)": ["Android 21 (Lab Coat)", "Android 21"],
+  "Broly (Z)": ["Broly", "Broly (DBZ)"],
+  "Broly (DBS)": ["Broly (DBS)"],
+  "Zamasu (Fused)": ["Fused Zamasu", "Zamasu (Fused)"],
+  "Vegito (SSGSS)": ["Vegito (SSGSS)", "Vegito"],
+  "Goku (Base)": ["Goku", "Goku (Base)"],
+  "Vegeta (Base)": ["Vegeta", "Vegeta (Base)"],
+  "Goku (GT)": ["Goku (GT)"],
+  "Gogeta (SSGSS)": ["Gogeta (SSGSS)", "Gogeta"],
+  "Goku (Ultra Instinct)": ["Goku (Ultra Instinct)"],
+  "Gogeta (SS4)": ["Gogeta (SS4)"],
+  // GGST
+  "Jack-O'": ["Jack-O' Valentine", "Jack-O'"],
+  "Bedman?": ["Bedman?", "Bedman", "Delilah"],
+  "Asuka R#": ["Asuka R. Kreutz", "Asuka R♯", "That Man"],
+  "A.B.A": ["A.B.A"],
+  "Queen Dizzy": ["Dizzy", "Queen Dizzy"],
+  "Unika": ["Unika"],
+  "Lucy": ["Lucyna Kushinada", "Lucy"]
+};
+
+// Wikis secundarias específicas para personajes invitados (Guest Characters)
+const GUEST_WIKI_ENDPOINTS = {
+  "Clive Rosfield": "https://finalfantasy.fandom.com/api.php",
+  "Yujiro Hanma": "https://baki.fandom.com/api.php",
+  "Lucy": "https://cyberpunk.fandom.com/api.php",
+  "Omni-Man": "https://amazon-invincible.fandom.com/api.php",
+  "Homelander": "https://the-boys.fandom.com/api.php",
+  "Ghostface": "https://scream.fandom.com/api.php",
+  "T-1000": "https://terminator.fandom.com/api.php",
+  "Peacemaker": "https://dc.fandom.com/api.php",
+  "Terry Bogard": "https://snk.fandom.com/api.php",
+  "Mai Shiranui": "https://snk.fandom.com/api.php"
+};
+
 const WIKI_ALIASES = {
   "Ken Masters": ["ken", "ken_masters"],
   "Juri Han": ["juri", "juri_han"],
@@ -115,6 +189,7 @@ const WIKI_ALIASES = {
   "Dee Jay": ["deejay", "dee_jay"],
   "Terry Bogard": ["terry", "terry_bogard"],
   "Mai Shiranui": ["mai", "mai_shiranui"],
+  "C. Viper": ["cviper", "c._viper", "crimson_viper"],
   "Goku (Super Saiyan)": ["ssj_goku", "goku_ssj", "super_saiyan_goku"],
   "Vegeta (Super Saiyan)": ["ssj_vegeta", "vegeta_ssj"],
   "Goku (SSGSS / Blue)": ["ssgss_goku", "goku_blue", "blue_goku"],
@@ -133,6 +208,10 @@ const WIKI_ALIASES = {
   "Gogeta (SSGSS)": ["gogeta", "ssgss_gogeta", "gogeta_blue"],
   "Goku (Ultra Instinct)": ["ui_goku", "ultra_instinct_goku"],
   "Gogeta (SS4)": ["ss4_gogeta", "gogeta_ss4"],
+  "Queen Dizzy": ["dizzy", "queen_dizzy"],
+  "Asuka R#": ["asuka", "asuka_r"],
+  "Bedman?": ["bedman"],
+  "Jack-O'": ["jack-o", "jack_o"],
   "Conan the Barbarian": ["conan"]
 };
 
@@ -145,9 +224,6 @@ function getSearchKeys(charName) {
   return [...new Set([...custom, slug1, slug2, firstWord])].filter(Boolean);
 }
 
-/**
- * Descarga todas las URLs de imágenes incrustadas en la página principal de un juego en MediaWiki
- */
 async function loadHubPageImages(apiEndpoint, pageTitle) {
   const cacheKey = `${apiEndpoint}:${pageTitle}`;
   if (gameHubImagesCache.has(cacheKey)) {
@@ -180,31 +256,30 @@ async function loadHubPageImages(apiEndpoint, pageTitle) {
   return imageMap;
 }
 
-/**
- * Busca la imagen principal (pageimages) en una wiki Fandom o MediaWiki (con pilimit=50 y búsqueda por aproximación)
- */
 async function queryPageImage(apiEndpoint, titlesArray, searchFallbackTerm = null) {
   try {
-    const url = `${apiEndpoint}?action=query&titles=${encodeURIComponent(
-      titlesArray.join("|")
-    )}&prop=pageimages&piprop=thumbnail|original&pithumbsize=300&pilimit=50&redirects=1&format=json&origin=*`;
+    const cleanTitles = [...new Set(titlesArray.filter(Boolean))];
+    if (cleanTitles.length > 0) {
+      const url = `${apiEndpoint}?action=query&titles=${encodeURIComponent(
+        cleanTitles.join("|")
+      )}&prop=pageimages&piprop=thumbnail|original&pithumbsize=320&pilimit=50&redirects=1&format=json&origin=*`;
 
-    const res = await fetch(url, { headers: { "User-Agent": USER_AGENT } });
-    if (res.ok) {
-      const data = await res.json();
-      const pages = data?.query?.pages || {};
-      for (const pid of Object.keys(pages)) {
-        const p = pages[pid];
-        if (p?.thumbnail?.source) return p.thumbnail.source;
-        if (p?.original?.source) return p.original.source;
+      const res = await fetch(url, { headers: { "User-Agent": USER_AGENT } });
+      if (res.ok) {
+        const data = await res.json();
+        const pages = data?.query?.pages || {};
+        for (const pid of Object.keys(pages)) {
+          const p = pages[pid];
+          if (p?.thumbnail?.source) return p.thumbnail.source;
+          if (p?.original?.source) return p.original.source;
+        }
       }
     }
 
-    // Si el título exacto tenía sufijo o desambiguación, buscar con generator=search
     if (searchFallbackTerm) {
       const searchUrl = `${apiEndpoint}?action=query&generator=search&gsrsearch=${encodeURIComponent(
         searchFallbackTerm
-      )}&gsrlimit=3&prop=pageimages&piprop=thumbnail|original&pithumbsize=300&pilimit=10&format=json&origin=*`;
+      )}&gsrlimit=4&prop=pageimages&piprop=thumbnail|original&pithumbsize=320&pilimit=10&format=json&origin=*`;
       const sRes = await fetch(searchUrl, { headers: { "User-Agent": USER_AGENT } });
       if (sRes.ok) {
         const sData = await sRes.json();
@@ -230,8 +305,12 @@ async function resolveCharacterPortraitUrl(gameId, charName) {
 
   let resolvedUrl = null;
   const keys = getSearchKeys(charName);
+  const exactTitles = EXACT_WIKI_TITLES[charName] || [
+    charName,
+    charName.replace(/\s+\(.*?\)/g, "").trim()
+  ];
 
-  // 1. SUPER SMASH BROS. ULTIMATE (CDN Oficial de Nintendo)
+  // 1. SUPER SMASH BROS. ULTIMATE
   if (gameId === "ssbu") {
     const slug =
       SSBU_SLUGS[charName] ||
@@ -239,7 +318,7 @@ async function resolveCharacterPortraitUrl(gameId, charName) {
     resolvedUrl = `https://www.smashbros.com/assets_v2/img/fighter/thumb_a/${slug}.png`;
   }
 
-  // 2. STREET FIGHTER 6 (SuperCombo Wiki /w/api.php + Street Fighter Fandom)
+  // 2. STREET FIGHTER 6
   else if (gameId === "sf6") {
     const hubImages = await loadHubPageImages(
       "https://wiki.supercombo.gg/w/api.php",
@@ -257,14 +336,15 @@ async function resolveCharacterPortraitUrl(gameId, charName) {
     if (match) {
       resolvedUrl = match.url;
     } else {
-      resolvedUrl = await queryPageImage("https://streetfighter.fandom.com/api.php", [
-        charName,
-        charName.split(" ")[0]
-      ]);
+      resolvedUrl = await queryPageImage(
+        "https://streetfighter.fandom.com/api.php",
+        [...exactTitles, charName.split(" ")[0]],
+        charName
+      );
     }
   }
 
-  // 3. GUILTY GEAR -STRIVE- (Dustloop Wiki + Guilty Gear Fandom)
+  // 3. GUILTY GEAR -STRIVE-
   else if (gameId === "gg-strive") {
     const hubImages = await loadHubPageImages(
       "https://www.dustloop.com/wiki/api.php",
@@ -281,14 +361,15 @@ async function resolveCharacterPortraitUrl(gameId, charName) {
     if (match) {
       resolvedUrl = match.url;
     } else {
-      resolvedUrl = await queryPageImage("https://guiltygear.fandom.com/api.php", [
-        charName,
-        charName.replace(/\s+\(.*?\)/, "")
-      ]);
+      resolvedUrl = await queryPageImage(
+        "https://guiltygear.fandom.com/api.php",
+        exactTitles,
+        exactTitles[0]
+      );
     }
   }
 
-  // 4. DRAGON BALL FIGHTERZ (Dustloop Wiki + Dragon Ball Fandom)
+  // 4. DRAGON BALL FIGHTERZ
   else if (gameId === "dbfz") {
     const hubImages = await loadHubPageImages(
       "https://www.dustloop.com/wiki/api.php",
@@ -305,14 +386,21 @@ async function resolveCharacterPortraitUrl(gameId, charName) {
     if (match) {
       resolvedUrl = match.url;
     } else {
-      resolvedUrl = await queryPageImage("https://dragonballfighterz.fandom.com/api.php", [
-        charName,
-        charName.replace(/\s+\(.*?\)/, "")
-      ]);
+      resolvedUrl =
+        (await queryPageImage(
+          "https://dragonballfighterz.fandom.com/api.php",
+          exactTitles,
+          exactTitles[0]
+        )) ||
+        (await queryPageImage(
+          "https://dragonball.fandom.com/api.php",
+          exactTitles,
+          exactTitles[0]
+        ));
     }
   }
 
-  // 5. TEKKEN 8 (Wavu Wiki + Tekken Fandom)
+  // 5. TEKKEN 8
   else if (gameId === "tekken8") {
     const hubImages = await loadHubPageImages(
       "https://wavu.wiki/w/api.php",
@@ -326,27 +414,36 @@ async function resolveCharacterPortraitUrl(gameId, charName) {
     } else {
       resolvedUrl = await queryPageImage(
         "https://tekken.fandom.com/api.php",
-        [charName, charName.split(" ")[0]],
-        charName
+        [...exactTitles, charName.split(" ")[0]],
+        exactTitles[0]
       );
     }
   }
 
-  // 6. MORTAL KOMBAT 1 (Mortal Kombat Fandom Wiki)
+  // 6. MORTAL KOMBAT 1
   else if (gameId === "mk1") {
     resolvedUrl = await queryPageImage(
       "https://mortalkombat.fandom.com/api.php",
-      [charName, `${charName}/Mortal Kombat 1`],
-      charName
+      [...exactTitles, `${charName}/Mortal Kombat 1`],
+      exactTitles[0]
     );
   }
 
-  // 7. Respaldo universal en Wikipedia (ideal para personajes invitados como Clive, Yujiro, T-1000, Conan, Ghostface, Lucy)
+  // 7. Respaldo en Wikis de franquicias invitadas (Final Fantasy, Baki, Cyberpunk, Invincible, The Boys, Scream, Terminator)
+  if (!resolvedUrl && GUEST_WIKI_ENDPOINTS[charName]) {
+    resolvedUrl = await queryPageImage(
+      GUEST_WIKI_ENDPOINTS[charName],
+      exactTitles,
+      exactTitles[0]
+    );
+  }
+
+  // 8. Respaldo universal en Wikipedia
   if (!resolvedUrl) {
     resolvedUrl = await queryPageImage(
       "https://en.wikipedia.org/w/api.php",
-      [charName],
-      `${charName} character`
+      exactTitles,
+      `${exactTitles[0]} character`
     );
   }
 

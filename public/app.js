@@ -52,7 +52,9 @@ window.handlePortraitError = async function (imgEl, gameId, charId, charName, fa
     const found = await searchSingleCharacterPortrait(gameId, charName);
     if (found && imgEl.src !== found) {
       clientPortraitCache.set(charId, found);
-      imgEl.src = found;
+      document.querySelectorAll(`img[data-charimg="${charId}"]`).forEach((el) => {
+        el.src = found;
+      });
       return;
     }
   }
@@ -63,29 +65,132 @@ window.handlePortraitError = async function (imgEl, gameId, charId, charName, fa
 };
 
 // =========================================================================
-// RESOLUTOR DE RETRATOS EN EL NAVEGADOR (CON pilimit=50 Y BÚSQUEDA INDIVIDUAL)
+// RESOLUTOR AVANZADO DE RETRATOS EN EL NAVEGADOR (CUBRE LOS 271 PERSONAJES)
 // =========================================================================
 const FANDOM_WIKIS = {
   mk1: "https://mortalkombat.fandom.com/api.php",
   sf6: "https://streetfighter.fandom.com/api.php",
   tekken8: "https://tekken.fandom.com/api.php",
   dbfz: "https://dragonballfighterz.fandom.com/api.php",
-  "gg-strive": "https://guiltygear.fandom.com/api.php"
+  "gg-strive": "https://guiltygear.fandom.com/api.php",
+  ssbu: "https://www.ssbwiki.com/api.php"
 };
 
+const CLIENT_EXACT_WIKI_TITLES = {
+  // MK1
+  "General Shao": "General Shao",
+  "Takeda Takahashi": "Takeda Takahashi",
+  "Omni-Man": "Omni-Man",
+  "Peacemaker": "Peacemaker",
+  "Homelander": "Homelander",
+  "Ghostface": "Ghostface",
+  "Conan the Barbarian": "Conan the Barbarian",
+  "T-1000": "T-1000",
+  // SF6
+  "Ken Masters": "Ken Masters",
+  "Juri Han": "Juri Han",
+  "E. Honda": "E. Honda",
+  "A.K.I.": "A.K.I.",
+  "M. Bison": "M. Bison",
+  "Dee Jay": "Dee Jay",
+  "Terry Bogard": "Terry Bogard",
+  "Mai Shiranui": "Mai Shiranui",
+  "C. Viper": "Crimson Viper",
+  "Sagat": "Sagat",
+  "Alex": "Alex",
+  "Ingrid": "Ingrid",
+  // Tekken 8
+  "Jack-8": "Jack-8",
+  "Armor King": "Armor King II",
+  "Kunimitsu": "Kunimitsu II",
+  "Roger Jr.": "Roger Jr.",
+  "Clive Rosfield": "Clive Rosfield",
+  "Yujiro Hanma": "Yujiro Hanma",
+  "Miary Zo": "Miary Zo",
+  // DBFZ (Preserva sufijos de transformación para que cada variante tenga su foto real)
+  "Goku (Super Saiyan)": "Goku (Super Saiyan)",
+  "Vegeta (Super Saiyan)": "Vegeta (Super Saiyan)",
+  "Goku (SSGSS / Blue)": "Goku (SSGSS)",
+  "Vegeta (SSGSS / Blue)": "Vegeta (SSGSS)",
+  "Gohan (Teen)": "Gohan (Teen)",
+  "Gohan (Adult)": "Gohan (Adult)",
+  "Android 21 (Majin)": "Android 21",
+  "Android 21 (Lab Coat)": "Android 21 (Lab Coat)",
+  "Broly (Z)": "Broly",
+  "Broly (DBS)": "Broly (DBS)",
+  "Zamasu (Fused)": "Fused Zamasu",
+  "Vegito (SSGSS)": "Vegito (SSGSS)",
+  "Goku (Base)": "Goku",
+  "Vegeta (Base)": "Vegeta",
+  "Goku (GT)": "Goku (GT)",
+  "Gogeta (SSGSS)": "Gogeta (SSGSS)",
+  "Goku (Ultra Instinct)": "Goku (Ultra Instinct)",
+  "Gogeta (SS4)": "Gogeta (SS4)",
+  // GGST
+  "Jack-O'": "Jack-O' Valentine",
+  "Bedman?": "Bedman?",
+  "Asuka R#": "Asuka R. Kreutz",
+  "A.B.A": "A.B.A",
+  "Queen Dizzy": "Dizzy",
+  "Unika": "Unika",
+  "Lucy": "Lucyna Kushinada",
+  // SSBU
+  "Ryu (Smash)": "Ryu (SSBU)",
+  "Ken (Smash)": "Ken (SSBU)",
+  "Pyra / Mythra": "Pyra (SSBU)"
+};
+
+const CLIENT_GUEST_WIKIS = {
+  "Clive Rosfield": "https://finalfantasy.fandom.com/api.php",
+  "Yujiro Hanma": "https://baki.fandom.com/api.php",
+  "Lucy": "https://cyberpunk.fandom.com/api.php",
+  "Omni-Man": "https://amazon-invincible.fandom.com/api.php",
+  "Homelander": "https://the-boys.fandom.com/api.php",
+  "Ghostface": "https://scream.fandom.com/api.php",
+  "T-1000": "https://terminator.fandom.com/api.php",
+  "Peacemaker": "https://dc.fandom.com/api.php",
+  "Terry Bogard": "https://snk.fandom.com/api.php",
+  "Mai Shiranui": "https://snk.fandom.com/api.php"
+};
+
+function getWikiTitleForChar(charName) {
+  if (CLIENT_EXACT_WIKI_TITLES[charName]) {
+    return CLIENT_EXACT_WIKI_TITLES[charName];
+  }
+  return charName.replace(/\s+\(.*?\)/g, "").trim();
+}
+
 async function searchSingleCharacterPortrait(gameId, charName) {
+  const exactTitle = getWikiTitleForChar(charName);
   const cleanName = charName.replace(/\s+\(.*?\)/g, "").trim();
   const endpoints = [
+    CLIENT_GUEST_WIKIS[charName],
     FANDOM_WIKIS[gameId],
+    gameId === "dbfz" ? "https://dragonball.fandom.com/api.php" : null,
     "https://en.wikipedia.org/w/api.php"
   ].filter(Boolean);
 
   for (const api of endpoints) {
     try {
-      const url = `${api}?action=query&generator=search&gsrsearch=${encodeURIComponent(
-        cleanName
-      )}&gsrlimit=3&prop=pageimages&piprop=thumbnail&pithumbsize=320&pilimit=10&format=json&origin=*`;
-      const res = await fetch(url);
+      // 1. Intento por título exacto con redirecciones
+      const exactUrl = `${api}?action=query&titles=${encodeURIComponent(
+        `${exactTitle}|${cleanName}`
+      )}&prop=pageimages&piprop=thumbnail&pithumbsize=320&pilimit=10&redirects=1&format=json&origin=*`;
+      const exactRes = await fetch(exactUrl);
+      if (exactRes.ok) {
+        const exactData = await exactRes.json();
+        const exactPages = exactData?.query?.pages || {};
+        for (const pid of Object.keys(exactPages)) {
+          const src = exactPages[pid]?.thumbnail?.source;
+          if (src) return src;
+        }
+      }
+
+      // 2. Búsqueda aproximada (generator=search)
+      const searchUrl = `${api}?action=query&generator=search&gsrsearch=${encodeURIComponent(
+        exactTitle
+      )}&gsrlimit=4&prop=pageimages&piprop=thumbnail&pithumbsize=320&pilimit=10&format=json&origin=*`;
+      const res = await fetch(searchUrl);
       if (!res.ok) continue;
       const data = await res.json();
       const pages = data?.query?.pages || {};
@@ -104,18 +209,17 @@ async function hydrateBrowserPortraits(game) {
   if (!game || !FANDOM_WIKIS[game.id]) return;
   const api = FANDOM_WIKIS[game.id];
 
+  // Hidratar proactivamente los personajes que aún no estén en caché
   const chars = game.characters.filter((c) => !clientPortraitCache.has(c.id));
   for (let i = 0; i < chars.length; i += 20) {
     const chunk = chars.slice(i, i + 20);
     const titleMap = {};
     chunk.forEach((c) => {
-      const cleanTitle = c.name.replace(/\s+\(.*?\)/g, "").trim();
-      titleMap[cleanTitle.toLowerCase()] = c;
+      const wikiTitle = getWikiTitleForChar(c.name);
+      titleMap[wikiTitle.toLowerCase()] = c;
     });
 
-    const titlesParam = Object.keys(titleMap)
-      .map((k) => titleMap[k].name.replace(/\s+\(.*?\)/g, "").trim())
-      .join("|");
+    const titlesParam = chunk.map((c) => getWikiTitleForChar(c.name)).join("|");
 
     try {
       const url = `${api}?action=query&titles=${encodeURIComponent(
@@ -140,18 +244,25 @@ async function hydrateBrowserPortraits(game) {
         const origTitle = redirectLookup[pageTitle] || pageTitle;
         const matchedChar =
           titleMap[origTitle] ||
-          chunk.find((c) =>
-            pageTitle.includes(c.name.split(" ")[0].toLowerCase())
-          );
+          chunk.find((c) => getWikiTitleForChar(c.name).toLowerCase() === pageTitle);
 
         if (matchedChar) {
           resolvedInChunk.add(matchedChar.id);
           clientPortraitCache.set(matchedChar.id, thumb);
-          matchedChar.iconUrl = thumb;
+          if (matchedChar.iconUrl.startsWith("/api/")) {
+            matchedChar.iconUrl = thumb;
+          }
           document
             .querySelectorAll(`img[data-charimg="${matchedChar.id}"]`)
             .forEach((imgEl) => {
-              imgEl.src = thumb;
+              if (
+                imgEl.src.includes("/api/char-icon") ||
+                imgEl.dataset.usedFallback === "1" ||
+                game.id === "tekken8" ||
+                game.id === "mk1"
+              ) {
+                imgEl.src = thumb;
+              }
             });
         }
       });
@@ -161,11 +272,20 @@ async function hydrateBrowserPortraits(game) {
           searchSingleCharacterPortrait(game.id, ch.name).then((foundUrl) => {
             if (foundUrl) {
               clientPortraitCache.set(ch.id, foundUrl);
-              ch.iconUrl = foundUrl;
+              if (ch.iconUrl.startsWith("/api/")) {
+                ch.iconUrl = foundUrl;
+              }
               document
                 .querySelectorAll(`img[data-charimg="${ch.id}"]`)
                 .forEach((imgEl) => {
-                  imgEl.src = foundUrl;
+                  if (
+                    imgEl.src.includes("/api/char-icon") ||
+                    imgEl.dataset.usedFallback === "1" ||
+                    game.id === "tekken8" ||
+                    game.id === "mk1"
+                  ) {
+                    imgEl.src = foundUrl;
+                  }
                 });
             }
           });
@@ -276,6 +396,13 @@ function switchGameSubpage(subpageId) {
 // =========================================================================
 // CARGA INICIAL Y RENDERIZADO PRINCIPAL
 // =========================================================================
+function setActiveTopNav(activeId) {
+  ["btnNavHome", "btnOpenToolsView", "btnOpenNewsView", "btnOpenCommunityView"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle("active", id === activeId);
+  });
+}
+
 async function loadBootstrap() {
   try {
     const res = await fetch("/api/bootstrap");
@@ -288,6 +415,11 @@ async function loadBootstrap() {
     state.sagas = data.sagas || [];
     state.games = data.games || [];
     renderAll();
+
+    // Precargar en segundo plano los retratos de todos los juegos para que todas las fotos estén listas al instante
+    setTimeout(() => {
+      state.games.forEach((g) => hydrateBrowserPortraits(g));
+    }, 150);
 
     fetch("/api/news")
       .then((r) => r.json())
@@ -388,6 +520,7 @@ function renderCommunitySection() {
 
 function openCommunityPage() {
   state.selectedGameId = null;
+  setActiveTopNav("btnOpenCommunityView");
   document.getElementById("homeView").classList.add("hidden");
   document.getElementById("gameDetailView").classList.add("hidden");
   document.getElementById("newsView").classList.add("hidden");
@@ -399,6 +532,7 @@ function openCommunityPage() {
 
 function openToolsPage(initialTab = "tool-quiz", quizMode = "general") {
   state.selectedGameId = null;
+  setActiveTopNav("btnOpenToolsView");
   document.getElementById("homeView").classList.add("hidden");
   document.getElementById("gameDetailView").classList.add("hidden");
   document.getElementById("newsView").classList.add("hidden");
@@ -620,6 +754,7 @@ function renderNewsSections() {
 
 function openNewsPage() {
   state.selectedGameId = null;
+  setActiveTopNav("btnOpenNewsView");
   document.getElementById("homeView").classList.add("hidden");
   document.getElementById("gameDetailView").classList.add("hidden");
   document.getElementById("communityView").classList.add("hidden");
@@ -794,23 +929,20 @@ function renderGamesGrid() {
             <div class="game-card-banner" style="background-image: ${coverBg};">
               <span class="game-patch-pill">${game.currentPatch}</span>
               <h3>${game.title}</h3>
-              <div style="font-size:0.79rem;color:#e2e8f0;margin-top:3px;">
-                ${saga ? saga.developer : ""} • ${game.releaseYear} • ${game.subSystemName}
+              <div class="game-card-meta">
+                ${saga ? saga.developer : ""} • ${game.releaseYear}
               </div>
             </div>
             <div class="game-card-body">
               <p>${game.basicGuide.summary}</p>
               <div class="roster-split-pills">
-                <span class="pill-base">${baseChars.length} Personajes Base</span>
-                <span class="pill-dlc">${dlcChars.length} Personajes DLC (${uniquePacks.length} Packs)</span>
-              </div>
-              <div style="font-size:0.77rem;color:#94a3b8;">
-                Packs DLC: <strong>${uniquePacks.join(" • ")}</strong>
+                <span class="pill-base">${baseChars.length} Base</span>
+                <span class="pill-dlc">+${dlcChars.length} DLC (${uniquePacks.length} Packs)</span>
               </div>
             </div>
           </div>
           <div class="game-card-footer">
-            <span>Entrar a Guía Básica, Avanzada y Plantel (${game.characters.length})</span>
+            <span>Explorar guías y ${game.characters.length} luchadores</span>
             <span>➔</span>
           </div>
         </article>
@@ -998,7 +1130,6 @@ function buildCharacterCardHTML(game, ch) {
         />
       </div>
       <div class="portrait-name">${ch.name}</div>
-      ${ch.isDLC ? `<div class="portrait-pack-sub">${ch.dlcPack}</div>` : ""}
     </div>
   `;
 }
@@ -1136,7 +1267,7 @@ function openCharacterModal(gameId, charId) {
   const counterList = ch.matchups?.counters || [];
 
   const matchupsHTML = `
-    <div class="ufd-section-banner" style="background:#38bdf8;color:#090d16;">
+    <div class="ufd-section-banner">
       Matchups — Ventajas y Counters de ${ch.name}
     </div>
     <div class="matchups-grid">
@@ -1146,19 +1277,27 @@ function openCharacterModal(gameId, charId) {
         </h4>
         <p style="font-size:0.78rem;color:#94a3b8;">Personajes a los que ${ch.name} domina y por qué:</p>
         ${favList
-          .map(
-            (m) => `
+          .map((m) => {
+            const oppSrc = (m.opponentId && clientPortraitCache.get(m.opponentId)) || m.opponentIcon;
+            const oppSafeName = (m.opponentName || "").replace(/'/g, "\\'");
+            return `
             <div class="matchup-item">
               <div class="portrait-img-box" style="width:54px;height:54px;flex-shrink:0;">
-                <img src="${m.opponentIcon}" alt="${m.opponentName}" onload="window.handlePortraitLoad(this)" />
+                <img
+                  data-charimg="${m.opponentId || ""}"
+                  src="${oppSrc}"
+                  alt="${m.opponentName}"
+                  onload="window.handlePortraitLoad(this)"
+                  onerror="window.handlePortraitError(this, '${game.id}', '${m.opponentId || ""}', '${oppSafeName}', '${m.opponentIcon}')"
+                />
               </div>
               <div>
                 <div class="matchup-opp-name">${m.opponentName} <span style="font-size:0.74rem;color:#34d399;">(${m.opponentArchetype || ""})</span></div>
                 <div class="matchup-reason"><strong>Por qué tiene ventaja:</strong> ${m.reason}</div>
               </div>
             </div>
-          `
-          )
+          `;
+          })
           .join("")}
       </div>
 
@@ -1168,19 +1307,27 @@ function openCharacterModal(gameId, charId) {
         </h4>
         <p style="font-size:0.78rem;color:#94a3b8;">Personajes que complican a ${ch.name} y por qué:</p>
         ${counterList
-          .map(
-            (m) => `
+          .map((m) => {
+            const oppSrc = (m.opponentId && clientPortraitCache.get(m.opponentId)) || m.opponentIcon;
+            const oppSafeName = (m.opponentName || "").replace(/'/g, "\\'");
+            return `
             <div class="matchup-item">
               <div class="portrait-img-box" style="width:54px;height:54px;flex-shrink:0;">
-                <img src="${m.opponentIcon}" alt="${m.opponentName}" onload="window.handlePortraitLoad(this)" />
+                <img
+                  data-charimg="${m.opponentId || ""}"
+                  src="${oppSrc}"
+                  alt="${m.opponentName}"
+                  onload="window.handlePortraitLoad(this)"
+                  onerror="window.handlePortraitError(this, '${game.id}', '${m.opponentId || ""}', '${oppSafeName}', '${m.opponentIcon}')"
+                />
               </div>
               <div>
                 <div class="matchup-opp-name">${m.opponentName} <span style="font-size:0.74rem;color:#f87171;">(${m.opponentArchetype || ""})</span></div>
                 <div class="matchup-reason"><strong>Por qué le hace counter:</strong> ${m.reason}</div>
               </div>
             </div>
-          `
-          )
+          `;
+          })
           .join("")}
       </div>
     </div>
@@ -1455,6 +1602,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const goHome = () => {
     state.selectedGameId = null;
+    setActiveTopNav("btnNavHome");
     document.getElementById("gameDetailView").classList.add("hidden");
     document.getElementById("newsView").classList.add("hidden");
     document.getElementById("communityView").classList.add("hidden");
@@ -1462,6 +1610,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("homeView").classList.remove("hidden");
   };
   document.getElementById("btnHomeBrand").addEventListener("click", goHome);
+  document.getElementById("btnNavHome")?.addEventListener("click", goHome);
   document.getElementById("btnBackToCatalog").addEventListener("click", goHome);
   document.getElementById("btnBackFromNews").addEventListener("click", goHome);
   document.getElementById("btnBackFromCommunity").addEventListener("click", goHome);

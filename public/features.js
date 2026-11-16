@@ -1211,6 +1211,8 @@ function renderQuizRecommendations(container, activeBank) {
       ${topRecommendations
         .map(({ game, ch, matchPct }, rankIdx) => {
           const cachedSrc = clientPortraitCache.get(ch.id) || ch.iconUrl;
+          const fallbackSrc = (ch.fallbackIconUrl || ch.iconUrl).replace(/'/g, "\\'");
+          const safeName = ch.name.replace(/'/g, "\\'");
           const dlcBadge = ch.isDLC ? `DLC (${ch.dlcPack})` : "Juego Base";
           return `
             <div class="video-panel-card" style="display:flex;flex-direction:column;justify-content:space-between;gap:12px;">
@@ -1221,7 +1223,13 @@ function renderQuizRecommendations(container, activeBank) {
                 </div>
                 <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;">
                   <div class="portrait-img-box" style="width:64px;height:64px;flex-shrink:0;">
-                    <img src="${cachedSrc}" alt="${ch.name}" onload="window.handlePortraitLoad(this)" />
+                    <img
+                      data-charimg="${ch.id}"
+                      src="${cachedSrc}"
+                      alt="${ch.name}"
+                      onload="window.handlePortraitLoad(this)"
+                      onerror="window.handlePortraitError(this, '${game.id}', '${ch.id}', '${safeName}', '${fallbackSrc}')"
+                    />
                   </div>
                   <div>
                     <h4 style="font-family:var(--font-display);font-size:1.2rem;">${ch.name}</h4>
