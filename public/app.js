@@ -1,10 +1,11 @@
 /**
- * FGC Vault — Frontend Application Logic (Optimizado)
- * - Fondos con la imagen principal oficial de cada juego (coverImage).
- * - Pestaña principal "Todos los juegos".
- * - Icono visual de retrato para cada uno de los 259 personajes.
- * - Interfaz limpia sin exceso de emojis y con filtrado instantáneo.
- * - Kit de Canal Oficial de YouTube integrado.
+ * FGC Vault — Frontend Application Logic (v6)
+ * - 3 páginas independientes por juego manteniendo el menú fijo:
+ *   Página 1: 1. Guía Básica
+ *   Página 2: 2. Guía Avanzada
+ *   Página 3: 3. Plantel de Personajes (Base y Packs DLC)
+ * - Retratos oficiales reales de los personajes (CDN oficial + Resolución CORS en navegador + Fallback).
+ * - Seguridad real del panel privado mediante código OTP enviado a @Clayfacefightbot (sin exponer claves en pantalla).
  */
 
 const state = {
@@ -18,13 +19,86 @@ const state = {
   botStatus: {},
   selectedSagaId: "all",
   selectedGameId: null,
+  selectedSubpage: "page-basic", // page-basic | page-advanced | page-roster
   selectedCharacter: null,
   selectedDlcPackFilter: "all",
   inGameSearchQuery: "",
   notationMode: "technical", // technical | ps | xbox
   searchQuery: "",
-  adminKey: localStorage.getItem("fgc_private_owner_key") || ""
+  adminKey: localStorage.getItem("fgc_private_session_token") || ""
 };
+
+const clientPortraitCache = new Map();
+
+// =========================================================================
+// RESOLUTOR DE RETRATOS OFICIALES EN EL NAVEGADOR DEL USUARIO (CORS origin=*)
+// =========================================================================
+const FANDOM_WIKIS = {
+  mk1: "https://mortalkombat.fandom.com/api.php",
+  sf6: "https://streetfighter.fandom.com/api.php",
+  tekken8: "https://tekken.fandom.com/api.php",
+  dbfz: "https://dragonballfighterz.fandom.com/api.php",
+  "gg-strive": "https://guiltygear.fandom.com/api.php"
+};
+
+async function hydrateBrowserPortraits(game) {
+  if (!game || !FANDOM_WIKIS[game.id]) return;
+  const api = FANDOM_WIKIS[game.id];
+
+  // Consultar en lotes de 20 personajes usando MediaWiki pageimages con origin=*
+  const chars = game.characters.filter((c) => !clientPortraitCache.has(c.id));
+  for (let i = 0; i < chars.length; i += 20) {
+    const chunk = chars.slice(i, i + 20);
+    const titleMap = {};
+    chunk.forEach((c) => {
+      const cleanTitle = c.name.replace(/\s+\(.*?\)/g, "").trim();
+      titleMap[cleanTitle.toLowerCase()] = c;
+    });
+
+    const titlesParam = Object.keys(titleMap)
+      .map((k) => titleMap[k].name.replace(/\s+\(.*?\)/g, "").trim())
+      .join("|");
+
+    try {
+      const url = `${api}?action=query&titles=${encodeURIComponent(
+        titlesParam
+      )}&prop=pageimages&piprop=thumbnail&pithumbsize=220&redirects=1&format=json&origin=*`;
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const data = await res.json();
+      const pages = data?.query?.pages || {};
+      const redirects = data?.query?.redirects || [];
+      const redirectLookup = {};
+      redirects.forEach((r) => {
+        redirectLookup[r.to.toLowerCase()] = r.from.toLowerCase();
+      });
+
+      Object.values(pages).forEach((p) => {
+        const thumb = p?.thumbnail?.source;
+        if (!thumb) return;
+        const pageTitle = (p.title || "").toLowerCase();
+        const origTitle = redirectLookup[pageTitle] || pageTitle;
+        const matchedChar =
+          titleMap[origTitle] ||
+          chunk.find((c) =>
+            pageTitle.includes(c.name.split(" ")[0].toLowerCase())
+          );
+
+        if (matchedChar) {
+          clientPortraitCache.set(matchedChar.id, thumb);
+          matchedChar.iconUrl = thumb;
+          document
+            .querySelectorAll(`img[data-charimg="${matchedChar.id}"]`)
+            .forEach((imgEl) => {
+              imgEl.src = thumb;
+            });
+        }
+      });
+    } catch (_) {
+      // Si el usuario tiene bloqueador estricto, mantiene el CDN directo o fallback
+    }
+  }
+}
 
 // =========================================================================
 // TRADUCTOR INTERACTIVO DE NOTACIÓN DE LUCHA
@@ -101,6 +175,31 @@ function getGameCoverBackground(game) {
 }
 
 // =========================================================================
+// CAMBIO ENTRE LAS 3 PÁGINAS INDEPENDIENTES DEL JUEGO MANTENIENDO EL MENÚ
+// =========================================================================
+function switchGameSubpage(subpageId) {
+  state.selectedSubpage = subpageId;
+
+  // Actualizar botones del menú
+  document.querySelectorAll(".game-tab[data-subpage]").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.subpage === subpageId);
+  });
+
+  // Mostrar únicamente la página seleccionada y ocultar las otras dos
+  document.querySelectorAll(".game-subpage").forEach((pageEl) => {
+    pageEl.classList.toggle("hidden", pageEl.id !== subpageId);
+  });
+
+  // Mostrar buscador de personajes solo cuando estamos en la Página 3 (Plantel)
+  const rosterControls = document.getElementById("rosterQuickControls");
+  if (rosterControls) {
+    rosterControls.classList.toggle("hidden", subpageId !== "page-roster");
+  }
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// =========================================================================
 // CARGA INICIAL Y RENDERIZADO PRINCIPAL
 // =========================================================================
 async function loadBootstrap() {
@@ -146,7 +245,7 @@ function renderHeroStats() {
   let totalDLC = 0;
   state.games.forEach((g) => {
     totalBase += g.characters.filter((c) => !c.isDLC).length;
-    totalDLC += g.characters.filter((c) => c.isDLC).length;
+    totalDLC += g.characters.filter((c) => !c.isDLC === false).length;
   });
 
   box.innerHTML = `
@@ -229,29 +328,28 @@ function renderQuickSearch() {
 
   box.classList.remove("hidden");
   box.innerHTML = `
-    <div style="margin-bottom:10px;font-weight:700;color:#fbbf24;">
+    <div style="margin-bottom:12px;font-weight:700;color:#fbbf24;">
       Personajes y Packs DLC encontrados para "${state.searchQuery}" (${matches.length}):
     </div>
-    <div class="characters-grid">
+    <div class="portrait-select-grid">
       ${matches
-        .slice(0, 24)
+        .slice(0, 28)
         .map(({ game, ch }) => {
-          const badge = ch.isDLC
-            ? `<span class="dlc-pack-badge">DLC • ${ch.dlcPack}</span>`
-            : `<span class="base-game-badge">Juego Base</span>`;
+          const cachedSrc = clientPortraitCache.get(ch.id) || ch.iconUrl;
+          const fallbackSrc = ch.fallbackIconUrl || ch.iconUrl;
           return `
-            <div class="char-card ${ch.isDLC ? "is-dlc" : ""}" data-quickgame="${game.id}" data-quickchar="${ch.id}">
-              <div class="char-top-row">
-                <img class="char-avatar-img" src="${ch.iconUrl}" alt="${ch.name}" loading="lazy" />
-                <div>
-                  <div class="char-name">${ch.name}</div>
-                  <div class="char-archetype">${game.title} • ${ch.archetype}</div>
-                </div>
+            <div class="portrait-tile ${ch.isDLC ? "is-dlc" : ""}" data-quickgame="${game.id}" data-quickchar="${ch.id}">
+              <div class="portrait-img-box">
+                <img
+                  data-charimg="${ch.id}"
+                  src="${cachedSrc}"
+                  alt="${ch.name}"
+                  loading="lazy"
+                  onerror="if(this.src!=='${fallbackSrc}')this.src='${fallbackSrc}';"
+                />
               </div>
-              <div class="char-badges-row">
-                ${badge}
-                <span class="diff-badge">Dif: ${ch.difficulty}</span>
-              </div>
+              <div class="portrait-name">${ch.name}</div>
+              <div class="portrait-pack-sub">${game.title}</div>
             </div>
           `;
         })
@@ -259,11 +357,11 @@ function renderQuickSearch() {
     </div>
   `;
 
-  box.querySelectorAll(".char-card").forEach((card) => {
+  box.querySelectorAll("[data-quickchar]").forEach((card) => {
     card.addEventListener("click", () => {
       const gId = card.dataset.quickgame;
       const cId = card.dataset.quickchar;
-      openGameHub(gId);
+      openGameHub(gId, "page-roster");
       openCharacterModal(gId, cId);
     });
   });
@@ -320,7 +418,7 @@ function renderGamesGrid() {
             </div>
           </div>
           <div class="game-card-footer">
-            <span>Abrir Guías y Plantel (${game.characters.length} luchadores)</span>
+            <span>Entrar a Guía Básica, Avanzada y Plantel (${game.characters.length})</span>
             <span>➔</span>
           </div>
         </article>
@@ -330,15 +428,15 @@ function renderGamesGrid() {
 
   container.querySelectorAll(".game-card").forEach((card) => {
     card.addEventListener("click", () => {
-      openGameHub(card.dataset.gameid);
+      openGameHub(card.dataset.gameid, "page-basic");
     });
   });
 }
 
 // =========================================================================
-// VISTA DETALLADA DE UN JUEGO: BÁSICA, AVANZADA Y ROSTER COMPLETO
+// VISTA DETALLADA DE UN JUEGO (3 PÁGINAS SEPARADAS CON MENÚ FIJO)
 // =========================================================================
-function openGameHub(gameId) {
+function openGameHub(gameId, initialSubpage = "page-basic") {
   state.selectedGameId = gameId;
   state.selectedDlcPackFilter = "all";
   state.inGameSearchQuery = "";
@@ -347,8 +445,9 @@ function openGameHub(gameId) {
 
   document.getElementById("homeView").classList.add("hidden");
   document.getElementById("gameDetailView").classList.remove("hidden");
-  window.scrollTo({ top: 0, behavior: "smooth" });
+
   renderGameDetailView(gameId);
+  switchGameSubpage(initialSubpage);
 }
 
 function renderGameDetailView(gameId) {
@@ -366,7 +465,6 @@ function renderGameDetailView(gameId) {
       )
       .join("");
 
-  // Cabecera del juego con la imagen oficial de fondo
   const headerEl = document.getElementById("gameHeaderBanner");
   headerEl.style.backgroundImage = getGameCoverBackground(game);
   headerEl.innerHTML = `
@@ -393,7 +491,6 @@ function renderGameDetailView(gameId) {
   }
   `;
 
-  // Separar personajes Base vs DLC y aplicar filtro rápido por nombre
   const q = state.inGameSearchQuery.trim().toLowerCase();
   const baseChars = game.characters.filter(
     (c) =>
@@ -432,12 +529,15 @@ function renderGameDetailView(gameId) {
   baseGrid.innerHTML = baseChars.map((ch) => buildCharacterCardHTML(game, ch)).join("");
   attachCharacterCardEvents(baseGrid, game.id);
 
-  // Renderizar Grid Personajes DLC
+  // Renderizar Grid Personajes DLC por Pack
   renderDlcGrid(game, filteredDlcChars);
 
-  // Renderizar Guía Básica y Guía Avanzada
+  // Renderizar Página 1 (Guía Básica) y Página 2 (Guía Avanzada)
   renderGuideSplit("basicGuideContainer", game.basicGuide, "Guía Básica de Conceptos", game.officialSources);
   renderGuideSplit("advancedGuideContainer", game.advancedGuide, "Guía Avanzada Competitiva", game.officialSources);
+
+  // Resolver retratos oficiales reales desde la Wiki en segundo plano
+  hydrateBrowserPortraits(game);
 }
 
 function renderDlcGrid(game, dlcChars) {
@@ -477,6 +577,9 @@ function renderDlcGrid(game, dlcChars) {
 }
 
 function buildCharacterCardHTML(game, ch) {
+  const cachedSrc = clientPortraitCache.get(ch.id) || ch.iconUrl;
+  const fallbackSrc = ch.fallbackIconUrl || ch.iconUrl;
+
   return `
     <div
       class="portrait-tile ${ch.isDLC ? "is-dlc" : ""}"
@@ -484,7 +587,13 @@ function buildCharacterCardHTML(game, ch) {
       title="${ch.name} — ${ch.archetype} (${ch.isDLC ? ch.dlcPack : "Juego Base"})"
     >
       <div class="portrait-img-box">
-        <img src="${ch.iconUrl}" alt="${ch.name}" loading="lazy" />
+        <img
+          data-charimg="${ch.id}"
+          src="${cachedSrc}"
+          alt="${ch.name}"
+          loading="lazy"
+          onerror="if(this.src!=='${fallbackSrc}')this.src='${fallbackSrc}';"
+        />
       </div>
       <div class="portrait-name">${ch.name}</div>
       ${ch.isDLC ? `<div class="portrait-pack-sub">${ch.dlcPack}</div>` : ""}
@@ -545,7 +654,7 @@ function renderGuideSplit(containerId, guideObj, badgeLabel, sources) {
 }
 
 // =========================================================================
-// MODAL DE GUÍA INDIVIDUAL DE PERSONAJE (CON ICONO, VÍDEO Y TEXTO)
+// MODAL DE GUÍA INDIVIDUAL DE PERSONAJE
 // =========================================================================
 function openCharacterModal(gameId, charId) {
   const game = state.games.find((g) => g.id === gameId);
@@ -563,9 +672,19 @@ function openCharacterModal(gameId, charId) {
     ? `<span class="dlc-pack-badge" style="font-size:0.8rem;">DLC DE PAGO — Pack: ${ch.dlcPack}</span>`
     : `<span class="base-game-badge" style="font-size:0.8rem;">INCLUIDO EN EL JUEGO BASE</span>`;
 
+  const cachedSrc = clientPortraitCache.get(ch.id) || ch.iconUrl;
+  const fallbackSrc = ch.fallbackIconUrl || ch.iconUrl;
+
   header.innerHTML = `
     <div style="display:flex;align-items:center;gap:14px;">
-      <img class="char-avatar-img" style="width:64px;height:64px;" src="${ch.iconUrl}" alt="${ch.name}" />
+      <img
+        class="char-avatar-img"
+        style="width:68px;height:68px;border:2px solid #f59e0b;"
+        data-charimg="${ch.id}"
+        src="${cachedSrc}"
+        alt="${ch.name}"
+        onerror="if(this.src!=='${fallbackSrc}')this.src='${fallbackSrc}';"
+      />
       <div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:5px;">
           ${statusBadge}
@@ -734,7 +853,7 @@ function renderYoutubeModal() {
 }
 
 // =========================================================================
-// PANEL DE TELEGRAM: MODERACIÓN CON BOTONES Y VERIFICACIÓN 2FA
+// PANEL PRIVADO DE TELEGRAM (SIN EXPONER NINGUNA CLAVE EN PANTALLA)
 // =========================================================================
 function renderTelegramBadgeAndDrawer() {
   const pendingSubs = state.submissions.filter((s) => s.status === "pending");
@@ -748,7 +867,7 @@ function renderTelegramBadgeAndDrawer() {
   if (state.botStatus && state.botStatus.isLiveTelegram) {
     badgeEl.textContent = `Bot Privado en vivo (${state.botStatus.botUsername})`;
   } else {
-    badgeEl.textContent = `Bot en Modo Privado Estricto (Solo Propietario Autorizado)`;
+    badgeEl.textContent = `Bot en Modo Privado Estricto`;
   }
 
   const lockBox = document.getElementById("tgPrivateLockBox");
@@ -760,20 +879,21 @@ function renderTelegramBadgeAndDrawer() {
     lockBox.style.borderColor = "#10b981";
     lockBox.style.background = "rgba(16, 185, 129, 0.1)";
     lockTitle.style.color = "#34d399";
-    lockTitle.textContent = "Sesión de Propietario Activa (Acceso Privado Verificado)";
-    lockSub.textContent = "Tienes control total sobre aprobaciones, parches y verificaciones 2FA.";
-    unlockFormRow.innerHTML = `<button class="tg-inline-btn reject" id="btnLockPrivateBot">Bloquear Panel</button>`;
+    lockTitle.textContent = "Sesión de Propietario Verificada";
+    lockSub.textContent = "Tienes acceso completo a las aprobaciones, parches y verificaciones.";
+    unlockFormRow.innerHTML = `<button class="tg-inline-btn reject" id="btnLockPrivateBot">Cerrar Sesión de Administrador</button>`;
     document.getElementById("btnLockPrivateBot").onclick = () => {
       state.adminKey = "";
-      localStorage.removeItem("fgc_private_owner_key");
+      localStorage.removeItem("fgc_private_session_token");
       location.reload();
     };
   } else {
     lockBox.style.borderColor = "#f59e0b";
     lockBox.style.background = "rgba(245, 158, 11, 0.08)";
     lockTitle.style.color = "#fbbf24";
-    lockTitle.textContent = "Bot en Modo Privado Estricto";
-    lockSub.textContent = "Introduce tu ID/API privado (9297971350) para habilitar los botones de gestión.";
+    lockTitle.textContent = "Panel de Administración Protegido";
+    lockSub.textContent =
+      "Solicita un código temporal de un solo uso en tu Telegram privado (@Clayfacefightbot) o introduce tu clave secreta.";
   }
 
   const subListEl = document.getElementById("tgPendingSubmissionsList");
@@ -781,7 +901,7 @@ function renderTelegramBadgeAndDrawer() {
     subListEl.innerHTML = `
       <div class="tg-message-bubble">
         <strong>Contenido protegido (${pendingSubs.length} propuestas en cola).</strong><br/>
-        Desbloquea arriba con tu ID de propietario o gestiónalas desde tu chat privado de Telegram.
+        Puedes aprobarlas directamente desde tu app de Telegram en <code>@Clayfacefightbot</code> o verificando tu sesión arriba.
       </div>
     `;
   } else if (pendingSubs.length === 0) {
@@ -832,7 +952,7 @@ function renderTelegramBadgeAndDrawer() {
 
   const authListEl = document.getElementById("tgPendingAuthsList");
   if (!isUnlocked) {
-    authListEl.innerHTML = `<p style="font-size:0.82rem;color:#fbbf24;">Desbloquea como propietario para autorizar o denegar verificaciones 2FA.</p>`;
+    authListEl.innerHTML = `<p style="font-size:0.82rem;color:#fbbf24;">Verifica tu sesión de propietario para gestionar solicitudes 2FA desde la web.</p>`;
   } else if (pendingAuths.length === 0) {
     authListEl.innerHTML = `<p style="font-size:0.82rem;color:#94a3b8;">No hay solicitudes de verificación pendientes.</p>`;
   } else {
@@ -941,7 +1061,6 @@ document.addEventListener("DOMContentLoaded", () => {
     renderGamesGrid();
   });
 
-  // Buscador rápido dentro de un juego
   const inGameSearch = document.getElementById("inGameCharSearch");
   if (inGameSearch) {
     inGameSearch.addEventListener("input", (e) => {
@@ -952,10 +1071,17 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  document.querySelectorAll(".game-tab").forEach((tab) => {
+  // Pestañas del menú del juego (cambian entre las 3 páginas independientes)
+  document.querySelectorAll(".game-tab[data-subpage]").forEach((tab) => {
     tab.addEventListener("click", () => {
-      document.querySelectorAll(".game-tab").forEach((t) => t.classList.remove("active"));
-      tab.classList.add("active");
+      switchGameSubpage(tab.dataset.subpage);
+    });
+  });
+
+  // Botones de paginación inferior (Anterior / Siguiente página)
+  document.querySelectorAll("[data-goto-subpage]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      switchGameSubpage(btn.dataset.gotoSubpage);
     });
   });
 
@@ -1030,7 +1156,26 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Desbloquear el panel privado del Bot con el ID/API del propietario (9297971350)
+  // Solicitar código temporal OTP por Telegram
+  const otpBtn = document.getElementById("btnRequestTelegramOtp");
+  if (otpBtn) {
+    otpBtn.addEventListener("click", async () => {
+      otpBtn.disabled = true;
+      otpBtn.textContent = "Enviando a Telegram...";
+      try {
+        const res = await fetch("/api/bot/request-otp", { method: "POST" });
+        const data = await res.json();
+        alert(data.message || data.error);
+      } catch (_) {
+        alert("Error al contactar con el servidor.");
+      } finally {
+        otpBtn.disabled = false;
+        otpBtn.textContent = "Enviar código a mi Telegram";
+      }
+    });
+  }
+
+  // Verificar código OTP o clave de propietario
   const unlockBtn = document.getElementById("btnUnlockPrivateBot");
   if (unlockBtn) {
     unlockBtn.addEventListener("click", async () => {
@@ -1041,12 +1186,13 @@ document.addEventListener("DOMContentLoaded", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ adminKey: keyVal })
       });
-      if (res.ok) {
-        state.adminKey = keyVal;
-        localStorage.setItem("fgc_private_owner_key", keyVal);
+      const data = await res.json();
+      if (res.ok && data.unlocked) {
+        state.adminKey = data.sessionToken || keyVal;
+        localStorage.setItem("fgc_private_session_token", state.adminKey);
         await loadBootstrap();
       } else {
-        alert("Clave o ID de propietario incorrecto. Acceso privado denegado.");
+        alert(data.error || "Código inválido. Acceso denegado.");
       }
     });
   }
@@ -1064,7 +1210,7 @@ document.addEventListener("DOMContentLoaded", () => {
       body: JSON.stringify({ gameId, currentPatch })
     });
     if (!res.ok) {
-      alert("Desbloquea primero el panel privado con tu ID de propietario (9297971350).");
+      alert("Verifica primero tu sesión de propietario con Telegram.");
       return;
     }
     document.getElementById("tgPatchTextInput").value = "";

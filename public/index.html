@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=5" />
+  <link rel="stylesheet" href="/styles.css?v=6" />
 </head>
 <body>
   <!-- TOP NAVIGATION BAR -->
@@ -58,9 +58,9 @@
           <div class="hero-pill">FUENTES VERIFICADAS: SUPERCOMBO • DUSTLOOP • WAVU • KOMBAT AKADEMY • ULTIMATE FRAME DATA</div>
           <h1>Enciclopedia de Guías y Frame Data de Juegos de Lucha</h1>
           <p>
-            Selecciona un juego para acceder directamente a su <strong>Guía Básica</strong>,
-            <strong>Guía Avanzada</strong> y al <strong>Plantel Completo de Personajes</strong>
-            en vídeo y texto, diferenciando el <strong>Juego Base</strong> de cada <strong>Pack DLC</strong>.
+            Selecciona un juego para acceder a sus tres páginas dedicadas:
+            <strong>1. Guía Básica</strong>, <strong>2. Guía Avanzada</strong> y
+            <strong>3. Plantel Completo de Personajes</strong> (Juego Base y Packs DLC).
           </p>
         </div>
         <div class="hero-stats" id="heroStatsBox"></div>
@@ -73,7 +73,7 @@
           type="search"
           id="searchGameOrCharInput"
           class="search-input"
-          placeholder="Buscar juego, personaje o pack DLC (ej. Scorpion, Akuma, Kazuya, Kombat Pack 1)..."
+          placeholder="Buscar juego, personaje o pack DLC (ej. Scorpion, Akuma, Armor King, Sagat)..."
         />
       </div>
 
@@ -84,7 +84,7 @@
       <div class="games-grid" id="gamesGridContainer"></div>
     </section>
 
-    <!-- VISTA 2: PÁGINA DE UN JUEGO SELECCIONADO -->
+    <!-- VISTA 2: HUB DEL JUEGO CON 3 PÁGINAS SEPARADAS MANTENIENDO EL MENÚ -->
     <section id="gameDetailView" class="hidden">
       <div class="breadcrumb-bar">
         <button class="btn-back" id="btnBackToCatalog">Volver a Todos los juegos</button>
@@ -97,21 +97,22 @@
       <!-- LEYENDA DE NOTACIÓN DEL JUEGO -->
       <div class="notation-banner" id="gameNotationBanner"></div>
 
-      <!-- BARRA DE NAVEGACIÓN EN EL ORDEN SOLICITADO: 1. GUÍA BÁSICA -> 2. GUÍA AVANZADA -> 3. PLANTEL DE PERSONAJES -->
+      <!-- MENÚ FIJO PERSISTENTE PARA CAMBIAR ENTRE LAS 3 PÁGINAS DEL JUEGO -->
       <div class="game-nav-bar">
         <div class="game-section-tabs">
-          <a href="#sectionBasicGuide" class="game-tab active" data-scrollto="sectionBasicGuide">
+          <button class="game-tab active" data-subpage="page-basic">
             1. Guía Básica (Conceptos)
-          </a>
-          <a href="#sectionAdvancedGuide" class="game-tab" data-scrollto="sectionAdvancedGuide">
+          </button>
+          <button class="game-tab" data-subpage="page-advanced">
             2. Guía Avanzada (Competitivo)
-          </a>
-          <a href="#sectionCharactersRoster" class="game-tab" data-scrollto="sectionCharactersRoster">
+          </button>
+          <button class="game-tab" data-subpage="page-roster">
             3. Plantel de Personajes (Base y DLC)
-          </a>
+          </button>
         </div>
 
-        <div class="roster-quick-controls" id="rosterQuickControls">
+        <!-- Controles exclusivos de la Página 3 (Plantel) -->
+        <div class="roster-quick-controls hidden" id="rosterQuickControls">
           <input
             type="search"
             id="inGameCharSearch"
@@ -123,29 +124,49 @@
         </div>
       </div>
 
-      <!-- 1. PRIMERO: GUÍA BÁSICA (VÍDEO + TEXTO) -->
-      <div id="sectionBasicGuide" class="game-flow-section">
+      <!-- ===================================================================
+           PÁGINA 1: GUÍA BÁSICA (SOLO SE VE ESTA PÁGINA CUANDO ESTÁ ACTIVA)
+           =================================================================== -->
+      <div id="page-basic" class="game-subpage">
         <div class="section-heading-bar">
           <h2>1. Guía Básica — Conceptos Fundamentales</h2>
-          <span>Vídeo explicativo + Guía en texto</span>
+          <span>Página 1 de 3 • Vídeo explicativo + Guía en texto</span>
         </div>
         <div class="guide-split-layout" id="basicGuideContainer"></div>
+        <div class="subpage-pagination">
+          <span></span>
+          <button class="btn btn-primary" data-goto-subpage="page-advanced">
+            Siguiente página: 2. Guía Avanzada ➔
+          </button>
+        </div>
       </div>
 
-      <!-- 2. SEGUNDO: GUÍA AVANZADA (VÍDEO + TEXTO) -->
-      <div id="sectionAdvancedGuide" class="game-flow-section">
+      <!-- ===================================================================
+           PÁGINA 2: GUÍA AVANZADA (SOLO SE VE ESTA PÁGINA CUANDO ESTÁ ACTIVA)
+           =================================================================== -->
+      <div id="page-advanced" class="game-subpage hidden">
         <div class="section-heading-bar">
-          <h2>2. Guía Avanzada — Frame Data yJuego Competitivo</h2>
-          <span>Mecánicas avanzadas en vídeo y texto</span>
+          <h2>2. Guía Avanzada — Frame Data y Juego Competitivo</h2>
+          <span>Página 2 de 3 • Mecánicas avanzadas en vídeo y texto</span>
         </div>
         <div class="guide-split-layout" id="advancedGuideContainer"></div>
+        <div class="subpage-pagination">
+          <button class="btn btn-outline" data-goto-subpage="page-basic">
+            ⬅ Página anterior: 1. Guía Básica
+          </button>
+          <button class="btn btn-primary" data-goto-subpage="page-roster">
+            Siguiente página: 3. Plantel de Personajes ➔
+          </button>
+        </div>
       </div>
 
-      <!-- 3. POR ÚLTIMO: PLANTEL DE PERSONAJES (MOSAICO DE ICONOS BASE vs DLC POR PACK) -->
-      <div id="sectionCharactersRoster" class="game-flow-section">
+      <!-- ===================================================================
+           PÁGINA 3: PLANTEL DE PERSONAJES (SOLO SE VE ESTA PÁGINA CUANDO ESTÁ ACTIVA)
+           =================================================================== -->
+      <div id="page-roster" class="game-subpage hidden">
         <div class="section-heading-bar">
           <h2>3. Plantel de Personajes — Guías Individuales</h2>
-          <span>Haz clic en el icono de cualquier personaje para abrir su guía en vídeo y texto</span>
+          <span>Página 3 de 3 • Haz clic en el icono de cualquier personaje para abrir su guía individual</span>
         </div>
 
         <!-- BLOQUE 1: PLANTEL DEL JUEGO BASE -->
@@ -164,8 +185,8 @@
         <div class="roster-block dlc-block" id="dlcSectionAnchor">
           <div class="roster-block-header dlc-header">
             <div>
-              <h3>Personajes DLC de Pago (Separados por Pack / Fighter Pass)</h3>
-              <p>Luchadores adicionales identificados según el Pack o Season Pass al que pertenecen.</p>
+              <h3>Personajes DLC de Pago (Separados por Pack / Season Pass)</h3>
+              <p>Luchadores adicionales agrupados según el Pack o Season Pass al que pertenecen.</p>
             </div>
             <div class="dlc-filter-wrap">
               <label for="dlcPackFilterSelect">Filtrar por Pack:</label>
@@ -175,6 +196,13 @@
             </div>
           </div>
           <div id="dlcPacksGroupedContainer"></div>
+        </div>
+
+        <div class="subpage-pagination">
+          <button class="btn btn-outline" data-goto-subpage="page-advanced">
+            ⬅ Página anterior: 2. Guía Avanzada
+          </button>
+          <span></span>
         </div>
       </div>
     </section>
@@ -188,7 +216,7 @@
     </div>
   </div>
 
-  <!-- MODAL: CANAL DE YOUTUBE DEL PROYECTO (CREACIÓN, BRANDING Y LISTAS) -->
+  <!-- MODAL: CANAL DE YOUTUBE DEL PROYECTO -->
   <div class="modal-backdrop hidden" id="youtubeModalBackdrop">
     <div class="modal-card">
       <div class="modal-header">
@@ -238,7 +266,7 @@
             <input type="checkbox" id="subIsDLC" />
             <span>¿Es un personaje de un DLC de pago?</span>
           </label>
-          <input type="text" id="subDlcPack" class="hidden" placeholder="Nombre del Pack/DLC (Ej: Kombat Pack 1, Year 2 Pass, Fighters Pass Vol. 2)" />
+          <input type="text" id="subDlcPack" class="hidden" placeholder="Nombre del Pack/DLC (Ej: Kombat Pack 1, Year 3 Pass, Season 3 Pass)" />
         </div>
         <div class="form-group full-width">
           <label>Combo Principal (BnB) en Notación</label>
@@ -263,7 +291,7 @@
     </div>
   </div>
 
-  <!-- DRAWER LATERAL: CENTRO DE CONTROL DEL BOT DE TELEGRAM -->
+  <!-- DRAWER LATERAL: CENTRO DE CONTROL PRIVADO DEL BOT DE TELEGRAM -->
   <div class="modal-backdrop hidden" id="telegramDrawerBackdrop">
     <aside class="telegram-drawer">
       <div class="tg-drawer-header">
@@ -283,23 +311,27 @@
       </div>
 
       <div class="tg-drawer-body">
-        <!-- BLOQUE DE CANDADO PRIVADO PARA EL PROPIETARIO (9297971350) -->
+        <!-- BLOQUE DE AUTENTICACIÓN SEGURA SIN EXPONER NINGUNA CLAVE EN PANTALLA -->
         <div class="tg-card-box" id="tgPrivateLockBox" style="border-color:#f59e0b;background:rgba(245,158,11,0.08);">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div style="display:flex;flex-direction:column;gap:10px;">
             <div>
-              <strong style="color:#fbbf24;font-size:0.88rem;" id="tgLockStatusTitle">Bot en Modo Privado Estricto</strong>
+              <strong style="color:#fbbf24;font-size:0.88rem;" id="tgLockStatusTitle">Panel de Administración Protegido</strong>
               <p style="font-size:0.76rem;color:#cbd5e1;" id="tgLockStatusSub">
-                Solo el propietario autorizado puede usar los botones del bot.
+                Solicita un código temporal de un solo uso en tu Telegram privado (@Clayfacefightbot) o introduce tu clave secreta de administrador.
               </p>
             </div>
-            <div style="display:flex;gap:6px;align-items:center;" id="tgUnlockFormRow">
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;" id="tgUnlockFormRow">
+              <button class="tg-inline-btn" id="btnRequestTelegramOtp" style="background:#0284c7;">
+                Enviar código a mi Telegram
+              </button>
               <input
                 type="password"
                 id="tgOwnerKeyInput"
-                placeholder="ID Propietario"
-                style="background:#0e1621;border:1px solid #2b5278;color:#fff;padding:6px 10px;border-radius:6px;width:135px;font-size:0.8rem;"
+                placeholder="Código OTP / Clave"
+                autocomplete="off"
+                style="background:#0e1621;border:1px solid #2b5278;color:#fff;padding:6px 10px;border-radius:6px;width:140px;font-size:0.8rem;"
               />
-              <button class="tg-inline-btn approve" id="btnUnlockPrivateBot">Desbloquear</button>
+              <button class="tg-inline-btn approve" id="btnUnlockPrivateBot">Verificar</button>
             </div>
           </div>
         </div>
@@ -312,7 +344,7 @@
             <h4 class="tg-section-subtitle">Actualizar Etiqueta de Parche Rápido</h4>
             <div class="tg-patch-box">
               <select id="tgPatchGameSelect"></select>
-              <input type="text" id="tgPatchTextInput" placeholder="Ej. Parche v1.12" />
+              <input type="text" id="tgPatchTextInput" placeholder="Ej. Parche v3.02" />
               <button class="tg-inline-btn approve" id="btnApplyPatchUpdate">Guardar Parche</button>
             </div>
 
@@ -348,10 +380,10 @@
 
         <div id="tg-deploy-panel" class="tg-tab-content hidden">
           <div class="tg-card-box deploy-steps">
-            <h4>Conexión con Render y Telegram</h4>
+            <h4>Gestión desde tu App de Telegram</h4>
             <ol>
-              <li>En Render → <strong>Environment</strong>, asegúrate de tener <code>TELEGRAM_BOT_TOKEN</code> y <code>ADMIN_SECRET_KEY=9297971350</code>.</li>
-              <li>En Telegram, abre <code>@Clayfacefightbot</code> y envía <code>/start</code> para vincular tu cuenta como único dueño.</li>
+              <li>Abre el chat con <code>@Clayfacefightbot</code> en tu teléfono o PC y envía <code>/start</code>.</li>
+              <li>Desde el propio chat de Telegram puedes aprobar/rechazar guías y verificar usuarios sin necesidad de abrir este panel web.</li>
             </ol>
           </div>
         </div>
@@ -359,6 +391,6 @@
     </aside>
   </div>
 
-  <script src="/app.js?v=5"></script>
+  <script src="/app.js?v=6"></script>
 </body>
 </html>

@@ -221,10 +221,10 @@ async function resolveCharacterPortraitUrl(gameId, charName) {
     resolvedUrl = `https://www.smashbros.com/assets_v2/img/fighter/thumb_a/${slug}.png`;
   }
 
-  // 2. STREET FIGHTER 6 (SuperCombo Wiki + Street Fighter Fandom)
+  // 2. STREET FIGHTER 6 (SuperCombo Wiki /w/api.php + Street Fighter Fandom)
   else if (gameId === "sf6") {
     const hubImages = await loadHubPageImages(
-      "https://wiki.supercombo.gg/api.php",
+      "https://wiki.supercombo.gg/w/api.php",
       "Street_Fighter_6"
     );
     const match = hubImages.find((img) =>

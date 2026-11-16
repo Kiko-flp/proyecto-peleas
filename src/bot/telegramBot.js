@@ -129,6 +129,24 @@ class TelegramBotManager {
   // =========================================================================
   // NOTIFICACIONES SALIENTES (SOLO AL CHAT PRIVADO DEL PROPIETARIO)
   // =========================================================================
+  async sendOwnerOtpCode(otpCode) {
+    if (!this.isConfigured() || !this.adminChatId) return false;
+    const ownerChat = this.adminChatId.split(",")[0].trim();
+
+    const text =
+      `🔐 *CÓDIGO DE ACCESO UNICO — PANEL WEB FGC VAULT*\n\n` +
+      `Tu código temporal para desbloquear el panel de administración web es:\n` +
+      `👉 \`${otpCode}\`\n\n` +
+      `_(Válido durante 10 minutos. No compartas este código con nadie)._`;
+
+    const sent = await this.callTelegram("sendMessage", {
+      chat_id: ownerChat,
+      text,
+      parse_mode: "Markdown"
+    });
+    return Boolean(sent);
+  }
+
   async notifyNewAuthRequest(authReq) {
     if (!this.isConfigured() || !this.adminChatId) return;
     const ownerChat = this.adminChatId.split(",")[0].trim();

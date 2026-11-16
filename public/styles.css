@@ -569,9 +569,21 @@ body {
   border-color: transparent;
 }
 
-.game-flow-section {
+.game-flow-section,
+.game-subpage {
   margin-bottom: 32px;
   scroll-margin-top: 130px;
+}
+
+.subpage-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border-color);
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .section-heading-bar {

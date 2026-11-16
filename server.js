@@ -10,6 +10,11 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const PRIVATE_OWNER_KEY = (process.env.ADMIN_SECRET_KEY || process.env.TELEGRAM_ADMIN_CHAT_ID || "9297971350").trim();
 
+// Almacén en memoria de códigos temporales OTP enviados al Telegram privado del propietario y sesiones activas
+let currentOwnerOtp = null;
+let currentOwnerOtpExpires = 0;
+const activeAdminSessions = new Set();
+
 app.use(cors());
 app.use(express.json());
 app.use(
@@ -22,11 +27,19 @@ app.use(
   })
 );
 
+function isValidAdminSession(tokenOrKey) {
+  const clean = String(tokenOrKey || "").trim();
+  if (!clean) return false;
+  if (clean === PRIVATE_OWNER_KEY) return true;
+  if (activeAdminSessions.has(clean)) return true;
+  return false;
+}
+
 function requirePrivateOwner(req, res, next) {
   const clientKey = (req.headers["x-admin-key"] || req.body.adminKey || "").trim();
-  if (clientKey !== PRIVATE_OWNER_KEY) {
+  if (!isValidAdminSession(clientKey)) {
     return res.status(403).json({
-      error: "Acceso denegado: Panel de Bot en Modo Privado. Introduce tu clave/ID de propietario (9297971350)."
+      error: "Acceso denegado: Panel en Modo Privado. Solicita un código temporal desde tu bot privado de Telegram."
     });
   }
   next();
@@ -150,7 +163,7 @@ app.get("/api/health", (req, res) => {
 // =========================================================================
 app.get("/api/bootstrap", (req, res) => {
   const clientKey = (req.headers["x-admin-key"] || "").trim();
-  const isOwnerUnlocked = clientKey === PRIVATE_OWNER_KEY;
+  const isOwnerUnlocked = isValidAdminSession(clientKey);
 
   res.json({
     youtubeChannel: store.state.youtubeChannel,
@@ -165,27 +178,51 @@ app.get("/api/bootstrap", (req, res) => {
           {
             id: "locked",
             time: "Privado",
-            event: "Registro privado oculto. Desbloquea con tu ID de propietario para ver detalles."
+            event: "Registro privado oculto. Verifica tu sesión con Telegram para ver los registros."
           }
         ],
     botStatus: {
       isLiveTelegram: telegramBot.isConfigured(),
+      hasLinkedOwner: Boolean(telegramBot.adminChatId),
       privateMode: true,
       isOwnerUnlocked,
-      ownerIdMasked: "929797****",
       botUsername: telegramBot.botUsername || "@Clayfacefightbot"
     }
   });
 });
 
-app.post("/api/bot/unlock", (req, res) => {
-  const { adminKey } = req.body;
-  if (String(adminKey || "").trim() === PRIVATE_OWNER_KEY) {
-    store.addLog("Panel Web Privado desbloqueado por el propietario (9297971350).");
-    return res.json({ unlocked: true });
+app.post("/api/bot/request-otp", async (req, res) => {
+  if (!telegramBot.adminChatId) {
+    return res.status(400).json({
+      error: "Primero abre Telegram, busca @Clayfacefightbot y envíale /start para vincular tu cuenta como propietario único."
+    });
   }
-  store.addLog("Intento fallido de desbloquear el Panel Web Privado.");
-  return res.status(403).json({ unlocked: false, error: "Clave/ID de propietario incorrecta." });
+  currentOwnerOtp = String(Math.floor(100000 + Math.random() * 900000));
+  currentOwnerOtpExpires = Date.now() + 10 * 60 * 1000;
+  const sent = await telegramBot.sendOwnerOtpCode(currentOwnerOtp);
+  if (!sent) {
+    return res.status(500).json({ error: "No se pudo enviar el código a Telegram. Comprueba TELEGRAM_BOT_TOKEN." });
+  }
+  res.json({ message: "Código temporal de 6 dígitos enviado a tu chat privado con @Clayfacefightbot." });
+});
+
+app.post("/api/bot/unlock", (req, res) => {
+  const input = String(req.body.adminKey || "").trim();
+  const isOtpValid =
+    currentOwnerOtp &&
+    Date.now() < currentOwnerOtpExpires &&
+    input === currentOwnerOtp;
+
+  if (isOtpValid || input === PRIVATE_OWNER_KEY) {
+    currentOwnerOtp = null;
+    const sessionToken = "sess_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    activeAdminSessions.add(sessionToken);
+    store.addLog("Sesión privada de propietario iniciada correctamente.");
+    return res.json({ unlocked: true, sessionToken });
+  }
+
+  store.addLog("Intento fallido de acceso al Panel Privado.");
+  return res.status(403).json({ unlocked: false, error: "Código o clave de propietario inválida." });
 });
 
 app.get("/api/games/:id", (req, res) => {

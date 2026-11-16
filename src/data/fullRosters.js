@@ -1,25 +1,92 @@
 /**
- * Planteles completos (100% de los personajes actuales: Juego Base + Todos los Packs DLC)
- * para Mortal Kombat 1, Street Fighter 6, Tekken 8, Dragon Ball FighterZ,
- * Guilty Gear -Strive- y Super Smash Bros. Ultimate.
+ * Planteles completos actualizados a la última versión (2026):
+ * - Mortal Kombat 1 (35 personajes: Base + Kombat Pack 1 + Khaos Reigns)
+ * - Street Fighter 6 (30 personajes: Base + Year 1 + Year 2 + Year 3 Pass)
+ * - Tekken 8 (44 personajes: Base + Season 1 Pass + Season 2 Pass + Season 3 Pass)
+ * - Dragon Ball FighterZ (44 personajes: Base + Pass 1, 2, 3 + Lab Coat)
+ * - Guilty Gear -Strive- (32 personajes: Base + Season Pass 1, 2, 3 y 4)
+ * - Super Smash Bros. Ultimate (86 personajes: Base + Fighters Pass Vol. 1 y 2)
  */
 
-// Generador de retratos/iconos visuales personalizados por personaje y juego
-function getCharacterIconUrl(gameId, charName, colorHex = "f59e0b", isDLC = false) {
+const SSBU_SLUGS = {
+  "Mario": "mario", "Donkey Kong": "donkey_kong", "Link": "link", "Samus": "samus",
+  "Dark Samus": "dark_samus", "Yoshi": "yoshi", "Kirby": "kirby", "Fox": "fox",
+  "Pikachu": "pikachu", "Luigi": "luigi", "Ness": "ness", "Captain Falcon": "captain_falcon",
+  "Jigglypuff": "jigglypuff", "Peach": "peach", "Daisy": "daisy", "Bowser": "bowser",
+  "Ice Climbers": "ice_climbers", "Sheik": "sheik", "Zelda": "zelda", "Dr. Mario": "dr_mario",
+  "Pichu": "pichu", "Falco": "falco", "Marth": "marth", "Lucina": "lucina",
+  "Young Link": "young_link", "Ganondorf": "ganondorf", "Mewtwo": "mewtwo", "Roy": "roy",
+  "Chrom": "chrom", "Mr. Game & Watch": "mr_game_and_watch", "Meta Knight": "meta_knight",
+  "Pit": "pit", "Dark Pit": "dark_pit", "Zero Suit Samus": "zero_suit_samus", "Wario": "wario",
+  "Snake": "snake", "Ike": "ike", "Pokémon Trainer": "pokemon_trainer", "Diddy Kong": "diddy_kong",
+  "Lucas": "lucas", "Sonic": "sonic", "King Dedede": "king_dedede", "Olimar": "olimar",
+  "Lucario": "lucario", "R.O.B.": "rob", "Toon Link": "toon_link", "Wolf": "wolf",
+  "Villager": "villager", "Mega Man": "mega_man", "Wii Fit Trainer": "wii_fit_trainer",
+  "Rosalina & Luma": "rosalina_and_luma", "Little Mac": "little_mac", "Greninja": "greninja",
+  "Palutena": "palutena", "Pac-Man": "pac_man", "Robin": "robin", "Shulk": "shulk",
+  "Bowser Jr.": "bowser_jr", "Duck Hunt": "duck_hunt", "Ryu (Smash)": "ryu", "Ken (Smash)": "ken",
+  "Cloud Strife": "cloud", "Corrin": "corrin", "Bayonetta": "bayonetta", "Inkling": "inkling",
+  "Ridley": "ridley", "Simon": "simon", "Richter": "richter", "King K. Rool": "king_k_rool",
+  "Isabelle": "isabelle", "Incineroar": "incineroar", "Mii Brawler": "mii_fighter",
+  "Mii Swordfighter": "mii_fighter", "Mii Gunner": "mii_fighter", "Piranha Plant": "piranha_plant",
+  "Joker": "joker", "Hero": "dq_hero", "Banjo & Kazooie": "banjo_and_kazooie", "Terry": "terry",
+  "Byleth": "byleth", "Min Min": "minmin", "Steve": "steve", "Sephiroth": "sephiroth",
+  "Pyra / Mythra": "homura", "Kazuya": "kazuya", "Sora": "sora"
+};
+
+const SF6_CDN_SLUGS = {
+  "Ryu": "ryu", "Ken Masters": "ken", "Luke": "luke", "Jamie": "jamie",
+  "Chun-Li": "chunli", "Guile": "guile", "Kimberly": "kimberly", "Juri Han": "juri",
+  "Blanka": "blanka", "Dhalsim": "dhalsim", "E. Honda": "ehonda", "Dee Jay": "deejay",
+  "Manon": "manon", "Marisa": "marisa", "JP": "jp", "Zangief": "zangief",
+  "Lily": "lily", "Cammy": "cammy", "Rashid": "rashid", "A.K.I.": "aki",
+  "Ed": "ed", "Akuma": "gouki", "M. Bison": "vega", "Terry Bogard": "terry",
+  "Mai Shiranui": "mai", "Elena": "elena", "Sagat": "sagat", "C. Viper": "cviper",
+  "Alex": "alex", "Ingrid": "ingrid"
+};
+
+const MK1_CDN_SLUGS = {
+  "Scorpion": "scorpion", "Sub-Zero": "sub-zero", "Liu Kang": "liu-kang", "Raiden": "raiden",
+  "Kung Lao": "kung-lao", "Kitana": "kitana", "Mileena": "mileena", "Johnny Cage": "johnny-cage",
+  "Kenshi": "kenshi", "Smoke": "smoke", "Rain": "rain", "Li Mei": "li-mei",
+  "Tanya": "tanya", "Baraka": "baraka", "Geras": "geras", "Reptile": "reptile",
+  "Ashrah": "ashrah", "Havik": "havik", "General Shao": "general-shao", "Sindel": "sindel",
+  "Nitara": "nitara", "Reiko": "reiko", "Shang Tsung": "shang-tsung", "Omni-Man": "omni-man",
+  "Quan Chi": "quan-chi", "Peacemaker": "peacemaker", "Ermac": "ermac", "Homelander": "homelander",
+  "Takeda Takahashi": "takeda", "Cyrax": "cyrax", "Sektor": "sektor", "Noob Saibot": "noob-saibot",
+  "Ghostface": "ghostface", "Conan the Barbarian": "conan", "T-1000": "t-1000"
+};
+
+function getDirectPortraitUrl(gameId, charName, colorHex = "f59e0b", isDLC = false) {
+  if (gameId === "ssbu" && SSBU_SLUGS[charName]) {
+    return `https://www.smashbros.com/assets_v2/img/fighter/thumb_a/${SSBU_SLUGS[charName]}.png`;
+  }
+  if (gameId === "sf6" && SF6_CDN_SLUGS[charName]) {
+    const s = SF6_CDN_SLUGS[charName];
+    return `https://www.streetfighter.com/6/assets/images/character/${s}/${s}.png`;
+  }
+  if (gameId === "mk1" && MK1_CDN_SLUGS[charName]) {
+    return `https://cdn-mk1.mortalkombat.com/roster/${MK1_CDN_SLUGS[charName]}/thumb.webp`;
+  }
   const slug = encodeURIComponent(charName);
   const bg = isDLC ? "2e1065" : "0f172a";
   const border = isDLC ? "a855f7" : colorHex.replace("#", "");
-  return `/api/char-icon?v=5&name=${slug}&game=${encodeURIComponent(gameId)}&bg=${bg}&border=${border}`;
+  return `/api/char-icon?v=6&name=${slug}&game=${encodeURIComponent(gameId)}&bg=${bg}&border=${border}`;
 }
 
-// Constructor auxiliar para completar fichas detalladas de personajes del roster completo
+function getFallbackIconUrl(gameId, charName, colorHex = "f59e0b", isDLC = false) {
+  const slug = encodeURIComponent(charName);
+  const bg = isDLC ? "2e1065" : "0f172a";
+  const border = isDLC ? "a855f7" : colorHex.replace("#", "");
+  return `/api/char-icon?v=6&name=${slug}&game=${encodeURIComponent(gameId)}&bg=${bg}&border=${border}`;
+}
+
 function buildRosterEntry(gameId, sagaNotation, wikiBaseUrl, defaultVideo, colorHex, raw) {
   const slug = raw.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   const isDLC = Boolean(raw.dlcPack);
 
-  // Si el personaje ya trae movimientos y combos específicos, los usa; si no, genera sus botones y ruta BnB reales según su arquetipo y juego
-  const keyMoves = raw.keyMoves || getDefaultKeyMoves(gameId, raw.name, raw.archetype);
-  const combos = raw.combos || getDefaultCombos(gameId, raw.name, raw.archetype);
+  const keyMoves = raw.keyMoves || getDefaultKeyMoves(gameId, raw.name);
+  const combos = raw.combos || getDefaultCombos(gameId);
   const gameplan =
     raw.gameplan ||
     `Domina el neutro con las herramientas de ${raw.archetype.toLowerCase()} de ${raw.name}. Aprovecha sus botones seguros a media distancia para confirmar en tu ruta BnB principal y gestiona tus recursos del sistema para romper la guardia rival en la esquina.`;
@@ -32,7 +99,8 @@ function buildRosterEntry(gameId, sagaNotation, wikiBaseUrl, defaultVideo, color
     isDLC,
     dlcPack: raw.dlcPack || null,
     recommendedSubSystem: raw.sub || getDefaultSubSystem(gameId),
-    iconUrl: raw.iconUrl || getCharacterIconUrl(gameId, raw.name, colorHex, isDLC),
+    iconUrl: raw.iconUrl || getDirectPortraitUrl(gameId, raw.name, colorHex, isDLC),
+    fallbackIconUrl: getFallbackIconUrl(gameId, raw.name, colorHex, isDLC),
     videoUrl: raw.videoUrl || defaultVideo,
     sourceUrl: raw.sourceUrl || `${wikiBaseUrl}${encodeURIComponent(raw.name.replace(/\s+/g, "_"))}`,
     overview:
@@ -48,7 +116,7 @@ function getDefaultSubSystem(gameId) {
   switch (gameId) {
     case "mk1": return "Kameo: Khameleon / Ferra / Sektor";
     case "sf6": return "Drive System (Clásico / Moderno)";
-    case "tekken8": return "Heat System + Tornado";
+    case "tekken8": return "Heat System Season 3 + Tornado";
     case "dbfz": return "Assist A / B + Limit Break";
     case "gg-strive": return "Roman Cancel + Wild Assault";
     case "ssbu": return "Out of Shield (OOS) + Edgeguard";
@@ -56,7 +124,7 @@ function getDefaultSubSystem(gameId) {
   }
 }
 
-function getDefaultKeyMoves(gameId, name, archetype) {
+function getDefaultKeyMoves(gameId, name) {
   switch (gameId) {
     case "mk1":
       return [
@@ -105,7 +173,7 @@ function getDefaultKeyMoves(gameId, name, archetype) {
   }
 }
 
-function getDefaultCombos(gameId, name, archetype) {
+function getDefaultCombos(gameId) {
   switch (gameId) {
     case "mk1":
       return [
@@ -148,7 +216,6 @@ function getDefaultCombos(gameId, name, archetype) {
 // 1. MORTAL KOMBAT 1 — ROSTER COMPLETO (35 PERSONAJES: 23 BASE + 12 DLC)
 // ============================================================================
 const MK1_RAW = [
-  // JUEGO BASE (23)
   { name: "Scorpion", archetype: "Whiff Punisher / Mid-Range", difficulty: "Fácil" },
   { name: "Sub-Zero", archetype: "Mix-up / Control con Clones", difficulty: "Fácil" },
   { name: "Liu Kang", archetype: "Shoto / Zoning & Strike-Throw", difficulty: "Fácil" },
@@ -172,16 +239,14 @@ const MK1_RAW = [
   { name: "Nitara", archetype: "Movilidad Aérea / Air Dash", difficulty: "Difícil" },
   { name: "Reiko", archetype: "Grappler / Proyectiles Shuriken", difficulty: "Fácil" },
   { name: "Shang Tsung", archetype: "Zoner / Transformación Joven-Viejo", difficulty: "Difícil" },
-
-  // DLC: KOMBAT PACK 1 (6)
+  // Kombat Pack 1
   { name: "Omni-Man", archetype: "Postura Viltrumita / Contra-Zoning", difficulty: "Fácil", dlcPack: "Kombat Pack 1" },
   { name: "Quan Chi", archetype: "Zoner / Portales y Tentáculos", difficulty: "Media", dlcPack: "Kombat Pack 1" },
   { name: "Peacemaker", archetype: "Híbrido Antiaéreo / Eagly & Escudo", difficulty: "Fácil", dlcPack: "Kombat Pack 1" },
   { name: "Ermac", archetype: "Cancelaciones de Vuelo / Presión", difficulty: "Difícil", dlcPack: "Kombat Pack 1" },
   { name: "Homelander", archetype: "Vuelo Ofensivo / Mix-ups en el Aire", difficulty: "Difícil", dlcPack: "Kombat Pack 1" },
   { name: "Takeda Takahashi", archetype: "Alcance Largo / Trampas Kunai", difficulty: "Difícil", dlcPack: "Kombat Pack 1" },
-
-  // DLC: KHAOS REIGNS EXPANSION - AÑO 2 (6)
+  // Khaos Reigns Expansion
   { name: "Cyrax", archetype: "Setplay con Bombas / Red de Captura", difficulty: "Media", dlcPack: "Khaos Reigns Expansion" },
   { name: "Sektor", archetype: "Presión con Misiles / Lanzallamas", difficulty: "Fácil", dlcPack: "Khaos Reigns Expansion" },
   { name: "Noob Saibot", archetype: "Zoner / Combos con Clon Sombrío", difficulty: "Media", dlcPack: "Khaos Reigns Expansion" },
@@ -191,10 +256,9 @@ const MK1_RAW = [
 ];
 
 // ============================================================================
-// 2. STREET FIGHTER 6 — ROSTER COMPLETO (26 PERSONAJES: 18 BASE + 8 DLC)
+// 2. STREET FIGHTER 6 — ROSTER COMPLETO ACTUALIZADO A SEASON 3 (30 PERSONAJES)
 // ============================================================================
 const SF6_RAW = [
-  // JUEGO BASE (18)
   { name: "Ryu", archetype: "Shoto / Equilibrado (Denjin)", difficulty: "Fácil" },
   { name: "Ken Masters", archetype: "Rushdown Shoto / Corner Carry", difficulty: "Fácil" },
   { name: "Luke", archetype: "Shoto Moderno / Supresor de Neutro", difficulty: "Fácil" },
@@ -213,25 +277,28 @@ const SF6_RAW = [
   { name: "Zangief", archetype: "Grappler Puro / Spinning Piledriver", difficulty: "Media" },
   { name: "Lily", archetype: "Grappler con Stocks de Viento (Condor Spire)", difficulty: "Fácil" },
   { name: "Cammy", archetype: "Rushdown / Divekick & Whiff Punish", difficulty: "Fácil" },
-
-  // DLC: YEAR 1 CHARACTER PASS (4)
+  // Year 1 Character Pass
   { name: "Rashid", archetype: "Movilidad Aérea / Torbellino Ysaar", difficulty: "Media", dlcPack: "Year 1 Character Pass" },
   { name: "A.K.I.", archetype: "Veneno Tóxico / Control de Esquina", difficulty: "Difícil", dlcPack: "Year 1 Character Pass" },
   { name: "Ed", archetype: "Boxeador de Media Distancia / Psycho Flicker", difficulty: "Media", dlcPack: "Year 1 Character Pass" },
   { name: "Akuma", archetype: "Glass Cannon / Shoto Ofensivo", difficulty: "Media", dlcPack: "Year 1 Character Pass" },
-
-  // DLC: YEAR 2 CHARACTER PASS (4)
+  // Year 2 Character Pass
   { name: "M. Bison", archetype: "Presión Explosiva / Psycho Mine", difficulty: "Media", dlcPack: "Year 2 Character Pass" },
   { name: "Terry Bogard", archetype: "Shoto Versátil / Invitado Fatal Fury", difficulty: "Fácil", dlcPack: "Year 2 Character Pass" },
   { name: "Mai Shiranui", archetype: "Rushdown / Abanicos Kachousen & Musasabi", difficulty: "Fácil", dlcPack: "Year 2 Character Pass" },
-  { name: "Elena", archetype: "Capoeira / Footsies de Largo Alcance", difficulty: "Media", dlcPack: "Year 2 Character Pass" }
+  { name: "Elena", archetype: "Capoeira / Footsies de Largo Alcance", difficulty: "Media", dlcPack: "Year 2 Character Pass" },
+  // Year 3 Character Pass (Season 3)
+  { name: "Sagat", archetype: "Muay Thai Zoner / Tiger Shot & Tiger Uppercut", difficulty: "Fácil", dlcPack: "Year 3 Character Pass" },
+  { name: "C. Viper", archetype: "Gadgets de Alta Ejecución / Feints & Burn Kick", difficulty: "Difícil", dlcPack: "Year 3 Character Pass" },
+  { name: "Alex", archetype: "Power Grappler-Brawler / Power Bomb & Slash Elbow", difficulty: "Media", dlcPack: "Year 3 Character Pass" },
+  { name: "Ingrid", archetype: "Psycho Power Ágil / Contraataques y Proyectil", difficulty: "Media", dlcPack: "Year 3 Character Pass" }
 ];
 
 // ============================================================================
-// 3. TEKKEN 8 — ROSTER COMPLETO (36 PERSONAJES: 32 BASE + 4 DLC)
+// 3. TEKKEN 8 — ROSTER COMPLETO ACTUALIZADO A SEASON 3 (44 PERSONAJES)
 // ============================================================================
 const TEKKEN8_RAW = [
-  // JUEGO BASE (32)
+  // Juego Base (32)
   { name: "Jin Kazama", archetype: "All-Rounder / Mishima Versátil", difficulty: "Media" },
   { name: "Kazuya Mishima", archetype: "Mishima Puro / Vortex 50-50", difficulty: "Difícil" },
   { name: "Jun Kazama", archetype: "Defensivo / Curación y Poder Kazama", difficulty: "Media" },
@@ -265,18 +332,29 @@ const TEKKEN8_RAW = [
   { name: "Victor Chevalier", archetype: "Espada y Pistola / Perfumer & Iai", difficulty: "Fácil" },
   { name: "Reina", archetype: "Rushdown Mishima / Sentai Stance", difficulty: "Media" },
 
-  // DLC: PLAYABLE CHARACTER YEAR 1 PASS (4)
-  { name: "Eddy Gordo", archetype: "Capoeira / Negativa y Handstand", difficulty: "Fácil", dlcPack: "Playable Character Year 1 Pass" },
-  { name: "Lidia Sobieska", archetype: "Karate / Posturas Heaven & Earth", difficulty: "Media", dlcPack: "Playable Character Year 1 Pass" },
-  { name: "Heihachi Mishima", archetype: "Mishima Pesado / Warrior Instinct", difficulty: "Difícil", dlcPack: "Playable Character Year 1 Pass" },
-  { name: "Clive Rosfield", archetype: "Espadachín Eikons / Invitado FFXVI", difficulty: "Fácil", dlcPack: "Playable Character Year 1 Pass" }
+  // DLC Season 1: Playable Character Year 1 Pass (4)
+  { name: "Eddy Gordo", archetype: "Capoeira / Negativa y Handstand", difficulty: "Fácil", dlcPack: "Season 1 Character Pass" },
+  { name: "Lidia Sobieska", archetype: "Karate / Posturas Heaven & Earth", difficulty: "Media", dlcPack: "Season 1 Character Pass" },
+  { name: "Heihachi Mishima", archetype: "Mishima Pesado / Warrior Instinct", difficulty: "Difícil", dlcPack: "Season 1 Character Pass" },
+  { name: "Clive Rosfield", archetype: "Espadachín Eikons / Invitado FFXVI", difficulty: "Fácil", dlcPack: "Season 1 Character Pass" },
+
+  // DLC Season 2: Season 2 Character Pass (4)
+  { name: "Anna Williams", archetype: "Mix-up Letal 50/50 / Chaos Judgment & Bazooka", difficulty: "Media", dlcPack: "Season 2 Character Pass" },
+  { name: "Fahkumram", archetype: "Muay Thai de Largo Alcance / Garuda Force", difficulty: "Media", dlcPack: "Season 2 Character Pass" },
+  { name: "Armor King", archetype: "Grappler-Mishima / Dark Upper & Bad Jaguar", difficulty: "Difícil", dlcPack: "Season 2 Character Pass" },
+  { name: "Miary Zo", archetype: "Moraingy & Dambe / Presión de Corta Distancia", difficulty: "Media", dlcPack: "Season 2 Character Pass" },
+
+  // DLC Season 3: Season 3 Character Pass (4)
+  { name: "Kunimitsu", archetype: "Ninjutsu de Teletransporte / Kunai & Setsuna", difficulty: "Fácil", dlcPack: "Season 3 Character Pass" },
+  { name: "Bob", archetype: "Speed & Weight / Mishima-Style Mix-up", difficulty: "Fácil", dlcPack: "Season 3 Character Pass" },
+  { name: "Roger Jr.", archetype: "Boxeo Canguro / Agarres y Postura Animal", difficulty: "Media", dlcPack: "Season 3 Character Pass" },
+  { name: "Yujiro Hanma", archetype: "Invitado Baki / Demon Back & Fuerza Bruta", difficulty: "Media", dlcPack: "Season 3 Character Pass" }
 ];
 
 // ============================================================================
-// 4. DRAGON BALL FIGHTERZ — ROSTER COMPLETO (44 PERSONAJES: 24 BASE + 20 DLC)
+// 4. DRAGON BALL FIGHTERZ — ROSTER COMPLETO (44 PERSONAJES)
 // ============================================================================
 const DBFZ_RAW = [
-  // JUEGO BASE (24)
   { name: "Goku (Super Saiyan)", archetype: "Anchor / Beam & Todoterreno", difficulty: "Fácil" },
   { name: "Vegeta (Super Saiyan)", archetype: "Anchor / DP & Asistencia Defensiva", difficulty: "Fácil" },
   { name: "Goku (SSGSS / Blue)", archetype: "Point / Mix-ups Instant Transmission", difficulty: "Media" },
@@ -301,8 +379,7 @@ const DBFZ_RAW = [
   { name: "Beerus", archetype: "Control de Espacio con Esferas de Destrucción", difficulty: "Media" },
   { name: "Hit", archetype: "Contraataques / Posturas a Nivel de Suelo", difficulty: "Difícil" },
   { name: "Goku Black", archetype: "Mid / Alcance con Espada de Ki & Teleport", difficulty: "Fácil" },
-
-  // DLC: FIGHTERZ PASS 1 (8)
+  // Pass 1
   { name: "Bardock", archetype: "Brawler / Rebellion Spear (Lariat)", difficulty: "Fácil", dlcPack: "FighterZ Pass 1" },
   { name: "Broly (Z)", archetype: "Grappler con Armadura / Zoner Pesado", difficulty: "Fácil", dlcPack: "FighterZ Pass 1" },
   { name: "Zamasu (Fused)", archetype: "Vuelo / Blades of Judgment (ToD)", difficulty: "Difícil", dlcPack: "FighterZ Pass 1" },
@@ -311,31 +388,26 @@ const DBFZ_RAW = [
   { name: "Vegeta (Base)", archetype: "Point / Loops en el Aire & Mix-up", difficulty: "Media", dlcPack: "FighterZ Pass 1" },
   { name: "Cooler", archetype: "Alcance Enorme / Divekick & Counter", difficulty: "Fácil", dlcPack: "FighterZ Pass 1" },
   { name: "Android 17", archetype: "Rekkas con Barrera / Generación de Barra", difficulty: "Media", dlcPack: "FighterZ Pass 1" },
-
-  // DLC: FIGHTERZ PASS 2 (6)
+  // Pass 2
   { name: "Jiren", archetype: "Contraataques / Daño Masivo en Neutro", difficulty: "Fácil", dlcPack: "FighterZ Pass 2" },
   { name: "Videl", archetype: "Dodge en lugar de Reflect / Great Saiyaman", difficulty: "Media", dlcPack: "FighterZ Pass 2" },
   { name: "Goku (GT)", archetype: "Báculo Mágico / Reverse Kamehameha", difficulty: "Media", dlcPack: "FighterZ Pass 2" },
   { name: "Janemba", archetype: "Teletransporte Dimensional / Espada", difficulty: "Media", dlcPack: "FighterZ Pass 2" },
   { name: "Gogeta (SSGSS)", archetype: "Largo Alcance / Combos Cinematográficos", difficulty: "Fácil", dlcPack: "FighterZ Pass 2" },
   { name: "Broly (DBS)", archetype: "Grappler Explosivo / Buff sin Armadura", difficulty: "Media", dlcPack: "FighterZ Pass 2" },
-
-  // DLC: FIGHTERZ PASS 3 (5)
+  // Pass 3
   { name: "Kefla", archetype: "Rushdown Rápido / Proyectiles Múltiples", difficulty: "Fácil", dlcPack: "FighterZ Pass 3" },
   { name: "Goku (Ultra Instinct)", archetype: "Defensivo / Reversals y Esquivas", difficulty: "Fácil", dlcPack: "FighterZ Pass 3" },
   { name: "Master Roshi", archetype: "Sin Super Dash Estándar / Mafuba", difficulty: "Difícil", dlcPack: "FighterZ Pass 3" },
   { name: "Super Baby 2", archetype: "Zoner de Ki Blasts que Regresan / Robo de Assist", difficulty: "Media", dlcPack: "FighterZ Pass 3" },
   { name: "Gogeta (SS4)", archetype: "Doble Air Dash / Instakill Nivel 7", difficulty: "Fácil", dlcPack: "FighterZ Pass 3" },
-
-  // DLC: PACK ESPECIAL (1)
   { name: "Android 21 (Lab Coat)", archetype: "Debuff del 21% con Agarre / Lariats", difficulty: "Fácil", dlcPack: "Special DLC Pack" }
 ];
 
 // ============================================================================
-// 5. GUILTY GEAR -STRIVE- — ROSTER COMPLETO (32 PERSONAJES: 15 BASE + 17 DLC)
+// 5. GUILTY GEAR -STRIVE- — ROSTER COMPLETO (32 PERSONAJES)
 // ============================================================================
 const GGST_RAW = [
-  // JUEGO BASE (15)
   { name: "Sol Badguy", archetype: "Rushdown / Strike-Throw Explosivo", difficulty: "Fácil" },
   { name: "Ky Kiske", archetype: "All-Rounder / Shock State", difficulty: "Fácil" },
   { name: "May", archetype: "Carga / Presión con Totsugeki (Delfín)", difficulty: "Fácil" },
@@ -351,27 +423,23 @@ const GGST_RAW = [
   { name: "Giovanna", archetype: "Rushdown de Carrera / Ventaja en Bloqueo", difficulty: "Fácil" },
   { name: "Anji Mito", archetype: "Autoguard Spin (Fuujin) / Contraataque", difficulty: "Fácil" },
   { name: "I-No", archetype: "Hoverdash Instant Overhead / Mix-up Puro", difficulty: "Media" },
-
-  // DLC: SEASON PASS 1 (5)
+  // Season 1
   { name: "Goldlewis Dickinson", archetype: "8 Behemoth Typhoons / Chip Damage", difficulty: "Media", dlcPack: "GGST Season Pass 1" },
   { name: "Jack-O'", archetype: "Invocación de Siervos / Presión Infinita", difficulty: "Difícil", dlcPack: "GGST Season Pass 1" },
   { name: "Happy Chaos", archetype: "Zoner-Rushdown con Pistola y Concentración", difficulty: "Difícil", dlcPack: "GGST Season Pass 1" },
   { name: "Baiken", archetype: "Parry de 1 Frame / Cuerda Tether & Tatami", difficulty: "Fácil", dlcPack: "GGST Season Pass 1" },
   { name: "Testament", archetype: "Zoner de Media-Larga Distancia / Stain State", difficulty: "Fácil", dlcPack: "GGST Season Pass 1" },
-
-  // DLC: SEASON PASS 2 (4)
+  // Season 2
   { name: "Bridget", archetype: "Setplay de Largo Alcance / Yo-Yo Mix-up", difficulty: "Fácil", dlcPack: "GGST Season Pass 2" },
   { name: "Sin Kiske", archetype: "Rushdown de Alcance / Medidor de Stamina", difficulty: "Fácil", dlcPack: "GGST Season Pass 2" },
   { name: "Bedman?", archetype: "Ataques de Repetición Automática (Error 6E)", difficulty: "Media", dlcPack: "GGST Season Pass 2" },
   { name: "Asuka R#", archetype: "Mago de Cartas / Gestión de Maná y Hechizos", difficulty: "Difícil", dlcPack: "GGST Season Pass 2" },
-
-  // DLC: SEASON PASS 3 (4)
+  // Season 3
   { name: "Johnny", archetype: "Mist Finer + Cartas / Espaciado sin Proyectil", difficulty: "Media", dlcPack: "GGST Season Pass 3" },
   { name: "Elphelt Valentine", archetype: "Rekka Infinita (Chain Lollipop) / Rushdown", difficulty: "Fácil", dlcPack: "GGST Season Pass 3" },
   { name: "A.B.A", archetype: "Modo Celos (Jealous Rage) / Cambio de Ritmo", difficulty: "Media", dlcPack: "GGST Season Pass 3" },
   { name: "Slayer", archetype: "Brawler de Daño Extremo / Dandy Step", difficulty: "Fácil", dlcPack: "GGST Season Pass 3" },
-
-  // DLC: SEASON PASS 4 (4)
+  // Season 4
   { name: "Queen Dizzy", archetype: "Setplay de Hielo y Fuego / Wings of Light", difficulty: "Media", dlcPack: "GGST Season Pass 4" },
   { name: "Venom", archetype: "Control Geométrico con Bolas de Billar", difficulty: "Difícil", dlcPack: "GGST Season Pass 4" },
   { name: "Unika", archetype: "Brawler de Arma Pesada / Season 4", difficulty: "Media", dlcPack: "GGST Season Pass 4" },
@@ -379,10 +447,9 @@ const GGST_RAW = [
 ];
 
 // ============================================================================
-// 6. SUPER SMASH BROS. ULTIMATE — ROSTER COMPLETO (86 PERSONAJES: 74 BASE + 12 DLC)
+// 6. SUPER SMASH BROS. ULTIMATE — ROSTER COMPLETO (86 PERSONAJES)
 // ============================================================================
 const SSBU_RAW = [
-  // JUEGO BASE (74)
   { name: "Mario", archetype: "All-Rounder / Combos de Escalera Uair", difficulty: "Fácil" },
   { name: "Donkey Kong", archetype: "Heavy Grappler / Cargo Throw & Giant Punch", difficulty: "Fácil" },
   { name: "Link", archetype: "Zoner Táctico / Bomba Remota & Nair", difficulty: "Media" },
@@ -457,18 +524,12 @@ const SSBU_RAW = [
   { name: "Mii Brawler", archetype: "Rushdown Personalizable / Thrust Uppercut", difficulty: "Fácil" },
   { name: "Mii Swordfighter", archetype: "Zoner-Swordie / Tornado + Hero's Spin", difficulty: "Fácil" },
   { name: "Mii Gunner", archetype: "Zoner Personalizable / Grenade Launch", difficulty: "Fácil" },
-
-  // DLC: PLANTA PIRAÑA (1)
   { name: "Piranha Plant", archetype: "Trapper / Ptooie (Bola de Pinchos)", difficulty: "Fácil", dlcPack: "Bonus Early Purchase DLC" },
-
-  // DLC: FIGHTERS PASS VOL. 1 (5)
   { name: "Joker", archetype: "Bait & Punish / Invocación de Arsene", difficulty: "Media", dlcPack: "Fighters Pass Vol. 1" },
   { name: "Hero", archetype: "Menú de Hechizos de MP / Críticos", difficulty: "Media", dlcPack: "Fighters Pass Vol. 1" },
   { name: "Banjo & Kazooie", archetype: "Zoner-Brawler / 5 Plumas Wonderwing", difficulty: "Fácil", dlcPack: "Fighters Pass Vol. 1" },
   { name: "Terry", archetype: "Inputs de Comando / Mecánica GO! (100%+)", difficulty: "Media", dlcPack: "Fighters Pass Vol. 1" },
   { name: "Byleth", archetype: "Maestro de Distancia / Nair & Up-B", difficulty: "Fácil", dlcPack: "Fighters Pass Vol. 1" },
-
-  // DLC: FIGHTERS PASS VOL. 2 (6)
   { name: "Min Min", archetype: "Zoner de Brazos Extensibles (Ramram/Megawatt)", difficulty: "Media", dlcPack: "Fighters Pass Vol. 2" },
   { name: "Steve", archetype: "Minería de Diamante / Creación de Bloques", difficulty: "Difícil", dlcPack: "Fighters Pass Vol. 2" },
   { name: "Sephiroth", archetype: "Espada Masamune / Forma One-Winged Angel", difficulty: "Media", dlcPack: "Fighters Pass Vol. 2" },
