@@ -279,15 +279,22 @@ app.get("/api/health", (req, res) => {
 app.get("/api/bootstrap", (req, res) => {
   const clientKey = (req.headers["x-admin-key"] || "").trim();
   const isOwnerUnlocked = isValidAdminSession(clientKey);
+  const customNews = store.getCustomNews();
 
   res.json({
     youtubeChannel: store.state.youtubeChannel,
-    news: CURATED_FGC_NEWS,
+    news: [...customNews, ...CURATED_FGC_NEWS],
     communityResources: store.getCommunityResources(),
     missingContentRoadmap: store.getMissingContentRoadmap(),
     sagas: store.getSagas(),
     games: store.getGames()
   });
+});
+
+app.get("/api/news", async (req, res) => {
+  const allNews = await getFgcNews();
+  const customNews = store.getCustomNews();
+  res.json({ news: [...customNews, ...allNews] });
 });
 
 app.post("/api/community-resources", async (req, res) => {
@@ -344,11 +351,6 @@ app.post("/api/bot/unlock", (req, res) => {
 
   store.addLog("Intento fallido de acceso al Panel Privado.");
   return res.status(403).json({ unlocked: false, error: "Código o clave de propietario inválida." });
-});
-
-app.get("/api/news", async (req, res) => {
-  const allNews = await getFgcNews();
-  res.json({ news: allNews });
 });
 
 app.get("/api/games/:id", (req, res) => {

@@ -103,6 +103,91 @@ class DataStore {
     return this.state.missingContentRoadmap || [];
   }
 
+  getCustomNews() {
+    return this.state.customNews || [];
+  }
+
+  addCustomNewsItem({ saga, category, title, summary, sourceUrl }) {
+    if (!this.state.customNews) this.state.customNews = [];
+    const isoDate = new Date().toISOString().slice(0, 10);
+    const item = {
+      id: "news-bot-" + Date.now(),
+      category: category || "Competitivo / Torneos",
+      saga: saga || "FGC General",
+      title: title.trim(),
+      isoDate,
+      date: isoDate,
+      sourceName: "FGC Vault Oficial",
+      sourceUrl: sourceUrl || "https://fgc-vault.onrender.com",
+      imageUrl: "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1364780/header.jpg",
+      summary: summary.trim()
+    };
+    this.state.customNews.unshift(item);
+    this.addLog(`Noticia publicada desde Bot: ${item.title}`);
+    this.save();
+    return item;
+  }
+
+  removeCommunityResource(resId) {
+    if (!this.state.communityResources) return false;
+    const before = this.state.communityResources.length;
+    this.state.communityResources = this.state.communityResources.filter((r) => r.id !== resId);
+    this.save();
+    return this.state.communityResources.length < before;
+  }
+
+  completeMissingRoadmapItem(missId) {
+    if (!this.state.missingContentRoadmap) return null;
+    const item = this.state.missingContentRoadmap.find((m) => m.id === missId);
+    if (!item) return null;
+    this.state.missingContentRoadmap = this.state.missingContentRoadmap.filter((m) => m.id !== missId);
+    this.addLog(`Tarea de hoja de ruta completada: ${item.area} (${item.target})`);
+    this.save();
+    return item;
+  }
+
+  addMissingRoadmapItem(target, whatIsMissing, area = "Prioridad Propietario") {
+    if (!this.state.missingContentRoadmap) this.state.missingContentRoadmap = [];
+    const item = {
+      id: "miss-" + Date.now(),
+      area,
+      target: target.trim(),
+      priority: "Alta",
+      whatIsMissing: whatIsMissing.trim(),
+      purposeForEvaluation: "Añadido directamente desde el Bot Privado de Telegram."
+    };
+    this.state.missingContentRoadmap.unshift(item);
+    this.save();
+    return item;
+  }
+
+  addCharacterVideoPause(gameId, charQuery, timestamp, title, explanation) {
+    const game = this.getGameById(gameId);
+    if (!game) return null;
+    const q = charQuery.trim().toLowerCase();
+    const ch = game.characters.find(
+      (c) => c.name.toLowerCase().includes(q) || c.id.toLowerCase() === q
+    );
+    if (!ch) return null;
+    if (!ch.spanishCompilation) {
+      ch.spanishCompilation = {
+        subtitleLang: "Español (CC activados + Traducción paso a paso)",
+        compilationNote: `Recopilación traducida al español de ${ch.name}.`,
+        pauses: []
+      };
+    }
+    const parts = timestamp.split(":").map(Number);
+    const seconds = parts.length === 2 ? parts[0] * 60 + parts[1] : 0;
+    ch.spanishCompilation.pauses.push({
+      timestamp,
+      seconds,
+      title: title || `Pausa explicativa (${timestamp})`,
+      explanation
+    });
+    this.save();
+    return ch;
+  }
+
   addCommunityResource(payload) {
     const newItem = {
       id: "res-" + Date.now(),

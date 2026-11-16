@@ -1,19 +1,23 @@
 /**
- * Motor del Bot de Telegram PRIVADO (@Clayfacefightbot - "Clayface") para FGC Vault
- * - Modo Privado Estricto:
- *   Se vincula de forma exclusiva a tu cuenta personal de Telegram en cuanto le envías /start
- *   (o si defines TELEGRAM_ADMIN_CHAT_ID en Render). Cualquier otra persona queda bloqueada.
+ * Motor del Bot de Telegram PRIVADO (@Clayfacefightbot - "Clayface") — Versión v13
+ * Alineado con todas las funciones actuales de FGC Vault:
+ * 1. Moderación de Wikis, Canales de YouTube y Aportes de la comunidad con botones Inline.
+ * 2. Gestión de la Hoja de Ruta ("Qué falta y a qué corresponde") para valorar y marcar tareas completadas.
+ * 3. Publicación y consulta de Noticias FGC & Competitivo desde Telegram (/noticia).
+ * 4. Consulta rápida en Telegram de Frame Data, Hitboxes, Combos, Ventajas y Counters de los 271 personajes (/ficha).
+ * 5. Gestor del Canal de YouTube: Guiones traducidos al español, asignación de vídeos y creación de Pausas Explicativas (/yt_pausa).
+ * 6. Modo Privado Estricto exclusivo para el propietario.
  */
 
 const store = require("../db/store");
 const youtubeManager = require("../youtube/youtubeManager");
+const { CURATED_FGC_NEWS } = require("../data/fgcNews");
 
 class TelegramBotManager {
   constructor() {
     this.token = (process.env.TELEGRAM_BOT_TOKEN || "").trim();
     this.botId = this.token.includes(":") ? this.token.split(":")[0].trim() : "9297971350";
 
-    // Si TELEGRAM_ADMIN_CHAT_ID es igual al ID del propio bot (9297971350), usamos el vinculador automático del propietario
     const envChatId = (process.env.TELEGRAM_ADMIN_CHAT_ID || "").trim();
     this.adminChatId =
       envChatId && envChatId !== this.botId
@@ -35,16 +39,9 @@ class TelegramBotManager {
     );
   }
 
-  /**
-   * Comprueba si el usuario de Telegram es el propietario exclusivo del bot
-   */
   isAuthorizedOwner(fromId, chatId) {
     if (!this.privateMode) return true;
-
-    // Si aún no se ha vinculado ningún propietario personal, permitimos que el primer /start del dueño se vincule
-    if (!this.adminChatId) {
-      return false;
-    }
+    if (!this.adminChatId) return false;
 
     const allowedIds = this.adminChatId
       .split(",")
@@ -97,11 +94,9 @@ class TelegramBotManager {
       const ownerStatus = this.adminChatId
         ? `Propietario bloqueado ID: ${this.adminChatId}`
         : `Esperando tu primer /start en ${this.botUsername} para bloquearse a tu cuenta`;
-      store.addLog(`🔒 Bot ${this.botFirstName} (${this.botUsername}) conectado en vivo — ${ownerStatus}`);
+      store.addLog(`🔒 Bot ${this.botFirstName} (${this.botUsername}) conectado — ${ownerStatus}`);
       this.isPolling = true;
       this.pollLoop();
-    } else {
-      store.addLog("⚠️ No se pudo conectar con @Clayfacefightbot. Revisa TELEGRAM_BOT_TOKEN en .env.");
     }
   }
 
@@ -128,17 +123,16 @@ class TelegramBotManager {
   }
 
   // =========================================================================
-  // NOTIFICACIONES SALIENTES (SOLO AL CHAT PRIVADO DEL PROPIETARIO)
+  // NOTIFICACIONES SALIENTES AL PROPIETARIO
   // =========================================================================
   async sendOwnerOtpCode(otpCode) {
     if (!this.isConfigured() || !this.adminChatId) return false;
     const ownerChat = this.adminChatId.split(",")[0].trim();
 
     const text =
-      `🔐 *CÓDIGO DE ACCESO UNICO — PANEL WEB FGC VAULT*\n\n` +
-      `Tu código temporal para desbloquear el panel de administración web es:\n` +
-      `👉 \`${otpCode}\`\n\n` +
-      `_(Válido durante 10 minutos. No compartas este código con nadie)._`;
+      `🔐 *CÓDIGO DE ACCESO ÚNICO — FGC VAULT*\n\n` +
+      `Tu código temporal es: \`${otpCode}\`\n` +
+      `_(Válido por 10 minutos)._`;
 
     const sent = await this.callTelegram("sendMessage", {
       chat_id: ownerChat,
@@ -148,17 +142,19 @@ class TelegramBotManager {
     return Boolean(sent);
   }
 
-  async notifyNewAuthRequest(authReq) {
+  async notifyNewCommunityResource(item) {
     if (!this.isConfigured() || !this.adminChatId) return;
     const ownerChat = this.adminChatId.split(",")[0].trim();
 
     const text =
-      `🔐 *[CLAYFACE PRIVADO] SOLICITUD DE VERIFICACIÓN WEB*\n\n` +
-      `👤 *Usuario:* \`${authReq.username}\`\n` +
-      `📱 *Telegram:* \`${authReq.telegramHandle}\`\n` +
-      `🏷 *Rol solicitado:* ${authReq.role}\n` +
-      `🔑 *Código 2FA:* \`${authReq.code}\`\n\n` +
-      `Pulsa un botón para autorizar o denegar este acceso:`;
+      `🌐 *NUEVO APORTE DE WIKI / CANAL / QUÉ FALTA*\n\n` +
+      `🏷 *Tipo:* ${item.category}\n` +
+      `🎮 *Juego / Destino:* ${item.targetGame}\n` +
+      `📌 *Título:* *${item.title}*\n` +
+      `🔗 *URL:* ${item.url}\n` +
+      `📝 *Descripción:* ${item.description}\n` +
+      `📋 *Resumen de qué falta (para valorar):*\n_${item.missingNotes}_\n` +
+      `✍️ *Autor:* ${item.author}`;
 
     await this.callTelegram("sendMessage", {
       chat_id: ownerChat,
@@ -167,49 +163,46 @@ class TelegramBotManager {
       reply_markup: {
         inline_keyboard: [
           [
-            { text: "✅ Autorizar Usuario", callback_data: `auth_approve:${authReq.code}` },
-            { text: "🚫 Denegar", callback_data: `auth_reject:${authReq.code}` }
+            { text: "✅ Mantener Publicado", callback_data: `res_keep:${item.id}` },
+            { text: "🗑 Eliminar Aporte", callback_data: `res_del:${item.id}` }
           ],
-          [{ text: "🏠 Abrir Panel Privado", callback_data: "menu_main" }]
+          [{ text: "📋 Ver Resumen de Qué Falta", callback_data: "menu_roadmap" }]
         ]
       }
     });
   }
 
-  async notifyNewCommunityResource(item) {
+  async notifyNewAuthRequest(authReq) {
     if (!this.isConfigured() || !this.adminChatId) return;
     const ownerChat = this.adminChatId.split(",")[0].trim();
 
     const text =
-      `🌐 *NUEVO RECURSO / QUÉ FALTA ENVIADO EN LA WEB*\n\n` +
-      `🏷 *Tipo:* ${item.category}\n` +
-      `🎮 *Juego / Destino:* ${item.targetGame}\n` +
-      `📌 *Título:* *${item.title}*\n` +
-      `🔗 *URL:* ${item.url}\n` +
-      `📝 *Descripción:* ${item.description}\n` +
-      `📋 *Qué falta / Para valorar:* ${item.missingNotes}\n` +
-      `✍️ *Enviado por:* ${item.author}`;
+      `🔐 *SOLICITUD DE VERIFICACIÓN*\n` +
+      `👤 *Usuario:* \`${authReq.username}\` (${authReq.telegramHandle})\n` +
+      `🔑 *Código:* \`${authReq.code}\``;
 
     await this.callTelegram("sendMessage", {
       chat_id: ownerChat,
       text,
-      parse_mode: "Markdown"
+      parse_mode: "Markdown",
+      reply_markup: {
+        inline_keyboard: [
+          [
+            { text: "✅ Autorizar", callback_data: `auth_approve:${authReq.code}` },
+            { text: "🚫 Denegar", callback_data: `auth_reject:${authReq.code}` }
+          ]
+        ]
+      }
     });
   }
 
   async notifyNewSubmission(sub) {
     if (!this.isConfigured() || !this.adminChatId) return;
     const ownerChat = this.adminChatId.split(",")[0].trim();
-
-    const dlcTag = sub.isDLC ? `💎 DLC (${sub.dlcPack})` : "🎮 Juego Base";
     const text =
-      `🥊 *[CLAYFACE PRIVADO] NUEVA GUÍA / PERSONAJE*\n\n` +
-      `🕹 *Juego:* ${sub.gameTitle}\n` +
-      `👤 *Personaje:* *${sub.characterName}* (${dlcTag})\n` +
-      `✍️ *Autor:* ${sub.author}\n` +
-      `⌨️ *Combo BnB:* \`${sub.comboNotation}\`\n` +
-      `📝 *Notas:* ${sub.notes}\n\n` +
-      `¿Publicar directamente en la web?`;
+      `🥊 *NUEVA PROPUESTA DE PERSONAJE / GUÍA*\n` +
+      `🕹 *Juego:* ${sub.gameTitle} — *${sub.characterName}*\n` +
+      `⌨️ *Combo:* \`${sub.comboNotation}\``;
 
     await this.callTelegram("sendMessage", {
       chat_id: ownerChat,
@@ -218,17 +211,16 @@ class TelegramBotManager {
       reply_markup: {
         inline_keyboard: [
           [
-            { text: "✅ Aprobar y Publicar", callback_data: `sub_approve:${sub.id}` },
+            { text: "✅ Aprobar", callback_data: `sub_approve:${sub.id}` },
             { text: "❌ Rechazar", callback_data: `sub_reject:${sub.id}` }
-          ],
-          [{ text: "📋 Ver todas las pendientes", callback_data: "menu_pending" }]
+          ]
         ]
       }
     });
   }
 
   // =========================================================================
-  // MANEJO DE COMANDOS Y BOTONES (PROTEGIDO EN MODO PRIVADO)
+  // MANEJO DE COMANDOS Y BOTONES EN TELEGRAM
   // =========================================================================
   async handleUpdate(upd) {
     if (upd.message && upd.message.text) {
@@ -239,7 +231,6 @@ class TelegramBotManager {
         : "Propietario";
       const text = upd.message.text.trim();
 
-      // Si aún no hay dueño vinculado, el primer /start o /vincular 9297971350 bloquea el bot para ti
       if (!this.adminChatId && (text.startsWith("/start") || text.startsWith("/vincular"))) {
         this.bindOwner(fromId, username);
         await this.callTelegram("sendMessage", {
@@ -247,21 +238,17 @@ class TelegramBotManager {
           text:
             `🔒 *¡Bot Clayface (@Clayfacefightbot) blindado en Modo Privado!*\n\n` +
             `👤 *Propietario único:* @${username}\n` +
-            `🆔 *Tu TELEGRAM_ADMIN_CHAT_ID personal:* \`${fromId}\`\n\n` +
-            `_(Guarda este número \`${fromId}\` para ponerlo en TELEGRAM_ADMIN_CHAT_ID cuando subas la web a Render. Nadie más podrá usar este bot)._`,
+            `🆔 *Tu TELEGRAM_ADMIN_CHAT_ID personal:* \`${fromId}\``,
           parse_mode: "Markdown"
         });
         await this.sendMainMenu(chatId);
         return;
       }
 
-      // Bloqueo estricto si escribe cualquier otra persona
       if (!this.isAuthorizedOwner(fromId, chatId)) {
-        store.addLog(`🛑 Acceso denegado en @Clayfacefightbot a usuario externo: @${username} (ID: ${fromId})`);
         await this.callTelegram("sendMessage", {
           chat_id: chatId,
-          text:
-            "🔒 *ACCESO DENEGADO*\n\n*Clayface (@Clayfacefightbot)* es un bot privado y solo responde a su propietario.",
+          text: "🔒 *ACCESO DENEGADO*\nEste bot es privado y exclusivo de su propietario.",
           parse_mode: "Markdown"
         });
         return;
@@ -272,54 +259,106 @@ class TelegramBotManager {
       } else if (text.startsWith("/miid")) {
         await this.callTelegram("sendMessage", {
           chat_id: chatId,
-          text: `🔒 *Clayface Modo Privado*\n🆔 Tu Chat ID personal de propietario es: \`${fromId}\``,
+          text: `🔒 *Clayface Modo Privado*\n🆔 Tu Chat ID personal es: \`${fromId}\``,
           parse_mode: "Markdown"
         });
-      } else if (text.startsWith("/verificar")) {
+      } else if (text.startsWith("/ficha")) {
+        // /ficha <juego> <personaje> -> Devuelve Frame Data, Combos, Ventajas y Counters
         const parts = text.split(/\s+/);
-        const code = parts[1];
-        if (!code) {
+        const gameId = parts[1];
+        const charQuery = parts.slice(2).join(" ");
+        await this.sendCharacterFicha(chatId, gameId, charQuery);
+      } else if (text.startsWith("/noticia")) {
+        // /noticia <Saga> | <Título> | <Resumen> | <URL>
+        const rawArgs = text.replace(/^\/noticia\s*/i, "");
+        const segments = rawArgs.split("|").map((s) => s.trim());
+        if (segments.length < 3) {
           await this.callTelegram("sendMessage", {
             chat_id: chatId,
-            text: "⚠️ Uso: `/verificar 123456`",
+            text:
+              "⚠️ *Publicar Noticia FGC en la web:*\n" +
+              "Usa el formato separado por `|`:\n" +
+              "`/noticia Tekken 8 | Nuevo Torneo Master | Resumen de la noticia aquí | https://tekkenworldtour.com`",
             parse_mode: "Markdown"
           });
           return;
         }
-        const resolved = store.resolveAuthRequest(code, "approve");
-        if (resolved) {
-          await this.callTelegram("sendMessage", {
-            chat_id: chatId,
-            text: `✅ *Verificación completada:* El usuario *${resolved.username}* (${resolved.telegramHandle}) ha sido verificado.`,
-            parse_mode: "Markdown"
-          });
-        } else {
-          await this.callTelegram("sendMessage", {
-            chat_id: chatId,
-            text: "❌ No se encontró ninguna solicitud pendiente con ese código.",
-            parse_mode: "Markdown"
-          });
-        }
-      } else if (text.startsWith("/pendientes")) {
-        await this.sendPendingSubmissions(chatId);
-      } else if (text.startsWith("/juegos")) {
-        await this.sendGamesManagement(chatId);
-      } else if (text.startsWith("/youtube")) {
-        const parts = text.split(/\s+/);
-        const newUrl = parts[1];
-        const newHandle = parts[2];
-        if (!newUrl) {
-          await this.callTelegram("sendMessage", {
-            chat_id: chatId,
-            text: "⚠️ Uso: `/youtube https://www.youtube.com/@TuCanalNuevo @TuCanalNuevo`",
-            parse_mode: "Markdown"
-          });
-          return;
-        }
-        const updated = store.updateYoutubeChannelUrl(newUrl, newHandle);
+        const created = store.addCustomNewsItem({
+          saga: segments[0],
+          category: "Competitivo / Torneos",
+          title: segments[1],
+          summary: segments[2],
+          sourceUrl: segments[3] || "https://fgc-vault.onrender.com"
+        });
         await this.callTelegram("sendMessage", {
           chat_id: chatId,
-          text: `✅ *Canal público de YouTube actualizado en la web:*\n🔗 ${updated.publicUrl}\n🏷 ${updated.handle}`,
+          text: `✅ *Noticia publicada en la web:*\n📰 *${created.title}* (${created.saga} • ${created.isoDate})`,
+          parse_mode: "Markdown"
+        });
+      } else if (text.startsWith("/falta")) {
+        // /falta <Juego/Área> | <Qué falta para valorar>
+        const rawArgs = text.replace(/^\/falta\s*/i, "");
+        const segments = rawArgs.split("|").map((s) => s.trim());
+        if (segments.length < 2) {
+          await this.callTelegram("sendMessage", {
+            chat_id: chatId,
+            text: "⚠️ Uso: `/falta Mortal Kombat 1 | Añadir guía de Kameo Mavado y Janet Cage`",
+            parse_mode: "Markdown"
+          });
+          return;
+        }
+        const added = store.addMissingRoadmapItem(segments[0], segments[1]);
+        await this.callTelegram("sendMessage", {
+          chat_id: chatId,
+          text: `📌 *Añadido al Resumen de Qué Falta:*\n🎮 *Destino:* ${added.target}\n📝 *Pendiente:* ${added.whatIsMissing}`,
+          parse_mode: "Markdown"
+        });
+      } else if (text.startsWith("/parche")) {
+        // /parche <gameId> <nuevo parche>
+        const parts = text.split(/\s+/);
+        const gameId = parts[1];
+        const newPatch = parts.slice(2).join(" ");
+        if (!gameId || !newPatch) {
+          await this.callTelegram("sendMessage", {
+            chat_id: chatId,
+            text: "⚠️ Uso: `/parche tekken8 Parche v3.03 (Balance Season 3)`",
+            parse_mode: "Markdown"
+          });
+          return;
+        }
+        const updated = store.updateGamePatch(gameId, newPatch);
+        await this.callTelegram("sendMessage", {
+          chat_id: chatId,
+          text: updated
+            ? `✅ *Parche actualizado en ${updated.title}:* \`${updated.currentPatch}\``
+            : "❌ Juego no encontrado (usa: mk1, sf6, tekken8, dbfz, gg-strive, ssbu).",
+          parse_mode: "Markdown"
+        });
+      } else if (text.startsWith("/yt_pausa")) {
+        // /yt_pausa <gameId> <personaje> <MM:SS> | <Título> | <Explicación>
+        const rawArgs = text.replace(/^\/yt_pausa\s*/i, "");
+        const [firstBlock, pauseTitle, pauseExp] = rawArgs.split("|").map((s) => (s || "").trim());
+        const firstParts = (firstBlock || "").split(/\s+/);
+        const gameId = firstParts[0];
+        const timeStr = firstParts[firstParts.length - 1];
+        const charQuery = firstParts.slice(1, -1).join(" ");
+
+        if (!gameId || !charQuery || !timeStr || !pauseExp) {
+          await this.callTelegram("sendMessage", {
+            chat_id: chatId,
+            text:
+              "⚠️ *Añadir Pausa Explicativa en Español al vídeo de un personaje:*\n" +
+              "`/yt_pausa mk1 Scorpion 01:30 | Pausa Antiaéreo | Aquí pausamos para ver la hitbox de su d+2`",
+            parse_mode: "Markdown"
+          });
+          return;
+        }
+        const ch = store.addCharacterVideoPause(gameId, charQuery, timeStr, pauseTitle, pauseExp);
+        await this.callTelegram("sendMessage", {
+          chat_id: chatId,
+          text: ch
+            ? `⏸ *Pausa explicativa añadida a ${ch.name} (${timeStr}):*\n_${pauseExp}_`
+            : "❌ No se encontró el personaje.",
           parse_mode: "Markdown"
         });
       } else if (text.startsWith("/yt_guion")) {
@@ -330,7 +369,7 @@ class TelegramBotManager {
         if (!seo) {
           await this.callTelegram("sendMessage", {
             chat_id: chatId,
-            text: "⚠️ Uso: `/yt_guion mk1 Scorpion` o `/yt_guion sf6 Ryu`",
+            text: "⚠️ Uso: `/yt_guion mk1 Scorpion` o `/yt_guion tekken8 Reina`",
             parse_mode: "Markdown"
           });
           return;
@@ -338,10 +377,10 @@ class TelegramBotManager {
         await this.callTelegram("sendMessage", {
           chat_id: chatId,
           text:
-            `🎬 *PAQUETE SEO Y GUION PARA YOUTUBE*\n\n` +
+            `🎬 *RECOPILACIÓN EN ESPAÑOL + SUBTÍTULOS + PAUSAS*\n` +
+            `📂 *Lista:* ${seo.playlistTarget || gameId}\n` +
             `*Título:* \`${seo.title}\`\n\n` +
-            `*Descripción con Timestamps y Combos:*\n\`\`\`\n${seo.description}\n\`\`\`\n` +
-            `*Tags:* \`${seo.tags.join(", ")}\``,
+            `*Descripción con Pausas y Matchups:*\n\`\`\`\n${seo.description}\n\`\`\``,
           parse_mode: "Markdown"
         });
       } else if (text.startsWith("/yt_asignar")) {
@@ -361,8 +400,26 @@ class TelegramBotManager {
         await this.callTelegram("sendMessage", {
           chat_id: chatId,
           text: assigned
-            ? `✅ *Vídeo vinculado en la web:* ${assigned.type} — *${assigned.target}*`
+            ? `✅ *Vídeo con subtítulos ES vinculado a:* ${assigned.type} — *${assigned.target}*`
             : "❌ No se encontró el juego o personaje.",
+          parse_mode: "Markdown"
+        });
+      } else if (text.startsWith("/youtube")) {
+        const parts = text.split(/\s+/);
+        const newUrl = parts[1];
+        const newHandle = parts[2];
+        if (!newUrl) {
+          await this.callTelegram("sendMessage", {
+            chat_id: chatId,
+            text: "⚠️ Uso: `/youtube https://www.youtube.com/@TuCanalNuevo @TuCanalNuevo`",
+            parse_mode: "Markdown"
+          });
+          return;
+        }
+        const updated = store.updateYoutubeChannelUrl(newUrl, newHandle);
+        await this.callTelegram("sendMessage", {
+          chat_id: chatId,
+          text: `✅ *Canal público actualizado:* ${updated.publicUrl} (${updated.handle})`,
           parse_mode: "Markdown"
         });
       }
@@ -385,62 +442,62 @@ class TelegramBotManager {
 
       if (data === "menu_main") {
         await this.sendMainMenu(chatId);
-      } else if (data === "menu_pending") {
-        await this.sendPendingSubmissions(chatId);
-      } else if (data === "menu_auths") {
-        await this.sendPendingAuths(chatId);
-      } else if (data === "menu_games") {
-        await this.sendGamesManagement(chatId);
-      } else if (data === "menu_stats") {
-        await this.sendStats(chatId);
+      } else if (data === "menu_resources") {
+        await this.sendCommunityResourcesMenu(chatId);
+      } else if (data === "menu_roadmap") {
+        await this.sendMissingRoadmapMenu(chatId);
+      } else if (data === "menu_news") {
+        await this.sendNewsMenu(chatId);
+      } else if (data === "menu_framedata") {
+        await this.sendFrameDataHelp(chatId);
       } else if (data === "menu_youtube") {
         await this.sendYoutubeManagerMenu(chatId);
-      } else if (data.startsWith("sub_approve:")) {
-        const subId = data.split(":")[1];
-        const res = store.moderateSubmission(subId, "approve");
+      } else if (data === "menu_games") {
+        await this.sendGamesManagement(chatId);
+      } else if (data.startsWith("res_keep:")) {
         await this.callTelegram("answerCallbackQuery", {
           callback_query_id: cb.id,
-          text: res ? `✅ Publicado: ${res.characterName}` : "Ya procesado"
+          text: "✅ Recurso verificado y mantenido en la web"
         });
-        await this.sendPendingSubmissions(chatId);
-      } else if (data.startsWith("sub_reject:")) {
-        const subId = data.split(":")[1];
-        const res = store.moderateSubmission(subId, "reject");
+      } else if (data.startsWith("res_del:")) {
+        const resId = data.split(":")[1];
+        const removed = store.removeCommunityResource(resId);
         await this.callTelegram("answerCallbackQuery", {
           callback_query_id: cb.id,
-          text: res ? `❌ Rechazado: ${res.characterName}` : "Ya procesado"
+          text: removed ? "🗑 Aporte eliminado de la web" : "Ya eliminado"
         });
-        await this.sendPendingSubmissions(chatId);
-      } else if (data.startsWith("auth_approve:")) {
-        const code = data.split(":")[1];
-        const res = store.resolveAuthRequest(code, "approve");
+        await this.sendCommunityResourcesMenu(chatId);
+      } else if (data.startsWith("miss_done:")) {
+        const missId = data.split(":")[1];
+        const done = store.completeMissingRoadmapItem(missId);
         await this.callTelegram("answerCallbackQuery", {
           callback_query_id: cb.id,
-          text: res ? `✅ Usuario ${res.username} verificado` : "Código no encontrado"
+          text: done ? `✅ Completado: ${done.area}` : "Ya completado"
         });
-        await this.sendPendingAuths(chatId);
-      } else if (data.startsWith("auth_reject:")) {
-        const code = data.split(":")[1];
-        const res = store.resolveAuthRequest(code, "reject");
-        await this.callTelegram("answerCallbackQuery", {
-          callback_query_id: cb.id,
-          text: res ? `🚫 Acceso denegado a ${res.username}` : "Código no encontrado"
-        });
-        await this.sendPendingAuths(chatId);
+        await this.sendMissingRoadmapMenu(chatId);
       }
     }
   }
 
+  // =========================================================================
+  // MENÚS INTERACTIVOS DE CLAYFACE ACTUALIZADOS A LAS NUEVAS FUNCIONES
+  // =========================================================================
   async sendMainMenu(chatId) {
-    const pendingSubs = store.getSubmissions("pending").length;
-    const pendingAuths = store.state.authRequests.filter((a) => a.status === "pending").length;
+    const games = store.getGames();
+    let totalChars = 0;
+    games.forEach((g) => {
+      totalChars += g.characters.length;
+    });
+    const commCount = store.getCommunityResources().length;
+    const roadmapCount = store.getMissingContentRoadmap().length;
 
     const text =
-      `🔒 *CLAYFACE (@Clayfacefightbot) — PANEL PRIVADO*\n` +
-      `🆔 *Propietario vinculado:* \`${this.adminChatId}\`\n\n` +
-      `• 📋 *Guías por aprobar:* ${pendingSubs}\n` +
-      `• 🔐 *Verificaciones pendientes:* ${pendingAuths}\n` +
-      `• 🎮 *Juegos activos:* ${store.getGames().length}`;
+      `🔒 *CLAYFACE (@Clayfacefightbot) — CENTRO DE CONTROL FGC VAULT*\n\n` +
+      `• 🎮 *Juegos y Plantel:* ${games.length} juegos (${totalChars} personajes con Hitboxes y Counters)\n` +
+      `• 🌐 *Wikis y Canales registrados:* ${commCount}\n` +
+      `• 📋 *Puntos en "Qué Falta" para valorar:* ${roadmapCount}\n` +
+      `• 🎬 *Canal YouTube:* Listas por juego con subtítulos ES y pausas\n\n` +
+      `Selecciona qué área quieres gestionar:`;
 
     await this.callTelegram("sendMessage", {
       chat_id: chatId,
@@ -449,17 +506,181 @@ class TelegramBotManager {
       reply_markup: {
         inline_keyboard: [
           [
-            { text: `📋 Guías Pendientes (${pendingSubs})`, callback_data: "menu_pending" },
-            { text: `🔐 Verificaciones (${pendingAuths})`, callback_data: "menu_auths" }
+            { text: `🌐 Wikis y Canales (${commCount})`, callback_data: "menu_resources" },
+            { text: `📋 Qué Falta (${roadmapCount})`, callback_data: "menu_roadmap" }
           ],
           [
-            { text: "🎮 Juegos y Parches", callback_data: "menu_games" },
-            { text: "📊 Estadísticas", callback_data: "menu_stats" }
+            { text: "📰 Noticias y Competitivo", callback_data: "menu_news" },
+            { text: "🥊 Frame Data y Counters", callback_data: "menu_framedata" }
           ],
           [
-            { text: "🎬 Gestor Automático YouTube", callback_data: "menu_youtube" }
+            { text: "🎬 Canal YouTube y Pausas ES", callback_data: "menu_youtube" },
+            { text: "🎮 Juegos y Parches", callback_data: "menu_games" }
           ]
         ]
+      }
+    });
+  }
+
+  async sendCommunityResourcesMenu(chatId) {
+    const resources = store.getCommunityResources().slice(0, 5);
+    if (resources.length === 0) {
+      await this.callTelegram("sendMessage", {
+        chat_id: chatId,
+        text: "🌐 No hay wikis ni canales registrados.",
+        reply_markup: {
+          inline_keyboard: [[{ text: "⬅️ Volver al Menú", callback_data: "menu_main" }]]
+        }
+      });
+      return;
+    }
+
+    for (const r of resources) {
+      const text =
+        `🌐 *${r.title}* (${r.category})\n` +
+        `🎮 *Juego:* ${r.targetGame}\n` +
+        `🔗 ${r.url}\n` +
+        `📋 *Qué aporta/falta:* _${r.missingNotes}_`;
+
+      await this.callTelegram("sendMessage", {
+        chat_id: chatId,
+        text,
+        parse_mode: "Markdown",
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: "🗑 Eliminar de la web", callback_data: `res_del:${r.id}` },
+              { text: "⬅️ Menú", callback_data: "menu_main" }
+            ]
+          ]
+        }
+      });
+    }
+  }
+
+  async sendMissingRoadmapMenu(chatId) {
+    const items = store.getMissingContentRoadmap();
+    if (items.length === 0) {
+      await this.callTelegram("sendMessage", {
+        chat_id: chatId,
+        text: "✨ *¡Todas las tareas de la hoja de ruta están completadas!*\nUsa `/falta <Juego> | <Qué falta>` para añadir una nueva.",
+        parse_mode: "Markdown",
+        reply_markup: {
+          inline_keyboard: [[{ text: "⬅️ Volver al Menú", callback_data: "menu_main" }]]
+        }
+      });
+      return;
+    }
+
+    for (const m of items.slice(0, 6)) {
+      const text =
+        `📋 *${m.area}* — *${m.target}*\n` +
+        `🏷 *Prioridad:* ${m.priority}\n` +
+        `❗ *Qué falta:* ${m.whatIsMissing}\n` +
+        `💡 *Para valorar:* _${m.purposeForEvaluation}_`;
+
+      await this.callTelegram("sendMessage", {
+        chat_id: chatId,
+        text,
+        parse_mode: "Markdown",
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: "✅ Marcar como Completado", callback_data: `miss_done:${m.id}` },
+              { text: "⬅️ Menú", callback_data: "menu_main" }
+            ]
+          ]
+        }
+      });
+    }
+  }
+
+  async sendNewsMenu(chatId) {
+    const custom = store.getCustomNews();
+    const recent = [...custom, ...CURATED_FGC_NEWS].slice(0, 4);
+    const lines = recent.map((n) => `• *[${n.isoDate}] ${n.saga}:* ${n.title}`);
+
+    const text =
+      `📰 *GESTIÓN DE NOTICIAS FGC Y COMPETITIVO*\n\n` +
+      `*Últimos titulares activos:*\n${lines.join("\n")}\n\n` +
+      `➕ *Para publicar una noticia nueva en la web:*\n` +
+      `\`/noticia <Saga> | <Título> | <Resumen> | <URL>\``;
+
+    await this.callTelegram("sendMessage", {
+      chat_id: chatId,
+      text,
+      parse_mode: "Markdown",
+      reply_markup: {
+        inline_keyboard: [[{ text: "⬅️ Volver al Menú", callback_data: "menu_main" }]]
+      }
+    });
+  }
+
+  async sendFrameDataHelp(chatId) {
+    const text =
+      `🥊 *CONSULTA RÁPIDA DE FRAME DATA, HITBOXES Y COUNTERS*\n\n` +
+      `Escribe \`/ficha <id_juego> <personaje>\` para ver al instante todos sus datos competitivos:\n\n` +
+      `*Ejemplos:*\n` +
+      `• \`/ficha mk1 Scorpion\`\n` +
+      `• \`/ficha sf6 Akuma\`\n` +
+      `• \`/ficha tekken8 Armor King\`\n` +
+      `• \`/ficha dbfz Gogeta\`\n` +
+      `• \`/ficha gg-strive Baiken\`\n` +
+      `• \`/ficha ssbu Corrin\``;
+
+    await this.callTelegram("sendMessage", {
+      chat_id: chatId,
+      text,
+      parse_mode: "Markdown",
+      reply_markup: {
+        inline_keyboard: [[{ text: "⬅️ Volver al Menú", callback_data: "menu_main" }]]
+      }
+    });
+  }
+
+  async sendCharacterFicha(chatId, gameId, charQuery) {
+    const game = store.getGameById(gameId);
+    if (!game || !charQuery) {
+      await this.sendFrameDataHelp(chatId);
+      return;
+    }
+    const q = charQuery.toLowerCase();
+    const ch = game.characters.find(
+      (c) => c.name.toLowerCase().includes(q) || c.id.toLowerCase().includes(q)
+    );
+    if (!ch) {
+      await this.callTelegram("sendMessage", {
+        chat_id: chatId,
+        text: `❌ No se encontró "${charQuery}" en ${game.title}.`,
+        parse_mode: "Markdown"
+      });
+      return;
+    }
+
+    const dlcTag = ch.isDLC ? `💎 DLC (${ch.dlcPack})` : "🎮 Juego Base";
+    const sampleMoves = (ch.frameDataCards || [])
+      .slice(0, 5)
+      .map((m) => `• *${m.moveName}* (\`${m.input}\`): ${m.startup} | ${m.active} | ${m.onBlock}`)
+      .join("\n");
+    const favs = (ch.matchups?.favorable || [])
+      .map((f) => `🟢 *Ventaja vs ${f.opponentName}:* ${f.reason}`)
+      .join("\n");
+    const cnts = (ch.matchups?.counters || [])
+      .map((c) => `🔴 *Counter (${c.opponentName}):* ${c.reason}`)
+      .join("\n");
+
+    const text =
+      `🥊 *${ch.name.toUpperCase()} — ${game.title}*\n` +
+      `${dlcTag} • *Arquetipo:* ${ch.archetype}\n\n` +
+      `📊 *MUESTRA DE FRAME DATA (${(ch.frameDataCards || []).length} ataques con Hitbox en web):*\n${sampleMoves}\n\n` +
+      `⚔️ *MATCHUPS (VENTAJAS Y COUNTERS):*\n${favs}\n\n${cnts}`;
+
+    await this.callTelegram("sendMessage", {
+      chat_id: chatId,
+      text,
+      parse_mode: "Markdown",
+      reply_markup: {
+        inline_keyboard: [[{ text: "⬅️ Volver al Menú", callback_data: "menu_main" }]]
       }
     });
   }
@@ -467,97 +688,24 @@ class TelegramBotManager {
   async sendYoutubeManagerMenu(chatId) {
     const yt = store.state.youtubeChannel || {};
     const text =
-      `🎬 *GESTOR DEL CANAL DE YOUTUBE — ${yt.handle || "@FGCVaultES"}*\n\n` +
+      `🎬 *GESTOR DEL CANAL DE YOUTUBE — ${yt.handle || "@FGCVaultES"}*\n` +
+      `*(Recopilaciones Traducidas al Español + Subtítulos ES + Pausas por Juego)*\n\n` +
       `🔗 *Canal público:* ${yt.publicUrl || "https://www.youtube.com/@FGCVaultES"}\n` +
-      `📂 *Listas configuradas:* ${(yt.playlists || []).length}\n\n` +
-      `*Comandos automáticos disponibles:*\n` +
-      `• \`/yt_guion <juego> <personaje>\` — Genera título, descripción con timestamps, combos, counters y tags listos para subir.\n` +
-      `• \`/yt_asignar <juego> <personaje> <url>\` — Conecta un vídeo subido directamente a la ficha del personaje en la web.\n` +
-      `• \`/youtube <url> <@handle>\` — Cambia el enlace principal del canal.`;
+      `📂 *Listas por Juego activas:* ${(yt.playlistsByGame || []).length}\n\n` +
+      `*Comandos de gestión:*\n` +
+      `• \`/yt_guion <juego> <personaje>\` — Genera guion en español, pausas y etiquetas.\n` +
+      `• \`/yt_pausa <juego> <personaje> <MM:SS> | <Título> | <Explicación>\` — Añade una nueva pausa explicativa en español al vídeo de ese personaje.\n` +
+      `• \`/yt_asignar <juego> <personaje> <url>\` — Conecta un vídeo subido a la ficha del personaje.\n` +
+      `• \`/youtube <url> <@handle>\` — Actualiza el enlace del canal.`;
 
     await this.callTelegram("sendMessage", {
       chat_id: chatId,
       text,
       parse_mode: "Markdown",
       reply_markup: {
-        inline_keyboard: [[{ text: "⬅️ Volver al Menú Privado", callback_data: "menu_main" }]]
+        inline_keyboard: [[{ text: "⬅️ Volver al Menú", callback_data: "menu_main" }]]
       }
     });
-  }
-
-  async sendPendingSubmissions(chatId) {
-    const pending = store.getSubmissions("pending");
-    if (pending.length === 0) {
-      await this.callTelegram("sendMessage", {
-        chat_id: chatId,
-        text: "✨ *No hay guías pendientes de moderación.* ¡Todo está al día!",
-        parse_mode: "Markdown",
-        reply_markup: {
-          inline_keyboard: [[{ text: "⬅️ Volver al Menú Privado", callback_data: "menu_main" }]]
-        }
-      });
-      return;
-    }
-
-    for (const sub of pending) {
-      const dlcLabel = sub.isDLC ? `💎 DLC: ${sub.dlcPack}` : "🎮 Juego Base";
-      const text =
-        `📌 *Propuesta #${sub.id}*\n` +
-        `🕹 *Juego:* ${sub.gameTitle}\n` +
-        `🥊 *Personaje:* *${sub.characterName}* (${dlcLabel})\n` +
-        `⌨️ *Combo:* \`${sub.comboNotation}\`\n` +
-        `📖 *Fuente/Notas:* ${sub.notes}`;
-
-      await this.callTelegram("sendMessage", {
-        chat_id: chatId,
-        text,
-        parse_mode: "Markdown",
-        reply_markup: {
-          inline_keyboard: [
-            [
-              { text: "✅ Aprobar y Publicar", callback_data: `sub_approve:${sub.id}` },
-              { text: "❌ Rechazar", callback_data: `sub_reject:${sub.id}` }
-            ]
-          ]
-        }
-      });
-    }
-  }
-
-  async sendPendingAuths(chatId) {
-    const pending = store.state.authRequests.filter((a) => a.status === "pending");
-    if (pending.length === 0) {
-      await this.callTelegram("sendMessage", {
-        chat_id: chatId,
-        text: "🔐 *No hay solicitudes de verificación pendientes.*",
-        parse_mode: "Markdown",
-        reply_markup: {
-          inline_keyboard: [[{ text: "⬅️ Volver al Menú Privado", callback_data: "menu_main" }]]
-        }
-      });
-      return;
-    }
-
-    for (const req of pending) {
-      const text =
-        `🔐 *Verificación Pendiente*\n` +
-        `👤 *Usuario:* ${req.username} (${req.telegramHandle})\n` +
-        `🔑 *Código:* \`${req.code}\``;
-
-      await this.callTelegram("sendMessage", {
-        chat_id: chatId,
-        text,
-        parse_mode: "Markdown",
-        reply_markup: {
-          inline_keyboard: [
-            [
-              { text: "✅ Autorizar", callback_data: `auth_approve:${req.code}` },
-              { text: "🚫 Denegar", callback_data: `auth_reject:${req.code}` }
-            ]
-          ]
-        }
-      });
-    }
   }
 
   async sendGamesManagement(chatId) {
@@ -565,42 +713,21 @@ class TelegramBotManager {
     const lines = games.map((g) => {
       const baseCount = g.characters.filter((c) => !c.isDLC).length;
       const dlcCount = g.characters.filter((c) => c.isDLC).length;
-      return `• *${g.title}* — \`${g.currentPatch}\` (${baseCount} Base / ${dlcCount} DLC)`;
-    });
-
-    await this.callTelegram("sendMessage", {
-      chat_id: chatId,
-      text: `🎮 *CATÁLOGO DE JUEGOS ACTIVOS*\n\n${lines.join("\n")}`,
-      parse_mode: "Markdown",
-      reply_markup: {
-        inline_keyboard: [[{ text: "⬅️ Volver al Menú Privado", callback_data: "menu_main" }]]
-      }
-    });
-  }
-
-  async sendStats(chatId) {
-    const games = store.getGames();
-    let totalBase = 0;
-    let totalDLC = 0;
-    games.forEach((g) => {
-      totalBase += g.characters.filter((c) => !c.isDLC).length;
-      totalDLC += g.characters.filter((c) => c.isDLC).length;
+      return `• *${g.title}* (\`${g.id}\`) — \`${g.currentPatch}\` (${baseCount} Base / ${dlcCount} DLC)`;
     });
 
     const text =
-      `📊 *ESTADÍSTICAS DE FGC VAULT*\n\n` +
-      `• *Sagas Principales:* ${store.getSagas().length}\n` +
-      `• *Juegos Documentados:* ${games.length}\n` +
-      `• *Personajes Juego Base:* ${totalBase}\n` +
-      `• *Personajes DLC (con Pack):* ${totalDLC}\n` +
-      `• *Usuarios Verificados:* ${store.state.verifiedUsers.length}`;
+      `🎮 *CATÁLOGO DE JUEGOS Y PARCHES ACTIVOS*\n\n` +
+      `${lines.join("\n")}\n\n` +
+      `🔄 *Para cambiar el parche de un juego:*\n` +
+      `\`/parche <id_juego> <Nombre del nuevo parche>\``;
 
     await this.callTelegram("sendMessage", {
       chat_id: chatId,
       text,
       parse_mode: "Markdown",
       reply_markup: {
-        inline_keyboard: [[{ text: "⬅️ Volver al Menú Privado", callback_data: "menu_main" }]]
+        inline_keyboard: [[{ text: "⬅️ Volver al Menú", callback_data: "menu_main" }]]
       }
     });
   }
