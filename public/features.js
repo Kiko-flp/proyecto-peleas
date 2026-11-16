@@ -151,8 +151,14 @@ window.decorateTextWithGlossaryTooltips = function (rootEl) {
 // D. INSPECTOR DE HITBOXES FRAME A FRAME
 // =========================================================================
 const inspectorState = {
+  charId: "",
+  charName: "Luchador",
+  gameId: "sf6",
+  charImgUrl: "",
+  fallbackSrc: "",
   moveName: "",
   input: "",
+  category: "",
   startupNum: 5,
   activeStart: 5,
   activeEnd: 7,
@@ -189,8 +195,17 @@ window.openHitboxInspector = function (fcEncoded) {
   }
 
   const nums = parseFrameNumbers(fc);
+  inspectorState.charId = fc.charId || "";
+  inspectorState.charName = fc.charName || "Personaje";
+  inspectorState.gameId = fc.gameId || "sf6";
+  inspectorState.charImgUrl =
+    (fc.charId && typeof clientPortraitCache !== "undefined" && clientPortraitCache.get(fc.charId)) ||
+    fc.charImgUrl ||
+    "";
+  inspectorState.fallbackSrc = fc.fallbackSrc || inspectorState.charImgUrl;
   inspectorState.moveName = fc.moveName;
   inspectorState.input = fc.input;
+  inspectorState.category = fc.category || "";
   inspectorState.startupNum = nums.startupNum;
   inspectorState.activeStart = nums.activeStart;
   inspectorState.activeEnd = nums.activeEnd;
@@ -246,31 +261,41 @@ function toggleInspectorPlayback() {
 
 function renderInspectorFrame() {
   const f = inspectorState.currentFrame;
-  const { activeStart, activeEnd, totalFrames, moveName, input, onBlock } = inspectorState;
+  const {
+    charId,
+    charName,
+    gameId,
+    charImgUrl,
+    fallbackSrc,
+    activeStart,
+    activeEnd,
+    totalFrames,
+    moveName,
+    input,
+    category,
+    onBlock
+  } = inspectorState;
 
-  let phaseName = "STARTUP (Preparación — Sin Hitbox)";
+  let phaseName = "STARTUP (Preparación — Cajas Hurtbox activas, sin Hitbox)";
   let phaseColor = "#15803d";
   let isHitboxActive = false;
-  let limbAngle = -20 + ((f / Math.max(1, activeStart - 1)) * 15);
   let extendX = 0;
 
   if (f >= activeStart && f <= activeEnd) {
-    phaseName = "VENTANA ACTIVA — ¡HITBOX ACTIVA EN PANTALLA!";
+    phaseName = "VENTANA ACTIVA — ¡CAJAS DE HITBOX ACTIVAS!";
     phaseColor = "#e11d48";
     isHitboxActive = true;
-    limbAngle = 0;
-    extendX = 12;
+    extendX = 18;
   } else if (f > activeEnd) {
-    phaseName = "END LAG / RECUPERACIÓN (Hurtbox expuesta a Whiff Punish)";
+    phaseName = "RECUPERACIÓN / END LAG (Hurtbox extendida expuesta a castigo)";
     phaseColor = "#6d28d9";
     isHitboxActive = false;
-    limbAngle = 10;
-    extendX = 4;
+    extendX = 8;
   }
 
   const headerTitle = document.getElementById("hbInspectorTitle");
   if (headerTitle) {
-    headerTitle.textContent = `${moveName} (${input}) — Inspector Frame a Frame`;
+    headerTitle.textContent = `${charName} — ${moveName} (${input})`;
   }
 
   const statusBanner = document.getElementById("hbPhaseBanner");
@@ -279,50 +304,102 @@ function renderInspectorFrame() {
     statusBanner.textContent = `FRAME ${f} de ${totalFrames} — ${phaseName}`;
   }
 
+  const rawDesc = `${moveName} ${input} ${category}`.toLowerCase();
+  let activeHitboxesHTML = "";
+  let extHurtTop = "86px";
+  let extHurtHeight = "34px";
+
+  if (rawDesc.includes("low") || rawDesc.includes("sweep") || rawDesc.includes("2mk") || rawDesc.includes("2d") || rawDesc.includes("d+3") || rawDesc.includes("d+4")) {
+    extHurtTop = "142px";
+    extHurtHeight = "28px";
+    activeHitboxesHTML = `
+      <div class="hb-box-hit" style="animation:none;opacity:1;top:134px;left:${172 + extendX}px;width:115px;height:38px;">CAJA HITBOX BAJA (LOW)</div>
+      <div class="hb-box-hit" style="animation:none;opacity:1;top:140px;left:${255 + extendX}px;width:72px;height:30px;"></div>
+    `;
+  } else if (rawDesc.includes("anti-air") || rawDesc.includes("623") || rawDesc.includes("2hp") || rawDesc.includes("2h") || rawDesc.includes("6p") || rawDesc.includes("up ") || rawDesc.includes("d+2") || rawDesc.includes("df+2") || rawDesc.includes("uf+4")) {
+    extHurtTop = "38px";
+    extHurtHeight = "64px";
+    activeHitboxesHTML = `
+      <div class="hb-box-hit" style="animation:none;opacity:1;top:24px;left:${158 + extendX}px;width:96px;height:82px;">CAJA HITBOX ANTIAÉREA</div>
+      <div class="hb-box-hit" style="animation:none;opacity:1;top:64px;left:${142 + extendX}px;width:78px;height:56px;"></div>
+    `;
+  } else if (rawDesc.includes("throw") || rawDesc.includes("grab") || rawDesc.includes("lp+lk") || rawDesc.includes("1+3")) {
+    activeHitboxesHTML = `
+      <div class="hb-box-hit hb-box-throw" style="animation:none;opacity:1;top:58px;left:${156 + extendX}px;width:92px;height:84px;">CAJA DE AGARRE (THROW)</div>
+    `;
+  } else {
+    activeHitboxesHTML = `
+      <div class="hb-box-hit" style="animation:none;opacity:1;top:68px;left:${168 + extendX}px;width:114px;height:54px;">CAJA HITBOX ACTIVA (F${f})</div>
+      <div class="hb-box-hit" style="animation:none;opacity:1;top:76px;left:${246 + extendX}px;width:76px;height:42px;"></div>
+    `;
+  }
+
+  const safeCharName = String(charName || "").replace(/'/g, "\\'");
+  const safeFallback = String(fallbackSrc || "").replace(/'/g, "\\'");
+
   const canvasBox = document.getElementById("hbInteractiveCanvas");
   if (canvasBox) {
     canvasBox.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 210" width="100%" height="230">
-        <rect width="380" height="210" rx="10" fill="#181b22" />
-        <line x1="0" y1="70" x2="380" y2="70" stroke="#293040" stroke-dasharray="4 4" />
-        <line x1="0" y1="130" x2="380" y2="130" stroke="#293040" stroke-dasharray="4 4" />
-        <line x1="190" y1="0" x2="190" y2="180" stroke="#293040" stroke-dasharray="4 4" />
-        <line x1="20" y1="180" x2="360" y2="180" stroke="#475569" stroke-width="3" />
+      <div class="hb-char-stage" style="height:230px;">
+        <div class="hb-stage-hud" style="font-size:0.72rem;padding:4px 10px;">
+          <span><strong>${charName}</strong> • ${moveName} (${input}) — Frame ${f}/${totalFrames}</span>
+          <span class="hb-legend-dots">
+            <span class="hb-dot-hurt">■ Hurtbox (Cuerpo)</span>
+            <span style="color:#facc15;font-weight:700;">■ Pushbox</span>
+            <span class="hb-dot-hit">■ Hitbox (Ataque)</span>
+          </span>
+        </div>
 
-        <rect x="${105 + extendX * 0.4}" y="58" width="52" height="120" rx="16"
-          fill="rgba(56, 189, 248, 0.18)" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4 3" />
-        <text x="${108 + extendX * 0.4}" y="52" fill="#38bdf8" font-family="monospace" font-size="10">HURTBOX</text>
+        <!-- Personaje real del juego en el Inspector -->
+        <div style="position:absolute;bottom:34px;left:${48 + extendX}px;width:124px;height:152px;z-index:2;transition:left 0.08s;">
+          <img
+            class="hb-char-actor"
+            data-charimg="${charId}"
+            src="${charImgUrl}"
+            alt="${charName}"
+            referrerpolicy="no-referrer"
+            onload="window.handlePortraitLoad(this)"
+            onerror="window.handlePortraitError(this, '${gameId}', '${charId}', '${safeCharName}', '${safeFallback}')"
+          />
+        </div>
 
-        <circle cx="${131 + extendX * 0.4}" cy="74" r="14" fill="#e2e8f0" />
-        <path d="M${115 + extendX * 0.4} 90 L${147 + extendX * 0.4} 90 L${144 + extendX * 0.4} 140 L${118 + extendX * 0.4} 140 Z" fill="#cbd5e1" />
-        <line x1="${122 + extendX * 0.4}" y1="140" x2="${110 + extendX * 0.4}" y2="178" stroke="#94a3b8" stroke-width="8" stroke-linecap="round" />
-        <line x1="${140 + extendX * 0.4}" y1="140" x2="${154 + extendX * 0.4}" y2="178" stroke="#94a3b8" stroke-width="8" stroke-linecap="round" />
-
-        <g transform="rotate(${limbAngle}, ${142 + extendX}, 102)">
-          <line x1="${142 + extendX}" y1="102" x2="${238 + extendX * 2}" y2="98"
-            stroke="${isHitboxActive ? "#fbbf24" : "#94a3b8"}" stroke-width="11" stroke-linecap="round" />
-        </g>
+        <!-- Cajas de Hurtbox (Verde) y Pushbox (Amarilla) sobre el personaje real -->
+        <div class="hb-box-hurt" style="bottom:34px;left:${54 + extendX}px;width:110px;height:146px;">
+          <span style="position:absolute;top:3px;left:5px;font-family:var(--font-mono);font-size:0.62rem;color:#4ade80;font-weight:700;">HURTBOX</span>
+        </div>
+        <div class="hb-box-push" style="bottom:40px;left:${72 + extendX}px;width:74px;height:112px;"></div>
 
         ${
+          f >= activeStart
+            ? `<div class="hb-box-hurt" style="top:${extHurtTop};left:${142 + extendX}px;width:68px;height:${extHurtHeight};"></div>`
+            : ""
+        }
+
+        <!-- Cajas de Hitbox Activas en los frames activos -->
+        ${
           isHitboxActive
-            ? `
-            <circle cx="${248 + extendX * 1.5}" cy="98" r="38" fill="rgba(244, 63, 94, 0.55)" stroke="#f43f5e" stroke-width="3" />
-            <circle cx="${208 + extendX * 1.2}" cy="100" r="26" fill="rgba(236, 72, 153, 0.55)" stroke="#fda4af" stroke-width="2" />
-            <text x="${214 + extendX * 1.5}" y="52" fill="#fda4af" font-family="monospace" font-weight="bold" font-size="11">¡HITBOX ACTIVA! (F${f})</text>
-          `
+            ? activeHitboxesHTML
             : `
-            <text x="210" y="102" fill="#64748b" font-family="monospace" font-size="11">
-              ${f < activeStart ? `Faltan ${activeStart - f} frames para activar Hitbox` : `Hitbox cerrada hace ${f - activeEnd} frames`}
-            </text>
+            <div style="position:absolute;top:92px;left:210px;right:18px;font-family:var(--font-mono);font-size:0.78rem;color:#94a3b8;background:rgba(7,9,15,0.78);padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);">
+              ${
+                f < activeStart
+                  ? `⏳ Fase Startup: faltan <strong>${activeStart - f} frame(s)</strong> para que aparezca la caja de Hitbox.`
+                  : `🛡️ Fase Recuperación: la caja de Hitbox se cerró hace <strong>${f - activeEnd} frame(s)</strong>; la Hurtbox de ${charName} sigue expuesta.`
+              }
+            </div>
           `
         }
 
-        <rect x="20" y="190" width="340" height="10" rx="4" fill="#0f172a" />
-        <rect x="20" y="190" width="${((activeStart - 1) / totalFrames) * 340}" height="10" fill="#15803d" />
-        <rect x="${20 + ((activeStart - 1) / totalFrames) * 340}" y="190" width="${((activeEnd - activeStart + 1) / totalFrames) * 340}" height="10" fill="#e11d48" />
-        <rect x="${20 + (activeEnd / totalFrames) * 340}" y="190" width="${((totalFrames - activeEnd) / totalFrames) * 340}" height="10" fill="#6d28d9" />
-        <circle cx="${20 + ((f - 0.5) / totalFrames) * 340}" cy="195" r="7" fill="#fbbf24" stroke="#090d16" stroke-width="2" />
-      </svg>
+        <div class="hb-stage-floor" style="bottom:32px;"></div>
+
+        <!-- Barra de línea temporal de Frames en la base del escenario -->
+        <div style="position:absolute;bottom:8px;left:14px;right:14px;height:14px;background:#07090f;border-radius:6px;overflow:hidden;display:flex;border:1px solid rgba(255,255,255,0.14);z-index:6;">
+          <div style="width:${((activeStart - 1) / totalFrames) * 100}%;background:#15803d;" title="Startup"></div>
+          <div style="width:${((activeEnd - activeStart + 1) / totalFrames) * 100}%;background:#e11d48;" title="Hitbox Activa"></div>
+          <div style="width:${((totalFrames - activeEnd) / totalFrames) * 100}%;background:#6d28d9;" title="Recovery"></div>
+        </div>
+        <div style="position:absolute;bottom:6px;left:calc(14px + (100% - 28px) * ${(f - 0.5) / totalFrames});width:6px;height:18px;background:#fbbf24;border-radius:3px;transform:translateX(-50%);z-index:7;box-shadow:0 0 8px #fbbf24;"></div>
+      </div>
     `;
   }
 
@@ -1227,6 +1304,7 @@ function renderQuizRecommendations(container, activeBank) {
                       data-charimg="${ch.id}"
                       src="${cachedSrc}"
                       alt="${ch.name}"
+                      referrerpolicy="no-referrer"
                       onload="window.handlePortraitLoad(this)"
                       onerror="window.handlePortraitError(this, '${game.id}', '${ch.id}', '${safeName}', '${fallbackSrc}')"
                     />

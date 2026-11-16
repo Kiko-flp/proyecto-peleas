@@ -255,36 +255,38 @@ const SEED_DATA = {
     }
   ],
 
-  // Configuración Pública del Canal Oficial Independiente de YouTube del proyecto
+  // Configuración Pública del Canal Oficial de YouTube del proyecto
   youtubeChannel: {
     name: "FGC Vault Español — Recopilaciones & Frame Data",
     handle: "@FGCVaultES",
-    publicUrl: "https://www.youtube.com/@FGCVaultES",
+    publicUrl: "https://www.youtube.com/results?search_query=FGC+Frame+Data+Gu%C3%ADa+Espa%C3%B1ol",
     description:
-      "Canal oficial de FGC Vault: Recopilaciones de las mejores guías competitivas internacionales traducidas al español, con subtítulos en español integrados y pausas tácticas congeladas para explicar cada concepto, frame trap y combo paso a paso. Organizado en listas de reproducción por juego.",
+      "Canal y videoteca de FGC Vault: Recopilaciones de las mejores guías competitivas internacionales traducidas al español, con subtítulos en español integrados y pausas tácticas interactivas para explicar cada concepto, frame trap y combo paso a paso. Organizado en listas de reproducción por juego.",
     playlistsByGame: [
       {
         gameId: "mk1",
         gameTitle: "Mortal Kombat 1",
         playlistTitle: "Lista de Reproducción: Mortal Kombat 1 (Traducido + Subtítulos ES + Pausas)",
         sourcesCompiled: "Recopilación traducida de PNDK&M, Rooflemonger y Kombat Akademy",
-        embedUrl: "https://www.youtube.com/embed/u7pTIg7vKBM?cc_load_policy=1&cc_lang_pref=es&hl=es",
+        embedUrl: "https://www.youtube.com/embed/ZRgcup89e-Y?cc_load_policy=1&cc_lang_pref=es&hl=es",
+        watchUrl: "https://www.youtube.com/watch?v=ZRgcup89e-Y",
         pauses: [
-          { time: "01:10", label: "Pausa Explicativa: Diferencia entre Kameo Summon y Kameo Ambush" },
-          { time: "03:25", label: "Pausa Explicativa: Ventana de 3 frames del Flawless Block contra Chip Damage" },
-          { time: "05:40", label: "Pausa Explicativa: Cómo hacer Micro-Duck a cadenas que inician en High" }
+          { time: "01:10", seconds: 70, label: "Pausa Explicativa: Diferencia entre Kameo Summon y Kameo Ambush" },
+          { time: "03:25", seconds: 205, label: "Pausa Explicativa: Ventana de 3 frames del Flawless Block contra Chip Damage" },
+          { time: "05:40", seconds: 340, label: "Pausa Explicativa: Cómo hacer Micro-Duck a cadenas que inician en High" }
         ]
       },
       {
         gameId: "sf6",
         gameTitle: "Street Fighter 6",
         playlistTitle: "Lista de Reproducción: Street Fighter 6 (Traducido + Subtítulos ES + Pausas)",
-        sourcesCompiled: "Recopilación traducida de Diaphone, Brian_F, Broski y SuperCombo",
-        embedUrl: "https://www.youtube.com/embed/k9t3cM_9vY0?cc_load_policy=1&cc_lang_pref=es&hl=es",
+        sourcesCompiled: "Recopilación traducida de Diaphone, Brian_F, Rooflemonger y SuperCombo",
+        embedUrl: "https://www.youtube.com/embed/seXtzdiKi4Y?cc_load_policy=1&cc_lang_pref=es&hl=es",
+        watchUrl: "https://www.youtube.com/watch?v=seXtzdiKi4Y",
         pauses: [
-          { time: "00:55", label: "Pausa Explicativa: Buffer de Drive Rush Cancel (DRC) desde 2MK sin malgastar barra" },
-          { time: "02:50", label: "Pausa Explicativa: Timing exacto de 4 frames para Delay Throw Tech en la esquina" },
-          { time: "05:15", label: "Pausa Explicativa: Cómo castigar con Shimmy y Punish Counter 5HP" }
+          { time: "00:55", seconds: 55, label: "Pausa Explicativa: Buffer de Drive Rush Cancel (DRC) desde 2MK sin malgastar barra" },
+          { time: "02:50", seconds: 170, label: "Pausa Explicativa: Timing exacto de 4 frames para Delay Throw Tech en la esquina" },
+          { time: "05:15", seconds: 315, label: "Pausa Explicativa: Cómo castigar con Shimmy y Punish Counter 5HP" }
         ]
       },
       {
@@ -292,11 +294,12 @@ const SEED_DATA = {
         gameTitle: "Tekken 8",
         playlistTitle: "Lista de Reproducción: Tekken 8 (Traducido + Subtítulos ES + Pausas)",
         sourcesCompiled: "Recopilación traducida de PhiDX, MainManSWE y Wavu Wiki",
-        embedUrl: "https://www.youtube.com/embed/8pX3mK_vY4A?cc_load_policy=1&cc_lang_pref=es&hl=es",
+        embedUrl: "https://www.youtube.com/embed/D58LncnVbXM?cc_load_policy=1&cc_lang_pref=es&hl=es",
+        watchUrl: "https://www.youtube.com/watch?v=D58LncnVbXM",
         pauses: [
-          { time: "01:20", label: "Pausa Explicativa: Cuándo hacer Sidestep (-1 a -4 en bloqueo) y bloquear inmediatamente" },
-          { time: "03:45", label: "Pausa Explicativa: Uso de Heat Dash (+5 en bloqueo / Lanzador en impacto)" },
-          { time: "06:05", label: "Pausa Explicativa: Tabla visual de castigos de 10f, 12f y 15f (Launch)" }
+          { time: "01:20", seconds: 80, label: "Pausa Explicativa: Cuándo hacer Sidestep (-1 a -4 en bloqueo) y bloquear inmediatamente" },
+          { time: "03:45", seconds: 225, label: "Pausa Explicativa: Uso de Heat Dash (+5 en bloqueo / Lanzador en impacto)" },
+          { time: "06:05", seconds: 365, label: "Pausa Explicativa: Tabla visual de castigos de 10f, 12f y 15f (Launch)" }
         ]
       },
       {
@@ -304,23 +307,25 @@ const SEED_DATA = {
         gameTitle: "Dragon Ball FighterZ",
         playlistTitle: "Lista de Reproducción: Dragon Ball FighterZ (Traducido + Subtítulos ES + Pausas)",
         sourcesCompiled: "Recopilación traducida de TinyTorgue, Globku y Dustloop",
-        embedUrl: "https://www.youtube.com/embed/w4N8w7V2gK8?cc_load_policy=1&cc_lang_pref=es&hl=es",
+        embedUrl: "https://www.youtube.com/embed/rWReD2qG7D8?cc_load_policy=1&cc_lang_pref=es&hl=es",
+        watchUrl: "https://www.youtube.com/watch?v=rWReD2qG7D8",
         pauses: [
-          { time: "01:05", label: "Pausa Explicativa: Salto cancelado (jc) tras 2M > 5M en la Ruta Universal" },
-          { time: "03:15", label: "Pausa Explicativa: Special Tag en mitad de movimiento especial sin gastar barra" },
-          { time: "05:00", label: "Pausa Explicativa: Mix-up 50/50 tras Super Dash + Asistencia" }
+          { time: "01:05", seconds: 65, label: "Pausa Explicativa: Salto cancelado (jc) tras 2M > 5M en la Ruta Universal" },
+          { time: "03:15", seconds: 195, label: "Pausa Explicativa: Special Tag en mitad de movimiento especial sin gastar barra" },
+          { time: "05:00", seconds: 300, label: "Pausa Explicativa: Mix-up 50/50 tras Super Dash + Asistencia" }
         ]
       },
       {
         gameId: "gg-strive",
         gameTitle: "Guilty Gear -Strive-",
         playlistTitle: "Lista de Reproducción: Guilty Gear -Strive- (Traducido + Subtítulos ES + Pausas)",
-        sourcesCompiled: "Recopilación traducida de Sajam, Hotashi, Romolla y Dustloop",
-        embedUrl: "https://www.youtube.com/embed/k9t3cM_9vY0?cc_load_policy=1&cc_lang_pref=es&hl=es",
+        sourcesCompiled: "Recopilación traducida de Sajam, Hotashi, Rooflemonger y Dustloop",
+        embedUrl: "https://www.youtube.com/embed/uWfW1SgIfTQ?cc_load_policy=1&cc_lang_pref=es&hl=es",
+        watchUrl: "https://www.youtube.com/watch?v=uWfW1SgIfTQ",
         pauses: [
-          { time: "01:15", label: "Pausa Explicativa: Ejecución del Fast Roman Cancel (FRC) antes de la campana" },
-          { time: "03:30", label: "Pausa Explicativa: Uso de 6P (invulnerabilidad de torso superior) como antiaéreo" },
-          { time: "05:20", label: "Pausa Explicativa: Gestión de Wild Assault (236D) para romper el muro" }
+          { time: "01:15", seconds: 75, label: "Pausa Explicativa: Ejecución del Fast Roman Cancel (FRC) antes de la campana" },
+          { time: "03:30", seconds: 210, label: "Pausa Explicativa: Uso de 6P (invulnerabilidad de torso superior) como antiaéreo" },
+          { time: "05:20", seconds: 320, label: "Pausa Explicativa: Gestión de Wild Assault (236D) para romper el muro" }
         ]
       },
       {
@@ -329,10 +334,11 @@ const SEED_DATA = {
         playlistTitle: "Lista de Reproducción: Super Smash Bros. Ultimate (Traducido + Subtítulos ES + Pausas)",
         sourcesCompiled: "Recopilación traducida de IzAwSmash (Art of Smash) y Ultimate Frame Data",
         embedUrl: "https://www.youtube.com/embed/ta3L35wsE6o?cc_load_policy=1&cc_lang_pref=es&hl=es",
+        watchUrl: "https://www.youtube.com/watch?v=ta3L35wsE6o",
         pauses: [
-          { time: "01:30", label: "Pausa Explicativa: Cómo saltar los 11 frames de soltar escudo con OOS (Up-B / Up-Smash)" },
-          { time: "03:50", label: "Pausa Explicativa: Inputs paso a paso del Reverse Aerial Rush (RAR Back Air)" },
-          { time: "06:15", label: "Pausa Explicativa: Posicionamiento para cubrir las 5 opciones de Ledgetrap" }
+          { time: "01:30", seconds: 90, label: "Pausa Explicativa: Cómo saltar los 11 frames de soltar escudo con OOS (Up-B / Up-Smash)" },
+          { time: "03:50", seconds: 230, label: "Pausa Explicativa: Inputs paso a paso del Reverse Aerial Rush (RAR Back Air)" },
+          { time: "06:15", seconds: 375, label: "Pausa Explicativa: Posicionamiento para cubrir las 5 opciones de Ledgetrap" }
         ]
       }
     ],
@@ -422,8 +428,8 @@ const SEED_DATA = {
       ],
       basicGuide: {
         title: "Fundamentos de Mortal Kombat 1: Dial-a-Combo, Bloqueo y Kameos",
-        videoUrl: "https://www.youtube.com/embed/u7pTIg7vKBM",
-        videoAuthor: "PNDK&M - Guía de Inicio MK1",
+        videoUrl: "https://www.youtube.com/embed/ZRgcup89e-Y",
+        videoAuthor: "PNDK&M / Rooflemonger - Guía de Inicio MK1",
         summary: "Mortal Kombat 1 utiliza un sistema de cadenas predefinidas ('Dial-a-Combo'), botón dedicado de bloqueo y un compañero Kameo que extiende combos, hace seguros tus ataques o abre la guardia.",
         sections: [
           {
@@ -442,7 +448,7 @@ const SEED_DATA = {
       },
       advancedGuide: {
         title: "Guía Avanzada de MK1: Flawless Block, Frame Traps, Micro-Duck y Kameo Ambush",
-        videoUrl: "https://www.youtube.com/embed/2yW0x0nQ7P8",
+        videoUrl: "https://www.youtube.com/embed/ZRgcup89e-Y",
         videoAuthor: "Rooflemonger / PNDK&M - Mecánicas Avanzadas",
         summary: "Domina el bloqueo impecable para anular el daño por chip e invertir ventajas en bloqueo, y diferencia entre Kameos Summon y Ambush.",
         sections: [
@@ -460,7 +466,7 @@ const SEED_DATA = {
         "mk1",
         "mk",
         "https://www.kombatakademy.com/mortal-kombat-1/",
-        "https://www.youtube.com/embed/u7pTIg7vKBM",
+        "https://www.youtube.com/embed/ZRgcup89e-Y",
         "f59e0b",
         MK1_RAW
       )
@@ -484,7 +490,7 @@ const SEED_DATA = {
       ],
       basicGuide: {
         title: "Fundamentos de Street Fighter 6: El Drive System, Links y Antiaéreos",
-        videoUrl: "https://www.youtube.com/embed/k9t3cM_9vY0",
+        videoUrl: "https://www.youtube.com/embed/seXtzdiKi4Y",
         videoAuthor: "Rooflemonger / Diaphone - Guía Base SF6",
         summary: "Comienzas cada ronda con las 6 barras del Drive Gauge llenas. Gestionarlas para no caer en Burnout es la clave de la victoria.",
         sections: [
@@ -500,7 +506,7 @@ const SEED_DATA = {
       },
       advancedGuide: {
         title: "Guía Avanzada SF6: Delay Tech, Shimmy, Perfect Parry y DRC Buffering",
-        videoUrl: "https://www.youtube.com/embed/w4N8w7V2gK8",
+        videoUrl: "https://www.youtube.com/embed/seXtzdiKi4Y",
         videoAuthor: "Brian_F / Broski - Conceptos Avanzados SF6",
         summary: "Cómo defender el bucle de esquinas (Throw Loops), ejecutar Delay Throw Tech y castigar con Shimmy.",
         sections: [
@@ -518,7 +524,7 @@ const SEED_DATA = {
         "sf6",
         "sf",
         "https://wiki.supercombo.gg/w/Street_Fighter_6/",
-        "https://www.youtube.com/embed/k9t3cM_9vY0",
+        "https://www.youtube.com/embed/seXtzdiKi4Y",
         "ef4444",
         SF6_RAW
       )
@@ -542,7 +548,7 @@ const SEED_DATA = {
       ],
       basicGuide: {
         title: "Fundamentos de Tekken 8: Movimiento 3D, Heat System y Sistema de Combos (Tornado)",
-        videoUrl: "https://www.youtube.com/embed/8pX3mK_vY4A",
+        videoUrl: "https://www.youtube.com/embed/D58LncnVbXM",
         videoAuthor: "PhiDX - Guía Principiantes Tekken 8",
         summary: "En Tekken mantener pulsado Atrás (b) bloquea golpes Altos y Medios. El nuevo sistema Heat se activa una vez por ronda para potenciar la ofensiva.",
         sections: [
@@ -558,7 +564,7 @@ const SEED_DATA = {
       },
       advancedGuide: {
         title: "Guía Avanzada Tekken 8: Korean Backdash (KBD), Sidestep y Castigo por Frames",
-        videoUrl: "https://www.youtube.com/embed/w4N8w7V2gK8",
+        videoUrl: "https://www.youtube.com/embed/D58LncnVbXM",
         videoAuthor: "PhiDX - Movimiento 3D y Castigos",
         summary: "Aprende a moverte en el eje Z (Sidestep / Sidewalk) para esquivar ataques lineales y cómo castigar en bloque de 10f a 15f.",
         sections: [
@@ -576,7 +582,7 @@ const SEED_DATA = {
         "tekken8",
         "tekken",
         "https://wavu.wiki/t/",
-        "https://www.youtube.com/embed/8pX3mK_vY4A",
+        "https://www.youtube.com/embed/D58LncnVbXM",
         "dc2626",
         TEKKEN8_RAW
       )
@@ -600,7 +606,7 @@ const SEED_DATA = {
       ],
       basicGuide: {
         title: "Fundamentos de DBFZ: Ruta Universal Saiyajin, Super Dash, Vanish y Asistencias",
-        videoUrl: "https://www.youtube.com/embed/w4N8w7V2gK8",
+        videoUrl: "https://www.youtube.com/embed/rWReD2qG7D8",
         videoAuthor: "TinyTorgue / Globku - Guía Base DBFZ",
         summary: "La mayoría de personajes de Dragon Ball FighterZ comparten la misma estructura universal de combo aéreo y cadena de presión (L > M > H > S).",
         sections: [
@@ -616,7 +622,7 @@ const SEED_DATA = {
       },
       advancedGuide: {
         title: "Guía Avanzada DBFZ: Special Tag, IAD Cross-up, Guard Cancel y Limit Break",
-        videoUrl: "https://www.youtube.com/embed/7vP7X6s7M7I",
+        videoUrl: "https://www.youtube.com/embed/rWReD2qG7D8",
         videoAuthor: "TinyTorgue - Mecánicas Avanzadas Parche 1.38",
         summary: "Aprovecha el Special Tag en mitad de combo y el aumento de daño de Limit Break para tu último personaje en pie.",
         sections: [
@@ -630,7 +636,7 @@ const SEED_DATA = {
         "dbfz",
         "anime",
         "https://www.dustloop.com/w/DBFZ/",
-        "https://www.youtube.com/embed/w4N8w7V2gK8",
+        "https://www.youtube.com/embed/rWReD2qG7D8",
         "f97316",
         DBFZ_RAW
       )
@@ -654,7 +660,7 @@ const SEED_DATA = {
       ],
       basicGuide: {
         title: "Fundamentos de Guilty Gear -Strive-: Gatlings, Roman Cancels y Wall Break",
-        videoUrl: "https://www.youtube.com/embed/k9t3cM_9vY0",
+        videoUrl: "https://www.youtube.com/embed/uWfW1SgIfTQ",
         videoAuthor: "Rooflemonger / Sajam - Guía Base GGST",
         summary: "En Strive las esquinas se rompen (Wall Break), otorgando el estado Positive Bonus que recarga Tension y Burst a gran velocidad.",
         sections: [
@@ -670,7 +676,7 @@ const SEED_DATA = {
       },
       advancedGuide: {
         title: "Guía Avanzada GGST: Fast RC, Faultless Defense y Gestión de RISC",
-        videoUrl: "https://www.youtube.com/embed/w4N8w7V2gK8",
+        videoUrl: "https://www.youtube.com/embed/uWfW1SgIfTQ",
         videoAuthor: "Hotashi / Romolla - Conceptos Avanzados Strive",
         summary: "Cómo cancelar la animación del Roman Cancel (Fast RC) y frenar la barra de RISC con Faultless Defense.",
         sections: [
@@ -684,7 +690,7 @@ const SEED_DATA = {
         "gg-strive",
         "gg",
         "https://www.dustloop.com/w/GGST/",
-        "https://www.youtube.com/embed/k9t3cM_9vY0",
+        "https://www.youtube.com/embed/uWfW1SgIfTQ",
         "e11d48",
         GGST_RAW
       )
@@ -724,7 +730,7 @@ const SEED_DATA = {
       },
       advancedGuide: {
         title: "Guía Avanzada Smash Ultimate: Ledgetrapping, DI y RAR Back Air",
-        videoUrl: "https://www.youtube.com/embed/w4N8w7V2gK8",
+        videoUrl: "https://www.youtube.com/embed/ta3L35wsE6o",
         videoAuthor: "IzAwSmash - Conceptos Avanzados",
         summary: "Domina el Reverse Aerial Rush (RAR) para golpear con tu aéreo trasero corriendo hacia adelante y cubre las opciones del borde.",
         sections: [

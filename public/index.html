@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="referrer" content="no-referrer" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
   <title>FGC Vault — Enciclopedia y Guías de Juegos de Lucha</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=17" />
+  <link rel="stylesheet" href="/styles.css?v=18" />
 </head>
 <body>
   <!-- BARRA DE NAVEGACIÓN MINIMALISTA DE DISEÑO EDITORIAL -->
@@ -89,6 +89,18 @@
 
       <!-- CATÁLOGO VISUAL DE JUEGOS -->
       <div class="games-grid" id="gamesGridContainer"></div>
+
+      <!-- BLOQUE DESTACADO DEL CANAL DE YOUTUBE EN PORTADA -->
+      <div class="home-news-preview" id="homeYoutubePreviewBlock">
+        <div class="section-heading-bar">
+          <div>
+            <h2>Canal de YouTube — Recopilaciones en Español con Pausas Tácticas</h2>
+            <span>Vídeos traducidos con subtítulos en español (CC) y pausas interactivas explicadas paso a paso</span>
+          </div>
+          <button class="btn btn-primary" id="btnHomeOpenYoutubeView">Abrir Canal y Listas de Reproducción ➔</button>
+        </div>
+        <div class="news-grid" id="homeYoutubePreviewGrid"></div>
+      </div>
 
       <!-- AVANCE LIMPIO DE NOTICIAS Y TORNEOS EN PORTADA -->
       <div class="home-news-preview">
@@ -505,6 +517,15 @@
         </div>
       </div>
     </section>
+
+    <!-- VISTA 3: PÁGINA COMPLETA DEL CANAL DE YOUTUBE (CON LISTAS POR JUEGO Y PAUSAS INTERACTIVAS) -->
+    <section id="youtubeView" class="hidden">
+      <div class="breadcrumb-bar">
+        <button class="btn-back" id="btnBackFromYoutube">← Volver a Juegos</button>
+        <span class="breadcrumb-hint">Videoteca oficial con subtítulos en español y pausas explicativas</span>
+      </div>
+      <div id="youtubePageContainer"></div>
+    </section>
   </main>
 
   <!-- MODAL: GUÍA INDIVIDUAL DE UN PERSONAJE -->
@@ -562,7 +583,7 @@
     </div>
   </div>
 
-  <script src="/features.js?v=17"></script>
-  <script src="/app.js?v=17"></script>
+  <script src="/features.js?v=18"></script>
+  <script src="/app.js?v=18"></script>
 </body>
 </html>

@@ -397,7 +397,7 @@ function switchGameSubpage(subpageId) {
 // CARGA INICIAL Y RENDERIZADO PRINCIPAL
 // =========================================================================
 function setActiveTopNav(activeId) {
-  ["btnNavHome", "btnOpenToolsView", "btnOpenNewsView", "btnOpenCommunityView"].forEach((id) => {
+  ["btnNavHome", "btnOpenToolsView", "btnOpenNewsView", "btnOpenCommunityView", "btnOpenYoutubeModal"].forEach((id) => {
     const el = document.getElementById(id);
     if (el) el.classList.toggle("active", id === activeId);
   });
@@ -525,6 +525,7 @@ function openCommunityPage() {
   document.getElementById("gameDetailView").classList.add("hidden");
   document.getElementById("newsView").classList.add("hidden");
   document.getElementById("toolsView")?.classList.add("hidden");
+  document.getElementById("youtubeView")?.classList.add("hidden");
   document.getElementById("communityView").classList.remove("hidden");
   window.scrollTo({ top: 0, behavior: "smooth" });
   renderCommunitySection();
@@ -537,6 +538,7 @@ function openToolsPage(initialTab = "tool-quiz", quizMode = "general") {
   document.getElementById("gameDetailView").classList.add("hidden");
   document.getElementById("newsView").classList.add("hidden");
   document.getElementById("communityView").classList.add("hidden");
+  document.getElementById("youtubeView")?.classList.add("hidden");
   document.getElementById("toolsView")?.classList.remove("hidden");
 
   document.querySelectorAll("[data-tooltab]").forEach((btn) => {
@@ -759,6 +761,7 @@ function openNewsPage() {
   document.getElementById("gameDetailView").classList.add("hidden");
   document.getElementById("communityView").classList.add("hidden");
   document.getElementById("toolsView")?.classList.add("hidden");
+  document.getElementById("youtubeView")?.classList.add("hidden");
   document.getElementById("newsView").classList.remove("hidden");
   window.scrollTo({ top: 0, behavior: "smooth" });
   renderNewsSections();
@@ -870,6 +873,7 @@ function renderQuickSearch() {
                   data-charimg="${ch.id}"
                   src="${cachedSrc}"
                   alt="${ch.name}"
+                  referrerpolicy="no-referrer"
                   loading="lazy"
                   onload="window.handlePortraitLoad(this)"
                   onerror="window.handlePortraitError(this, '${game.id}', '${ch.id}', '${safeName}', '${fallbackSrc}')"
@@ -967,10 +971,12 @@ function openGameHub(gameId, initialSubpage = "page-basic") {
   const inGameInput = document.getElementById("inGameCharSearch");
   if (inGameInput) inGameInput.value = "";
 
+  setActiveTopNav("btnNavHome");
   document.getElementById("homeView").classList.add("hidden");
   document.getElementById("newsView").classList.add("hidden");
   document.getElementById("communityView").classList.add("hidden");
   document.getElementById("toolsView")?.classList.add("hidden");
+  document.getElementById("youtubeView")?.classList.add("hidden");
   document.getElementById("gameDetailView").classList.remove("hidden");
 
   renderGameDetailView(gameId);
@@ -1124,6 +1130,7 @@ function buildCharacterCardHTML(game, ch) {
           data-charimg="${ch.id}"
           src="${cachedSrc}"
           alt="${ch.name}"
+          referrerpolicy="no-referrer"
           loading="lazy"
           onload="window.handlePortraitLoad(this)"
           onerror="window.handlePortraitError(this, '${game.id}', '${ch.id}', '${safeName}', '${fallbackSrc}')"
@@ -1191,6 +1198,149 @@ function renderGuideSplit(containerId, guideObj, badgeLabel, sources) {
 }
 
 // =========================================================================
+// GENERADOR DE ESCENARIO DE HITBOX CON EL PERSONAJE REAL DEL JUEGO + CAJAS
+// Muestra al luchador real con sus cajas de Hurtbox (Verde), Pushbox (Amarilla)
+// y Hitbox activa (Roja/Morada) según el tipo y altura del ataque.
+// =========================================================================
+function buildCharacterHitboxStageHTML(game, ch, fc) {
+  const cachedSrc = clientPortraitCache.get(ch.id) || ch.iconUrl;
+  const fallbackSrc = (ch.fallbackIconUrl || ch.iconUrl).replace(/'/g, "\\'");
+  const safeName = ch.name.replace(/'/g, "\\'");
+  const rawDesc = `${fc.moveName || ""} ${fc.input || ""} ${fc.category || ""} ${fc.hitboxGifUrl || ""}`.toLowerCase();
+
+  const actMatch = String(fc.active || "").match(/(\d+(?:–|-)\d+|\d+)/);
+  const actWindow = actMatch ? actMatch[1] : "Activa";
+
+  // Determinar la geometría de las cajas de Hitbox y Hurtbox extendida según el ataque
+  let hitBoxesHTML = "";
+  let extendedHurtHTML = `<div class="hb-box-hurt" style="bottom:52px;left:74px;width:44px;height:20px;"></div>`;
+
+  if (
+    rawDesc.includes("low") ||
+    rawDesc.includes("sweep") ||
+    rawDesc.includes("dtilt") ||
+    rawDesc.includes("d-tilt") ||
+    rawDesc.includes("dsmash") ||
+    rawDesc.includes("2mk") ||
+    rawDesc.includes("2lk") ||
+    rawDesc.includes("2hk") ||
+    rawDesc.includes("2k") ||
+    rawDesc.includes("2d") ||
+    rawDesc.includes("2m") ||
+    rawDesc.includes("d+3") ||
+    rawDesc.includes("d+4") ||
+    rawDesc.includes("b+4")
+  ) {
+    // Ataque Bajo (Low / Sweep): Cajas de Hitbox a ras de suelo
+    extendedHurtHTML = `<div class="hb-box-hurt" style="bottom:16px;left:70px;width:54px;height:18px;"></div>`;
+    hitBoxesHTML = `
+      <div class="hb-box-hit" style="bottom:14px;left:88px;width:68px;height:24px;">HITBOX LOW</div>
+      <div class="hb-box-hit" style="bottom:18px;left:134px;width:42px;height:20px;"></div>
+    `;
+  } else if (
+    rawDesc.includes("anti-air") ||
+    rawDesc.includes("up ") ||
+    rawDesc.includes("u-tilt") ||
+    rawDesc.includes("u-smash") ||
+    rawDesc.includes("uair") ||
+    rawDesc.includes("623") ||
+    rawDesc.includes("2hp") ||
+    rawDesc.includes("2h") ||
+    rawDesc.includes("6p") ||
+    rawDesc.includes("d+2") ||
+    rawDesc.includes("df+2") ||
+    rawDesc.includes("uf+4")
+  ) {
+    // Antiaéreo / Launcher Vertical: Cajas de Hitbox elevadas cubriendo salto rival
+    extendedHurtHTML = `<div class="hb-box-hurt" style="bottom:68px;left:66px;width:32px;height:42px;"></div>`;
+    hitBoxesHTML = `
+      <div class="hb-box-hit" style="bottom:68px;left:84px;width:52px;height:48px;">HITBOX AA</div>
+      <div class="hb-box-hit" style="bottom:48px;left:72px;width:44px;height:32px;"></div>
+    `;
+  } else if (
+    rawDesc.includes("proj") ||
+    rawDesc.includes("236") ||
+    rawDesc.includes("bf+1") ||
+    rawDesc.includes("neutral b") ||
+    rawDesc.includes("5s")
+  ) {
+    // Proyectil / Ataque Especial a Distancia: Caja de Hitbox viajando hacia adelante
+    hitBoxesHTML = `
+      <div class="hb-box-hit hb-box-proj" style="bottom:44px;left:108px;width:58px;height:36px;">PROYECTIL</div>
+    `;
+  } else if (
+    rawDesc.includes("throw") ||
+    rawDesc.includes("grab") ||
+    rawDesc.includes("lp+lk") ||
+    rawDesc.includes("1+3") ||
+    rawDesc.includes("uf+1+2") ||
+    rawDesc.includes("dragon rush")
+  ) {
+    // Agarre / Throw Box: Caja morada imbloqueable a corta distancia
+    hitBoxesHTML = `
+      <div class="hb-box-hit hb-box-throw" style="bottom:42px;left:76px;width:52px;height:48px;">THROW BOX</div>
+    `;
+  } else if (
+    rawDesc.includes("super") ||
+    rawDesc.includes("smash") ||
+    rawDesc.includes("fatal") ||
+    rawDesc.includes("rage art") ||
+    rawDesc.includes("heat") ||
+    rawDesc.includes("overdrive") ||
+    rawDesc.includes("drive impact")
+  ) {
+    // Super / Smash / Drive Impact: Multicaja masiva de impacto
+    extendedHurtHTML = `<div class="hb-box-hurt" style="bottom:40px;left:72px;width:52px;height:38px;"></div>`;
+    hitBoxesHTML = `
+      <div class="hb-box-hit" style="bottom:32px;left:84px;width:76px;height:58px;">HITBOX</div>
+      <div class="hb-box-hit" style="bottom:42px;left:132px;width:52px;height:44px;"></div>
+    `;
+  } else {
+    // Golpe Normal Medio/Alto Estándar (Jab, Mid Poke, Kick, Aerial)
+    hitBoxesHTML = `
+      <div class="hb-box-hit" style="bottom:48px;left:86px;width:62px;height:30px;">HITBOX</div>
+      <div class="hb-box-hit" style="bottom:52px;left:128px;width:38px;height:24px;"></div>
+    `;
+  }
+
+  return `
+    <div class="hb-char-stage">
+      <div class="hb-stage-hud">
+        <span>${ch.name} • ${fc.input} (${actWindow}f)</span>
+        <span class="hb-legend-dots">
+          <span class="hb-dot-hurt">■ Hurtbox</span>
+          <span class="hb-dot-hit">■ Hitbox</span>
+        </span>
+      </div>
+
+      <!-- Personaje real del juego -->
+      <div class="hb-char-actor-wrap">
+        <img
+          class="hb-char-actor"
+          data-charimg="${ch.id}"
+          src="${cachedSrc}"
+          alt="${ch.name}"
+          referrerpolicy="no-referrer"
+          loading="lazy"
+          onload="window.handlePortraitLoad(this)"
+          onerror="window.handlePortraitError(this, '${game.id}', '${ch.id}', '${safeName}', '${fallbackSrc}')"
+        />
+      </div>
+
+      <!-- Cajas de Hurtbox (Verde) y Pushbox (Amarilla) sobre el cuerpo del personaje -->
+      <div class="hb-box-hurt" style="bottom:16px;left:22px;width:58px;height:86px;" title="Hurtbox Principal de ${ch.name}"></div>
+      <div class="hb-box-push" style="bottom:20px;left:32px;width:38px;height:66px;" title="Pushbox de Colisión"></div>
+      ${extendedHurtHTML}
+
+      <!-- Cajas de Hitbox Activas (Rojo / Morado) del ataque -->
+      ${hitBoxesHTML}
+
+      <div class="hb-stage-floor"></div>
+    </div>
+  `;
+}
+
+// =========================================================================
 // MODAL DE GUÍA INDIVIDUAL DE PERSONAJE
 // =========================================================================
 function openCharacterModal(gameId, charId) {
@@ -1224,8 +1374,16 @@ function openCharacterModal(gameId, charId) {
         <div class="ufd-section-banner">${catName}</div>
         <div class="ufd-cards-grid">
           ${cardsInCat
-            .map(
-              (fc) => `
+            .map((fc) => {
+              const inspectorPayload = {
+                ...fc,
+                charId: ch.id,
+                charName: ch.name,
+                gameId: game.id,
+                charImgUrl: clientPortraitCache.get(ch.id) || ch.iconUrl,
+                fallbackSrc: ch.fallbackIconUrl || ch.iconUrl
+              };
+              return `
               <div class="ufd-card">
                 <div class="ufd-card-title">
                   <span>${fc.moveName}</span>
@@ -1241,21 +1399,17 @@ function openCharacterModal(gameId, charId) {
                 <div class="ufd-bar ufd-bar-onblock">${fc.onBlock}</div>
                 <div
                   class="ufd-hitbox-box"
-                  title="Haz clic para abrir el Inspector de Hitbox Frame a Frame"
-                  onclick="window.openHitboxInspector('${encodeURIComponent(JSON.stringify(fc))}')"
+                  title="Haz clic para abrir el Inspector de Hitbox Frame a Frame con ${ch.name}"
+                  onclick="window.openHitboxInspector('${encodeURIComponent(JSON.stringify(inspectorPayload))}')"
                 >
-                  <img
-                    src="${fc.hitboxGifUrl || `/api/hitbox-anim?move=${encodeURIComponent(fc.moveName)}`}"
-                    alt="Hitbox de ${fc.moveName}"
-                    loading="lazy"
-                  />
-                  <div class="ufd-hitbox-caption">🔍 Clic para Inspeccionar Hitbox Frame a Frame</div>
+                  ${buildCharacterHitboxStageHTML(game, ch, fc)}
+                  <div class="ufd-hitbox-caption">🔍 Inspeccionar Hitbox Frame a Frame</div>
                 </div>
                 <div class="ufd-card-notes">${fc.notes}</div>
                 <div class="ufd-card-footer">${fc.totalFrames}</div>
               </div>
-            `
-            )
+            `;
+            })
             .join("")}
         </div>
       `;
@@ -1287,6 +1441,7 @@ function openCharacterModal(gameId, charId) {
                   data-charimg="${m.opponentId || ""}"
                   src="${oppSrc}"
                   alt="${m.opponentName}"
+                  referrerpolicy="no-referrer"
                   onload="window.handlePortraitLoad(this)"
                   onerror="window.handlePortraitError(this, '${game.id}', '${m.opponentId || ""}', '${oppSafeName}', '${m.opponentIcon}')"
                 />
@@ -1317,6 +1472,7 @@ function openCharacterModal(gameId, charId) {
                   data-charimg="${m.opponentId || ""}"
                   src="${oppSrc}"
                   alt="${m.opponentName}"
+                  referrerpolicy="no-referrer"
                   onload="window.handlePortraitLoad(this)"
                   onerror="window.handlePortraitError(this, '${game.id}', '${m.opponentId || ""}', '${oppSafeName}', '${m.opponentIcon}')"
                 />
@@ -1340,6 +1496,7 @@ function openCharacterModal(gameId, charId) {
           data-charimg="${ch.id}"
           src="${cachedSrc}"
           alt="${ch.name}"
+          referrerpolicy="no-referrer"
           onload="window.handlePortraitLoad(this)"
           onerror="window.handlePortraitError(this, '${game.id}', '${ch.id}', '${safeName}', '${fallbackSrc}')"
         />
@@ -1523,75 +1680,170 @@ function openCharacterModal(gameId, charId) {
 }
 
 // =========================================================================
-// MODAL PÚBLICO DEL CANAL DE YOUTUBE (RECOPILACIONES EN ESPAÑOL CON PAUSAS Y LISTAS POR JUEGO)
+// CANAL OFICIAL DE YOUTUBE (VISTA DEDICADA + PREVIEW EN PORTADA + PAUSAS INTERACTIVAS)
 // =========================================================================
-function renderYoutubeModal() {
-  const body = document.getElementById("youtubeModalBody");
-  if (!body || !state.youtubeChannel) return;
+function buildPlaylistCardHTML(pl, prefix = "ytpage") {
+  const iframeId = `${prefix}_iframe_${pl.gameId}`;
+  const overlayId = `${prefix}_overlay_${pl.gameId}`;
+  const watchUrl = pl.watchUrl || pl.embedUrl.replace("/embed/", "/watch?v=").split("?")[0];
 
-  const yt = state.youtubeChannel;
-  const publicUrl = yt.publicUrl || "https://www.youtube.com/@FGCVaultES";
-  const playlistsByGame = yt.playlistsByGame || [];
-
-  body.innerHTML = `
-    <div class="yt-banner-preview" style="justify-content:space-between;flex-wrap:wrap;">
-      <div style="display:flex;align-items:center;gap:16px;max-width:680px;">
-        <div class="yt-avatar-circle">FGC</div>
-        <div>
-          <h3 style="font-family:var(--font-display);font-size:1.35rem;">${yt.name}</h3>
-          <div style="color:#fca5a5;font-family:var(--font-mono);font-size:0.85rem;">${yt.handle} • Subtítulos en Español + Pausas Explicativas</div>
-          <p style="font-size:0.84rem;color:#e2e8f0;margin-top:4px;">${yt.description}</p>
+  return `
+    <div class="video-panel-card" style="display:flex;flex-direction:column;justify-content:space-between;">
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+          <span class="news-cat-badge">${pl.gameTitle}</span>
+          <span class="base-game-badge">Subtítulos ES + Pausas</span>
+        </div>
+        <h4 style="font-family:var(--font-display);font-size:1.05rem;">${pl.playlistTitle}</h4>
+        <p style="font-size:0.79rem;color:#94a3b8;margin-top:3px;">${pl.sourcesCompiled}</p>
+        <div class="video-frame-wrapper">
+          <iframe
+            id="${iframeId}"
+            src="${pl.embedUrl}"
+            title="${pl.playlistTitle}"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+          ></iframe>
+          <div id="${overlayId}" class="video-pause-overlay hidden"></div>
+        </div>
+        <div style="margin-top:10px;">
+          <strong style="font-size:0.76rem;color:#fbbf24;display:block;margin-bottom:6px;">
+            Pausas Tácticas Explicativas en Español (Haz clic para ir a la pausa):
+          </strong>
+          ${(pl.pauses || [])
+            .map((p, idx) => {
+              const parts = String(p.time || "01:00").split(":").map(Number);
+              const secs = p.seconds || (parts.length === 2 ? parts[0] * 60 + parts[1] : 60);
+              return `
+                <div
+                  class="pause-step-box"
+                  style="padding:8px 11px;margin-top:6px;font-size:0.78rem;cursor:pointer;"
+                  data-ytpause-iframe="${iframeId}"
+                  data-ytpause-overlay="${overlayId}"
+                  data-ytpause-url="${pl.embedUrl}"
+                  data-ytpause-time="${p.time}"
+                  data-ytpause-sec="${secs}"
+                  data-ytpause-label="${p.label.replace(/"/g, "&quot;")}"
+                >
+                  <span class="pause-time-badge">⏸ ${p.time}</span>
+                  <span style="color:#e2e8f0;font-weight:500;">${p.label}</span>
+                </div>
+              `;
+            })
+            .join("")}
         </div>
       </div>
-      <div>
+      <div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center;">
+        <button class="btn btn-outline" data-opengamefromyt="${pl.gameId}" style="padding:6px 12px;font-size:0.76rem;">
+          Ir al Hub de ${pl.gameTitle}
+        </button>
+        <a href="${watchUrl}" target="_blank" rel="noopener" class="news-source-link" style="font-size:0.78rem;">
+          Ver en YouTube ➔
+        </a>
+      </div>
+    </div>
+  `;
+}
+
+function attachYoutubePlaylistPauseEvents(container) {
+  if (!container) return;
+  container.querySelectorAll("[data-ytpause-iframe]").forEach((box) => {
+    box.addEventListener("click", () => {
+      const iframeId = box.dataset.ytpauseIframe;
+      const overlayId = box.dataset.ytpauseOverlay;
+      const embedUrl = box.dataset.ytpauseUrl;
+      const pauseObj = {
+        timestamp: box.dataset.ytpauseTime || "01:00",
+        seconds: Number(box.dataset.ytpauseSec || 60),
+        title: `Pausa Táctica Explicativa (${box.dataset.ytpauseTime})`,
+        explanation: box.dataset.ytpauseLabel
+      };
+      if (typeof window.triggerVideoTacticalPauseOverlay === "function") {
+        window.triggerVideoTacticalPauseOverlay(iframeId, overlayId, embedUrl, pauseObj);
+      }
+    });
+  });
+
+  container.querySelectorAll("[data-opengamefromyt]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const gId = btn.dataset.opengamefromyt;
+      document.getElementById("youtubeModalBackdrop")?.classList.add("hidden");
+      openGameHub(gId, "page-basic");
+    });
+  });
+}
+
+function renderYoutubeModal() {
+  if (!state.youtubeChannel) return;
+
+  const yt = state.youtubeChannel;
+  const publicUrl = yt.publicUrl || "https://www.youtube.com/results?search_query=FGC+Frame+Data+Gu%C3%ADa";
+  const playlistsByGame = yt.playlistsByGame || [];
+
+  // 1. Renderizar preview de 3 listas en la portada principal (#homeYoutubePreviewGrid)
+  const homePreviewGrid = document.getElementById("homeYoutubePreviewGrid");
+  if (homePreviewGrid) {
+    homePreviewGrid.innerHTML = playlistsByGame
+      .slice(0, 3)
+      .map((pl) => buildPlaylistCardHTML(pl, "homeyt"))
+      .join("");
+    attachYoutubePlaylistPauseEvents(homePreviewGrid);
+  }
+
+  // 2. Construir el bloque completo del Canal de YouTube para #youtubeView y #youtubeModalBody
+  const fullChannelHTML = (prefix) => `
+    <div class="yt-banner-preview" style="justify-content:space-between;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:16px;max-width:720px;">
+        <div class="yt-avatar-circle">FGC</div>
+        <div>
+          <div class="hero-pill" style="margin-bottom:6px;">VIDEOTECA OFICIAL EN ESPAÑOL</div>
+          <h2 style="font-family:var(--font-display);font-size:1.55rem;">${yt.name}</h2>
+          <div style="color:#fca5a5;font-family:var(--font-mono);font-size:0.84rem;margin-top:2px;">
+            ${yt.handle} • Recopilaciones Traducidas con Subtítulos ES + Pausas Explicativas
+          </div>
+          <p style="font-size:0.86rem;color:#e2e8f0;margin-top:6px;">${yt.description}</p>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <a href="${publicUrl}" target="_blank" rel="noopener" class="btn btn-primary">
-          Abrir Canal en YouTube (${yt.handle}) ➔
+          Buscar más guías en YouTube ➔
         </a>
       </div>
     </div>
 
-    <div class="ufd-section-banner" style="margin-top:6px;">
-      Listas de Reproducción por Juego (Recopilaciones Traducidas al Español con Pausas)
+    <div class="ufd-section-banner" style="margin-top:8px;">
+      Listas de Reproducción por Juego (${playlistsByGame.length} Sagas • Subtítulos en Español y Pausas Interactivas)
     </div>
 
     <div class="news-grid">
-      ${playlistsByGame
-        .map(
-          (pl) => `
-          <div class="video-panel-card">
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
-              <span class="news-cat-badge">${pl.gameTitle}</span>
-              <span class="base-game-badge">Subtítulos ES + Pausas</span>
-            </div>
-            <h4 style="font-family:var(--font-display);font-size:1rem;">${pl.playlistTitle}</h4>
-            <p style="font-size:0.78rem;color:#94a3b8;margin-top:2px;">${pl.sourcesCompiled}</p>
-            <div class="video-frame-wrapper">
-              <iframe
-                src="${pl.embedUrl}"
-                title="${pl.playlistTitle}"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowfullscreen
-              ></iframe>
-            </div>
-            <div style="margin-top:8px;">
-              <strong style="font-size:0.76rem;color:#fbbf24;">Pausas de explicación incluidas en esta lista:</strong>
-              ${(pl.pauses || [])
-                .map(
-                  (p) => `
-                  <div class="pause-step-box" style="padding:7px 10px;margin-top:6px;font-size:0.76rem;">
-                    <span class="pause-time-badge">${p.time}</span>
-                    <span style="color:#e2e8f0;">${p.label}</span>
-                  </div>
-                `
-                )
-                .join("")}
-            </div>
-          </div>
-        `
-        )
-        .join("")}
+      ${playlistsByGame.map((pl) => buildPlaylistCardHTML(pl, prefix)).join("")}
     </div>
   `;
+
+  const pageContainer = document.getElementById("youtubePageContainer");
+  if (pageContainer) {
+    pageContainer.innerHTML = fullChannelHTML("ytview");
+    attachYoutubePlaylistPauseEvents(pageContainer);
+  }
+
+  const modalBody = document.getElementById("youtubeModalBody");
+  if (modalBody) {
+    modalBody.innerHTML = fullChannelHTML("ytmodal");
+    attachYoutubePlaylistPauseEvents(modalBody);
+  }
+}
+
+function openYoutubePage() {
+  state.selectedGameId = null;
+  setActiveTopNav("btnOpenYoutubeModal");
+  document.getElementById("homeView").classList.add("hidden");
+  document.getElementById("gameDetailView").classList.add("hidden");
+  document.getElementById("newsView").classList.add("hidden");
+  document.getElementById("communityView").classList.add("hidden");
+  document.getElementById("toolsView")?.classList.add("hidden");
+  document.getElementById("youtubeView")?.classList.remove("hidden");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  renderYoutubeModal();
 }
 
 // =========================================================================
@@ -1607,6 +1859,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("newsView").classList.add("hidden");
     document.getElementById("communityView").classList.add("hidden");
     document.getElementById("toolsView")?.classList.add("hidden");
+    document.getElementById("youtubeView")?.classList.add("hidden");
     document.getElementById("homeView").classList.remove("hidden");
   };
   document.getElementById("btnHomeBrand").addEventListener("click", goHome);
@@ -1615,6 +1868,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btnBackFromNews").addEventListener("click", goHome);
   document.getElementById("btnBackFromCommunity").addEventListener("click", goHome);
   document.getElementById("btnBackFromTools")?.addEventListener("click", goHome);
+  document.getElementById("btnBackFromYoutube")?.addEventListener("click", goHome);
 
   // Abrir Herramientas Interactivas (Test de 10 preguntas, Calculadora de Castigos y Glosario)
   document.getElementById("btnOpenToolsView")?.addEventListener("click", () => openToolsPage("tool-quiz"));
@@ -1761,9 +2015,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   const ytModal = document.getElementById("youtubeModalBackdrop");
-  document.getElementById("btnOpenYoutubeModal").addEventListener("click", () => {
-    ytModal.classList.remove("hidden");
-  });
+  document.getElementById("btnOpenYoutubeModal").addEventListener("click", openYoutubePage);
+  document.getElementById("btnHomeOpenYoutubeView")?.addEventListener("click", openYoutubePage);
   document.getElementById("btnCloseYoutubeModal").addEventListener("click", () => {
     ytModal.classList.add("hidden");
   });
