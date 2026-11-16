@@ -1,13 +1,14 @@
 /**
- * FGC Vault — Frontend Application Logic
- * Gestiona:
- * - Catálogo por Sagas y Juegos
- * - Vista de Juego: Guía Básica, Guía Avanzada y Roster (Juego Base vs DLC con Pack)
- * - Traductor interactivo de notación (Técnica FGC <-> PlayStation <-> Xbox)
- * - Bot de Telegram en vivo (Moderación por botones + Verificación 2FA de usuarios)
+ * FGC Vault — Frontend Application Logic (Optimizado)
+ * - Fondos con la imagen principal oficial de cada juego (coverImage).
+ * - Pestaña principal "Todos los juegos".
+ * - Icono visual de retrato para cada uno de los 259 personajes.
+ * - Interfaz limpia sin exceso de emojis y con filtrado instantáneo.
+ * - Kit de Canal Oficial de YouTube integrado.
  */
 
 const state = {
+  youtubeChannel: null,
   sagas: [],
   games: [],
   submissions: [],
@@ -19,13 +20,14 @@ const state = {
   selectedGameId: null,
   selectedCharacter: null,
   selectedDlcPackFilter: "all",
+  inGameSearchQuery: "",
   notationMode: "technical", // technical | ps | xbox
   searchQuery: "",
   adminKey: localStorage.getItem("fgc_private_owner_key") || ""
 };
 
 // =========================================================================
-// TRADUCTOR INTERACTIVO DE NOTACIÓN DE LUCHA (MK, SF, TEKKEN, ANIME, GG)
+// TRADUCTOR INTERACTIVO DE NOTACIÓN DE LUCHA
 // =========================================================================
 function translateNotation(text, sagaId, mode) {
   if (!text || mode === "technical") return text;
@@ -33,7 +35,6 @@ function translateNotation(text, sagaId, mode) {
   const isPS = mode === "ps";
   let out = text;
 
-  // Traducción de direcciones comunes a flechas visuales
   out = out
     .replace(/\b236236/g, "↓↘→↓↘→")
     .replace(/\b214214/g, "↓↙←↓↙←")
@@ -92,6 +93,13 @@ function translateNotation(text, sagaId, mode) {
   return out;
 }
 
+function getGameCoverBackground(game) {
+  if (game.coverImage) {
+    return `linear-gradient(180deg, rgba(9, 13, 22, 0.25) 0%, rgba(9, 13, 22, 0.92) 100%), url('${game.coverImage}')`;
+  }
+  return game.coverGradient;
+}
+
 // =========================================================================
 // CARGA INICIAL Y RENDERIZADO PRINCIPAL
 // =========================================================================
@@ -101,6 +109,7 @@ async function loadBootstrap() {
       headers: { "x-admin-key": state.adminKey }
     });
     const data = await res.json();
+    state.youtubeChannel = data.youtubeChannel || null;
     state.sagas = data.sagas || [];
     state.games = data.games || [];
     state.submissions = data.submissions || [];
@@ -120,6 +129,7 @@ function renderAll() {
   renderGamesGrid();
   renderQuickSearch();
   renderTelegramBadgeAndDrawer();
+  renderYoutubeModal();
   populateFormSelects();
 
   if (state.selectedGameId) {
@@ -141,20 +151,20 @@ function renderHeroStats() {
 
   box.innerHTML = `
     <div class="stat-box">
-      <strong>${state.sagas.length}</strong>
-      <span>Sagas Históricas</span>
+      <strong>${state.games.length}</strong>
+      <span>Juegos</span>
     </div>
     <div class="stat-box">
-      <strong>${state.games.length}</strong>
-      <span>Juegos Activos</span>
+      <strong>${totalBase + totalDLC}</strong>
+      <span>Personajes Totales</span>
     </div>
     <div class="stat-box">
       <strong>${totalBase}</strong>
-      <span>Guías Juego Base</span>
+      <span>Juego Base</span>
     </div>
     <div class="stat-box">
       <strong>${totalDLC}</strong>
-      <span>Guías Packs DLC</span>
+      <span>Personajes DLC</span>
     </div>
   `;
 }
@@ -163,17 +173,16 @@ function renderSagaTabs() {
   const container = document.getElementById("sagaTabsContainer");
   const allBtn = `
     <button class="saga-tab-btn ${state.selectedSagaId === "all" ? "active" : ""}" data-saga="all">
-      🏆 Todas las Sagas (${state.games.length})
+      Todos los juegos (${state.games.length})
     </button>
   `;
 
   const sagaBtns = state.sagas
     .map((s) => {
-      const count = state.games.filter((g) => g.sagaId === s.id).length;
       const active = state.selectedSagaId === s.id ? "active" : "";
       return `
         <button class="saga-tab-btn ${active}" data-saga="${s.id}">
-          <span>${s.badgeIcon}</span> ${s.name} (${count})
+          ${s.name}
         </button>
       `;
     })
@@ -221,18 +230,19 @@ function renderQuickSearch() {
   box.classList.remove("hidden");
   box.innerHTML = `
     <div style="margin-bottom:10px;font-weight:700;color:#fbbf24;">
-      🥊 Personajes y Packs DLC encontrados para "${state.searchQuery}" (${matches.length}):
+      Personajes y Packs DLC encontrados para "${state.searchQuery}" (${matches.length}):
     </div>
     <div class="characters-grid">
       ${matches
+        .slice(0, 24)
         .map(({ game, ch }) => {
           const badge = ch.isDLC
-            ? `<span class="dlc-pack-badge">💎 DLC • ${ch.dlcPack}</span>`
-            : `<span class="base-game-badge">🎮 Juego Base</span>`;
+            ? `<span class="dlc-pack-badge">DLC • ${ch.dlcPack}</span>`
+            : `<span class="base-game-badge">Juego Base</span>`;
           return `
             <div class="char-card ${ch.isDLC ? "is-dlc" : ""}" data-quickgame="${game.id}" data-quickchar="${ch.id}">
               <div class="char-top-row">
-                <div class="char-avatar">${ch.name.slice(0, 2).toUpperCase()}</div>
+                <img class="char-avatar-img" src="${ch.iconUrl}" alt="${ch.name}" loading="lazy" />
                 <div>
                   <div class="char-name">${ch.name}</div>
                   <div class="char-archetype">${game.title} • ${ch.archetype}</div>
@@ -286,30 +296,31 @@ function renderGamesGrid() {
       const baseChars = game.characters.filter((c) => !c.isDLC);
       const dlcChars = game.characters.filter((c) => c.isDLC);
       const uniquePacks = [...new Set(dlcChars.map((c) => c.dlcPack).filter(Boolean))];
+      const coverBg = getGameCoverBackground(game);
 
       return `
         <article class="game-card" data-gameid="${game.id}">
           <div>
-            <div class="game-card-banner" style="background: ${game.coverGradient};">
-              <span class="game-patch-pill">📌 ${game.currentPatch}</span>
-              <h3>${saga ? saga.badgeIcon : "🥊"} ${game.title}</h3>
-              <div style="font-size:0.8rem;opacity:0.85;margin-top:4px;">
+            <div class="game-card-banner" style="background-image: ${coverBg};">
+              <span class="game-patch-pill">${game.currentPatch}</span>
+              <h3>${game.title}</h3>
+              <div style="font-size:0.79rem;color:#e2e8f0;margin-top:3px;">
                 ${saga ? saga.developer : ""} • ${game.releaseYear} • ${game.subSystemName}
               </div>
             </div>
             <div class="game-card-body">
               <p>${game.basicGuide.summary}</p>
               <div class="roster-split-pills">
-                <span class="pill-base">🎮 ${baseChars.length} Juego Base</span>
-                <span class="pill-dlc">💎 ${dlcChars.length} DLC (${uniquePacks.join(", ")})</span>
+                <span class="pill-base">${baseChars.length} Personajes Base</span>
+                <span class="pill-dlc">${dlcChars.length} Personajes DLC (${uniquePacks.length} Packs)</span>
               </div>
-              <div style="font-size:0.78rem;color:#94a3b8;">
-                Incluye: <strong>Guía Básica</strong> + <strong>Guía Avanzada</strong> + <strong>Vídeo y Texto</strong>
+              <div style="font-size:0.77rem;color:#94a3b8;">
+                Packs DLC: <strong>${uniquePacks.join(" • ")}</strong>
               </div>
             </div>
           </div>
           <div class="game-card-footer">
-            <span>Ver Guías y Plantel Completo</span>
+            <span>Abrir Guías y Plantel (${game.characters.length} luchadores)</span>
             <span>➔</span>
           </div>
         </article>
@@ -325,11 +336,15 @@ function renderGamesGrid() {
 }
 
 // =========================================================================
-// VISTA DETALLADA DE UN JUEGO: BÁSICA, AVANZADA Y ROSTER (BASE vs DLC)
+// VISTA DETALLADA DE UN JUEGO: BÁSICA, AVANZADA Y ROSTER COMPLETO
 // =========================================================================
 function openGameHub(gameId) {
   state.selectedGameId = gameId;
   state.selectedDlcPackFilter = "all";
+  state.inGameSearchQuery = "";
+  const inGameInput = document.getElementById("inGameCharSearch");
+  if (inGameInput) inGameInput.value = "";
+
   document.getElementById("homeView").classList.add("hidden");
   document.getElementById("gameDetailView").classList.remove("hidden");
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -341,30 +356,29 @@ function renderGameDetailView(gameId) {
   if (!game) return;
   const saga = state.sagas.find((s) => s.id === game.sagaId);
 
-  // Fuentes oficiales verificadas
   const sourcesEl = document.getElementById("gameOfficialSources");
   sourcesEl.innerHTML =
-    `<span style="font-size:0.78rem;color:#94a3b8;">Fuentes fiables:</span>` +
+    `<span style="font-size:0.76rem;color:#94a3b8;">Fuentes fiables:</span>` +
     (game.officialSources || [])
       .map(
         (src) =>
-          `<a href="${src.url}" target="_blank" rel="noopener" class="source-link">🔗 ${src.name}</a>`
+          `<a href="${src.url}" target="_blank" rel="noopener" class="source-link">${src.name}</a>`
       )
       .join("");
 
-  // Cabecera del juego
+  // Cabecera del juego con la imagen oficial de fondo
   const headerEl = document.getElementById("gameHeaderBanner");
-  headerEl.style.background = game.coverGradient;
+  headerEl.style.backgroundImage = getGameCoverBackground(game);
   headerEl.innerHTML = `
     <div>
-      <span class="game-patch-pill">✅ ${game.currentPatch}</span>
-      <h1>${saga ? saga.badgeIcon : ""} ${game.title}</h1>
-      <p style="color:#e2e8f0;font-size:0.92rem;margin-top:4px;">
-        Sistema clave: <strong>${game.subSystemName}</strong> • Desarrollador: ${saga ? saga.developer : ""}
+      <span class="game-patch-pill">${game.currentPatch}</span>
+      <h1>${game.title}</h1>
+      <p style="color:#e2e8f0;font-size:0.9rem;margin-top:4px;">
+        Sistema clave: <strong>${game.subSystemName}</strong> • Plantel total: <strong>${game.characters.length} personajes</strong>
       </p>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      <button class="btn btn-outline" id="btnQuickAddCharHere">➕ Añadir Personaje / Combo a ${game.title}</button>
+      <button class="btn btn-outline" id="btnQuickAddCharHere">Añadir Guía a ${game.title}</button>
     </div>
   `;
 
@@ -373,34 +387,44 @@ function renderGameDetailView(gameId) {
     document.getElementById("submitModalBackdrop").classList.remove("hidden");
   });
 
-  // Leyenda de notación
   document.getElementById("gameNotationBanner").innerHTML = `
-    <strong>📖 Leyenda de Notación (${saga ? saga.name : game.title}):</strong> ${
+    <strong>Notación (${saga ? saga.name : game.title}):</strong> ${
     saga ? saga.notationLegend : ""
   }
   `;
 
-  // Separar personajes Base vs DLC
-  const baseChars = game.characters.filter((c) => !c.isDLC);
-  const dlcChars = game.characters.filter((c) => c.isDLC);
+  // Separar personajes Base vs DLC y aplicar filtro rápido por nombre
+  const q = state.inGameSearchQuery.trim().toLowerCase();
+  const baseChars = game.characters.filter(
+    (c) =>
+      !c.isDLC &&
+      (!q || c.name.toLowerCase().includes(q) || c.archetype.toLowerCase().includes(q))
+  );
+  const allDlcChars = game.characters.filter((c) => c.isDLC);
+  const filteredDlcChars = allDlcChars.filter(
+    (c) =>
+      !q ||
+      c.name.toLowerCase().includes(q) ||
+      c.archetype.toLowerCase().includes(q) ||
+      (c.dlcPack && c.dlcPack.toLowerCase().includes(q))
+  );
 
   document.getElementById("baseRosterCountPill").textContent = `${baseChars.length} personajes Base`;
 
-  // Poblar selector de Packs DLC
   const packSelect = document.getElementById("dlcPackFilterSelect");
-  const packs = [...new Set(dlcChars.map((c) => c.dlcPack || "DLC Pack"))];
+  const packs = [...new Set(allDlcChars.map((c) => c.dlcPack || "DLC Pack"))];
   packSelect.innerHTML =
-    `<option value="all">Todos los Packs DLC (${dlcChars.length})</option>` +
+    `<option value="all">Todos los Packs DLC (${allDlcChars.length})</option>` +
     packs
       .map(
         (p) =>
-          `<option value="${p}" ${state.selectedDlcPackFilter === p ? "selected" : ""}>💎 ${p}</option>`
+          `<option value="${p}" ${state.selectedDlcPackFilter === p ? "selected" : ""}>${p}</option>`
       )
       .join("");
 
   packSelect.onchange = (e) => {
     state.selectedDlcPackFilter = e.target.value;
-    renderDlcGrid(game, dlcChars);
+    renderDlcGrid(game, filteredDlcChars);
   };
 
   // Renderizar Grid Juego Base
@@ -409,13 +433,11 @@ function renderGameDetailView(gameId) {
   attachCharacterCardEvents(baseGrid, game.id);
 
   // Renderizar Grid Personajes DLC
-  renderDlcGrid(game, dlcChars);
+  renderDlcGrid(game, filteredDlcChars);
 
-  // Renderizar Guía Básica (Vídeo + Texto)
-  renderGuideSplit("basicGuideContainer", game.basicGuide, "📘 Guía Básica de Conceptos", game.officialSources);
-
-  // Renderizar Guía Avanzada (Vídeo + Texto)
-  renderGuideSplit("advancedGuideContainer", game.advancedGuide, "🔥 Guía Avanzada Competitiva", game.officialSources);
+  // Renderizar Guía Básica y Guía Avanzada
+  renderGuideSplit("basicGuideContainer", game.basicGuide, "Guía Básica de Conceptos", game.officialSources);
+  renderGuideSplit("advancedGuideContainer", game.advancedGuide, "Guía Avanzada Competitiva", game.officialSources);
 }
 
 function renderDlcGrid(game, dlcChars) {
@@ -430,32 +452,22 @@ function renderDlcGrid(game, dlcChars) {
 }
 
 function buildCharacterCardHTML(game, ch) {
-  const initials = ch.name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-
   const packBadge = ch.isDLC
-    ? `<span class="dlc-pack-badge">💎 DLC • ${ch.dlcPack}</span>`
-    : `<span class="base-game-badge">🎮 Juego Base</span>`;
+    ? `<span class="dlc-pack-badge">DLC • ${ch.dlcPack}</span>`
+    : `<span class="base-game-badge">Juego Base</span>`;
 
   return `
     <div class="char-card ${ch.isDLC ? "is-dlc" : ""}" data-charid="${ch.id}">
       <div class="char-top-row">
-        <div class="char-avatar">${initials}</div>
+        <img class="char-avatar-img" src="${ch.iconUrl}" alt="${ch.name}" loading="lazy" />
         <div>
           <div class="char-name">${ch.name}</div>
           <div class="char-archetype">${ch.archetype}</div>
         </div>
       </div>
-      <div style="font-size:0.8rem;color:#cbd5e1;">
-        ${ch.overview.slice(0, 88)}...
-      </div>
       <div class="char-badges-row">
         ${packBadge}
-        <span class="diff-badge">Dificultad: ${ch.difficulty}</span>
+        <span class="diff-badge">Dif: ${ch.difficulty}</span>
       </div>
     </div>
   `;
@@ -477,8 +489,8 @@ function renderGuideSplit(containerId, guideObj, badgeLabel, sources) {
     <div class="video-panel-card">
       <div class="hero-pill">${badgeLabel} — VÍDEO EXPLICATIVO</div>
       <h3>${guideObj.title}</h3>
-      <p style="color:#94a3b8;font-size:0.86rem;margin-top:4px;">
-        Canal / Autor verificado: <strong>${guideObj.videoAuthor}</strong>
+      <p style="color:#94a3b8;font-size:0.85rem;margin-top:4px;">
+        Fuente en vídeo: <strong>${guideObj.videoAuthor}</strong>
       </p>
       <div class="video-frame-wrapper">
         <iframe
@@ -488,11 +500,11 @@ function renderGuideSplit(containerId, guideObj, badgeLabel, sources) {
           allowfullscreen
         ></iframe>
       </div>
-      <p style="font-size:0.88rem;color:#cbd5e1;">${guideObj.summary}</p>
+      <p style="font-size:0.87rem;color:#cbd5e1;">${guideObj.summary}</p>
     </div>
 
     <div class="text-panel-card">
-      <div class="hero-pill">📖 VERSIÓN EN TEXTO ESTRUCTURADA</div>
+      <div class="hero-pill">VERSIÓN EN TEXTO ESTRUCTURADA</div>
       <h3>Conceptos Paso a Paso</h3>
       ${(guideObj.sections || [])
         .map(
@@ -514,7 +526,7 @@ function renderGuideSplit(containerId, guideObj, badgeLabel, sources) {
 }
 
 // =========================================================================
-// MODAL DE GUÍA INDIVIDUAL DE PERSONAJE (VÍDEO + TEXTO + COMBOS TRADUCIBLES)
+// MODAL DE GUÍA INDIVIDUAL DE PERSONAJE (CON ICONO, VÍDEO Y TEXTO)
 // =========================================================================
 function openCharacterModal(gameId, charId) {
   const game = state.games.find((g) => g.id === gameId);
@@ -529,30 +541,32 @@ function openCharacterModal(gameId, charId) {
   const body = document.getElementById("charModalBody");
 
   const statusBadge = ch.isDLC
-    ? `<span class="dlc-pack-badge" style="font-size:0.82rem;">💎 DLC DE PAGO — Pack: ${ch.dlcPack}</span>`
-    : `<span class="base-game-badge" style="font-size:0.82rem;">🎮 INCLUIDO EN EL JUEGO BASE</span>`;
+    ? `<span class="dlc-pack-badge" style="font-size:0.8rem;">DLC DE PAGO — Pack: ${ch.dlcPack}</span>`
+    : `<span class="base-game-badge" style="font-size:0.8rem;">INCLUIDO EN EL JUEGO BASE</span>`;
 
   header.innerHTML = `
-    <div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px;">
-        ${statusBadge}
-        <span class="diff-badge">Arquetipo: ${ch.archetype}</span>
-        <span class="diff-badge">Dificultad: ${ch.difficulty}</span>
-        <span class="diff-badge">Sinergia: ${ch.recommendedSubSystem || game.subSystemName}</span>
+    <div style="display:flex;align-items:center;gap:14px;">
+      <img class="char-avatar-img" style="width:64px;height:64px;" src="${ch.iconUrl}" alt="${ch.name}" />
+      <div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:5px;">
+          ${statusBadge}
+          <span class="diff-badge">Arquetipo: ${ch.archetype}</span>
+          <span class="diff-badge">Dificultad: ${ch.difficulty}</span>
+          <span class="diff-badge">${ch.recommendedSubSystem || game.subSystemName}</span>
+        </div>
+        <h2 style="font-family:var(--font-display);font-size:1.65rem;">
+          ${ch.name} <span style="color:#94a3b8;font-size:1rem;">(${game.title})</span>
+        </h2>
       </div>
-      <h2 style="font-family:var(--font-display);font-size:1.75rem;">
-        ${ch.name} <span style="color:#94a3b8;font-size:1.05rem;">(${game.title})</span>
-      </h2>
     </div>
     <button class="btn-close-modal" id="btnCloseCharModal">✕</button>
   `;
 
   body.innerHTML = `
     <div class="guide-split-layout">
-      <!-- COLUMNA IZQUIERDA: VÍDEO GUÍA + PLAN DE JUEGO -->
       <div>
-        <div class="video-panel-card" style="margin-bottom:18px;">
-          <div class="hero-pill">🎬 VÍDEO GUÍA DEL PERSONAJE</div>
+        <div class="video-panel-card" style="margin-bottom:16px;">
+          <div class="hero-pill">VÍDEO GUÍA DEL PERSONAJE</div>
           <div class="video-frame-wrapper">
             <iframe
               src="${ch.videoUrl}"
@@ -561,29 +575,28 @@ function openCharacterModal(gameId, charId) {
               allowfullscreen
             ></iframe>
           </div>
-          <p style="font-size:0.9rem;color:#e2e8f0;margin-top:8px;">
+          <p style="font-size:0.88rem;color:#e2e8f0;margin-top:8px;">
             <strong>Resumen:</strong> ${ch.overview}
           </p>
         </div>
 
         <div class="guide-section-item">
-          <h4>🧠 Plan de Juego (Gameplan en Neutro y Presión)</h4>
+          <h4>Plan de Juego (Gameplan en Neutro y Presión)</h4>
           <p>${ch.gameplan}</p>
           <div style="margin-top:12px;">
             <a href="${ch.sourceUrl}" target="_blank" rel="noopener" class="source-link">
-              📖 Ver Frame Data completa en Wiki Oficial ➔
+              Ver Frame Data completa en Wiki Oficial ➔
             </a>
           </div>
         </div>
       </div>
 
-      <!-- COLUMNA DERECHA: GUÍA EN TEXTO (BOTONES CLAVE + COMBOS BNB TRADUCIBLES) -->
       <div>
         <div class="text-panel-card">
           <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
-            <div class="hero-pill" style="margin:0;">⌨️ GUÍA EN TEXTO & COMBOS BNB</div>
-            <span style="font-size:0.78rem;color:#fbbf24;">
-              Modo actual: <strong>${
+            <div class="hero-pill" style="margin:0;">GUÍA EN TEXTO Y COMBOS BNB</div>
+            <span style="font-size:0.76rem;color:#fbbf24;">
+              Modo: <strong>${
                 state.notationMode === "technical"
                   ? "Notación Técnica"
                   : state.notationMode === "ps"
@@ -593,7 +606,7 @@ function openCharacterModal(gameId, charId) {
             </span>
           </div>
 
-          <h4 style="margin-top:8px;font-family:var(--font-display);">1. Botones Clave y Movimientos Principales</h4>
+          <h4 style="margin-top:6px;font-family:var(--font-display);">1. Botones Clave y Movimientos Principales</h4>
           <table class="moves-table">
             <thead>
               <tr>
@@ -612,7 +625,7 @@ function openCharacterModal(gameId, charId) {
                       game.sagaId,
                       state.notationMode
                     )}</span></td>
-                    <td style="font-family:var(--font-mono);font-size:0.8rem;color:#cbd5e1;">${m.frames}</td>
+                    <td style="font-family:var(--font-mono);font-size:0.78rem;color:#cbd5e1;">${m.frames}</td>
                     <td>${m.notes}</td>
                   </tr>
                 `
@@ -651,6 +664,57 @@ function openCharacterModal(gameId, charId) {
 }
 
 // =========================================================================
+// MODAL DEL CANAL DE YOUTUBE DEL PROYECTO
+// =========================================================================
+function renderYoutubeModal() {
+  const body = document.getElementById("youtubeModalBody");
+  if (!body || !state.youtubeChannel) return;
+
+  const yt = state.youtubeChannel;
+  body.innerHTML = `
+    <div class="yt-banner-preview">
+      <div class="yt-avatar-circle">FGC</div>
+      <div>
+        <h3 style="font-family:var(--font-display);font-size:1.35rem;">${yt.name}</h3>
+        <div style="color:#fca5a5;font-family:var(--font-mono);font-size:0.85rem;">${yt.handle}</div>
+        <p style="font-size:0.83rem;color:#e2e8f0;margin-top:4px;">${yt.description}</p>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;">
+      <a href="${yt.createUrl}" target="_blank" rel="noopener" class="btn btn-primary">
+        Abrir Creador de Canal en YouTube
+      </a>
+      <a href="${yt.studioUrl}" target="_blank" rel="noopener" class="btn btn-outline">
+        Ir a YouTube Studio
+      </a>
+      <button class="btn btn-outline" id="btnCopyYtData">
+        Copiar Nombre y Descripción del Canal
+      </button>
+    </div>
+
+    <div class="guide-section-item">
+      <h4>Estructura de Listas de Reproducción (Playlists) lista para tu canal</h4>
+      <ul style="padding-left:18px;margin-top:8px;font-size:0.86rem;color:#cbd5e1;display:flex;flex-direction:column;gap:6px;">
+        ${(yt.playlists || []).map((p) => `<li>${p}</li>`).join("")}
+      </ul>
+    </div>
+  `;
+
+  const copyBtn = document.getElementById("btnCopyYtData");
+  if (copyBtn) {
+    copyBtn.onclick = () => {
+      const clipText = `Nombre: ${yt.name}\nIdentificador: ${yt.handle}\nDescripción:\n${yt.description}`;
+      navigator.clipboard.writeText(clipText);
+      copyBtn.textContent = "Copiado al portapapeles";
+      setTimeout(() => {
+        copyBtn.textContent = "Copiar Nombre y Descripción del Canal";
+      }, 2000);
+    };
+  }
+}
+
+// =========================================================================
 // PANEL DE TELEGRAM: MODERACIÓN CON BOTONES Y VERIFICACIÓN 2FA
 // =========================================================================
 function renderTelegramBadgeAndDrawer() {
@@ -663,12 +727,11 @@ function renderTelegramBadgeAndDrawer() {
 
   const badgeEl = document.getElementById("tgConnectionBadge");
   if (state.botStatus && state.botStatus.isLiveTelegram) {
-    badgeEl.textContent = `🔒 Bot Privado en vivo (${state.botStatus.botUsername})`;
+    badgeEl.textContent = `Bot Privado en vivo (${state.botStatus.botUsername})`;
   } else {
-    badgeEl.textContent = `🔒 Bot en Modo Privado Estricto (Solo Propietario Autorizado)`;
+    badgeEl.textContent = `Bot en Modo Privado Estricto (Solo Propietario Autorizado)`;
   }
 
-  // Estado visual del candado privado
   const lockBox = document.getElementById("tgPrivateLockBox");
   const lockTitle = document.getElementById("tgLockStatusTitle");
   const lockSub = document.getElementById("tgLockStatusSub");
@@ -678,9 +741,9 @@ function renderTelegramBadgeAndDrawer() {
     lockBox.style.borderColor = "#10b981";
     lockBox.style.background = "rgba(16, 185, 129, 0.1)";
     lockTitle.style.color = "#34d399";
-    lockTitle.textContent = "🔓 Sesión de Propietario Activa (Acceso Privado Verificado)";
+    lockTitle.textContent = "Sesión de Propietario Activa (Acceso Privado Verificado)";
     lockSub.textContent = "Tienes control total sobre aprobaciones, parches y verificaciones 2FA.";
-    unlockFormRow.innerHTML = `<button class="tg-inline-btn reject" id="btnLockPrivateBot">🔒 Bloquear Panel</button>`;
+    unlockFormRow.innerHTML = `<button class="tg-inline-btn reject" id="btnLockPrivateBot">Bloquear Panel</button>`;
     document.getElementById("btnLockPrivateBot").onclick = () => {
       state.adminKey = "";
       localStorage.removeItem("fgc_private_owner_key");
@@ -690,28 +753,27 @@ function renderTelegramBadgeAndDrawer() {
     lockBox.style.borderColor = "#f59e0b";
     lockBox.style.background = "rgba(245, 158, 11, 0.08)";
     lockTitle.style.color = "#fbbf24";
-    lockTitle.textContent = "🔒 Bot en Modo Privado Estricto";
+    lockTitle.textContent = "Bot en Modo Privado Estricto";
     lockSub.textContent = "Introduce tu ID/API privado (9297971350) para habilitar los botones de gestión.";
   }
 
-  // Lista de propuestas pendientes con botones [✅ Aprobar] y [❌ Rechazar]
   const subListEl = document.getElementById("tgPendingSubmissionsList");
   if (!isUnlocked) {
     subListEl.innerHTML = `
       <div class="tg-message-bubble">
-        🔒 <strong>Contenido protegido (${pendingSubs.length} propuestas en cola).</strong><br/>
+        <strong>Contenido protegido (${pendingSubs.length} propuestas en cola).</strong><br/>
         Desbloquea arriba con tu ID de propietario o gestiónalas desde tu chat privado de Telegram.
       </div>
     `;
   } else if (pendingSubs.length === 0) {
-    subListEl.innerHTML = `<div class="tg-message-bubble">✨ No hay guías pendientes. ¡Todo el contenido está verificado!</div>`;
+    subListEl.innerHTML = `<div class="tg-message-bubble">No hay guías pendientes. Todo el contenido está verificado.</div>`;
   } else {
     subListEl.innerHTML = pendingSubs
       .map((s) => {
-        const dlcInfo = s.isDLC ? `💎 DLC (${s.dlcPack})` : `🎮 Juego Base`;
+        const dlcInfo = s.isDLC ? `DLC (${s.dlcPack})` : `Juego Base`;
         return `
           <div class="tg-message-bubble">
-            <div class="tg-msg-title">📌 ${s.gameTitle} — ${s.characterName} (${dlcInfo})</div>
+            <div class="tg-msg-title">${s.gameTitle} — ${s.characterName} (${dlcInfo})</div>
             <div style="font-size:0.8rem;color:#cbd5e1;margin-bottom:6px;">
               Enviado por <strong>${s.author}</strong> (${s.createdAt})
             </div>
@@ -721,10 +783,10 @@ function renderTelegramBadgeAndDrawer() {
             <div style="font-size:0.8rem;color:#94a3b8;">${s.notes}</div>
             <div class="tg-inline-grid">
               <button class="tg-inline-btn approve" data-modid="${s.id}" data-modact="approve">
-                ✅ Aprobar y Publicar
+                Aprobar y Publicar
               </button>
               <button class="tg-inline-btn reject" data-modid="${s.id}" data-modact="reject">
-                ❌ Rechazar
+                Rechazar
               </button>
             </div>
           </div>
@@ -749,10 +811,9 @@ function renderTelegramBadgeAndDrawer() {
     });
   }
 
-  // Solicitudes 2FA pendientes
   const authListEl = document.getElementById("tgPendingAuthsList");
   if (!isUnlocked) {
-    authListEl.innerHTML = `<p style="font-size:0.82rem;color:#fbbf24;">🔒 Desbloquea como propietario para autorizar o denegar verificaciones 2FA.</p>`;
+    authListEl.innerHTML = `<p style="font-size:0.82rem;color:#fbbf24;">Desbloquea como propietario para autorizar o denegar verificaciones 2FA.</p>`;
   } else if (pendingAuths.length === 0) {
     authListEl.innerHTML = `<p style="font-size:0.82rem;color:#94a3b8;">No hay solicitudes de verificación pendientes.</p>`;
   } else {
@@ -760,14 +821,14 @@ function renderTelegramBadgeAndDrawer() {
       .map(
         (req) => `
         <div class="tg-message-bubble" style="margin-top:8px;">
-          <div class="tg-msg-title">🔐 Solicitud de ${req.username} (${req.telegramHandle})</div>
+          <div class="tg-msg-title">Solicitud de ${req.username} (${req.telegramHandle})</div>
           <div style="font-size:0.82rem;">Rol: <strong>${req.role}</strong> • Código 2FA: <code>${req.code}</code></div>
           <div class="tg-inline-grid">
             <button class="tg-inline-btn approve" data-authcode="${req.code}" data-authdec="approve">
-              ✅ Verificar Cuenta (${req.code})
+              Verificar Cuenta (${req.code})
             </button>
             <button class="tg-inline-btn reject" data-authcode="${req.code}" data-authdec="reject">
-              🚫 Denegar
+              Denegar
             </button>
           </div>
         </div>
@@ -793,20 +854,18 @@ function renderTelegramBadgeAndDrawer() {
     });
   }
 
-  // Usuarios verificados
   const verifiedEl = document.getElementById("tgVerifiedUsersList");
   verifiedEl.innerHTML = state.verifiedUsers
     .map(
       (u) => `
       <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #243447;font-size:0.83rem;">
-        <span>🟢 <strong>${u.username}</strong> (${u.telegramHandle})</span>
+        <span><strong>${u.username}</strong> (${u.telegramHandle})</span>
         <span style="color:#38bdf8;">${u.role}</span>
       </div>
     `
     )
     .join("");
 
-  // Logs del Bot
   const logsEl = document.getElementById("tgLiveLogsList");
   logsEl.innerHTML = state.botLogs
     .map(
@@ -842,7 +901,6 @@ function populateFormSelects() {
 document.addEventListener("DOMContentLoaded", () => {
   loadBootstrap();
 
-  // Volver al inicio
   const goHome = () => {
     state.selectedGameId = null;
     document.getElementById("gameDetailView").classList.add("hidden");
@@ -851,7 +909,6 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btnHomeBrand").addEventListener("click", goHome);
   document.getElementById("btnBackToCatalog").addEventListener("click", goHome);
 
-  // Selector global de notación (Técnica / PS / Xbox)
   document.getElementById("globalNotationSelect").addEventListener("change", (e) => {
     state.notationMode = e.target.value;
     if (state.selectedCharacter) {
@@ -859,21 +916,43 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Buscador en tiempo real
   document.getElementById("searchGameOrCharInput").addEventListener("input", (e) => {
     state.searchQuery = e.target.value;
     renderQuickSearch();
     renderGamesGrid();
   });
 
-  // Pestañas internas de la vista de un juego (Roster / Guía Básica / Guía Avanzada)
+  // Buscador rápido dentro de un juego
+  const inGameSearch = document.getElementById("inGameCharSearch");
+  if (inGameSearch) {
+    inGameSearch.addEventListener("input", (e) => {
+      state.inGameSearchQuery = e.target.value;
+      if (state.selectedGameId) {
+        renderGameDetailView(state.selectedGameId);
+      }
+    });
+  }
+
   document.querySelectorAll(".game-tab").forEach((tab) => {
     tab.addEventListener("click", () => {
       document.querySelectorAll(".game-tab").forEach((t) => t.classList.remove("active"));
       document.querySelectorAll(".game-tab-content").forEach((c) => c.classList.add("hidden"));
       tab.classList.add("active");
       document.getElementById(tab.dataset.tab).classList.remove("hidden");
+      const rosterControls = document.getElementById("rosterQuickControls");
+      if (rosterControls) {
+        rosterControls.classList.toggle("hidden", tab.dataset.tab !== "tab-roster");
+      }
     });
+  });
+
+  // Modal Canal de YouTube
+  const ytModal = document.getElementById("youtubeModalBackdrop");
+  document.getElementById("btnOpenYoutubeModal").addEventListener("click", () => {
+    ytModal.classList.remove("hidden");
+  });
+  document.getElementById("btnCloseYoutubeModal").addEventListener("click", () => {
+    ytModal.classList.add("hidden");
   });
 
   // Modal de enviar guía / personaje
@@ -917,7 +996,6 @@ document.addEventListener("DOMContentLoaded", () => {
     dlcPackInput.classList.add("hidden");
     submitModal.classList.add("hidden");
     await loadBootstrap();
-    // Abrir el drawer de Telegram para que el usuario vea cómo aprobarla con 1 clic
     document.getElementById("telegramDrawerBackdrop").classList.remove("hidden");
   });
 
@@ -955,12 +1033,11 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem("fgc_private_owner_key", keyVal);
         await loadBootstrap();
       } else {
-        alert("🔒 Clave o ID de propietario incorrecto. Acceso privado denegado.");
+        alert("Clave o ID de propietario incorrecto. Acceso privado denegado.");
       }
     });
   }
 
-  // Actualizar parche rápido desde el Bot
   document.getElementById("btnApplyPatchUpdate").addEventListener("click", async () => {
     const gameId = document.getElementById("tgPatchGameSelect").value;
     const currentPatch = document.getElementById("tgPatchTextInput").value.trim();
@@ -974,14 +1051,13 @@ document.addEventListener("DOMContentLoaded", () => {
       body: JSON.stringify({ gameId, currentPatch })
     });
     if (!res.ok) {
-      alert("🔒 Desbloquea primero el panel privado con tu ID de propietario (9297971350).");
+      alert("Desbloquea primero el panel privado con tu ID de propietario (9297971350).");
       return;
     }
     document.getElementById("tgPatchTextInput").value = "";
     await loadBootstrap();
   });
 
-  // Solicitar verificación 2FA de usuario / admin
   document.getElementById("requestAuthForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     const username = document.getElementById("authUsernameInput").value;

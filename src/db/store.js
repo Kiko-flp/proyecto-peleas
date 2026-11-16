@@ -18,22 +18,33 @@ class DataStore {
       }
       if (fs.existsSync(DB_PATH)) {
         const raw = fs.readFileSync(DB_PATH, "utf-8");
-        this.state = JSON.parse(raw);
+        const saved = JSON.parse(raw);
+        // Sincronizar siempre el catálogo completo de sagas, imágenes de portada y los 259 personajes
+        this.state = {
+          ...JSON.parse(JSON.stringify(SEED_DATA)),
+          ownerChatId: saved.ownerChatId || "",
+          authRequests: saved.authRequests || [],
+          verifiedUsers: saved.verifiedUsers || SEED_DATA.verifiedUsers,
+          submissions: saved.submissions || SEED_DATA.submissions,
+          botLogs: saved.botLogs || []
+        };
+        this.save();
       } else {
         this.state = JSON.parse(JSON.stringify(SEED_DATA));
+        this.state.ownerChatId = "";
         this.state.authRequests = [];
         this.state.botLogs = [
           {
             id: "log-1",
             time: new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" }),
-            event: "Sistema FGC Vault inicializado con 6 sagas y verificación Telegram activa."
+            event: "Sistema FGC Vault inicializado con 259 personajes y Bot Privado Clayface."
           }
         ];
         this.save();
       }
     } catch (err) {
-      // Si el sistema de archivos es efímero, mantenemos estado en memoria
       this.state = JSON.parse(JSON.stringify(SEED_DATA));
+      this.state.ownerChatId = "";
       this.state.authRequests = [];
       this.state.botLogs = [];
     }
@@ -126,14 +137,16 @@ class DataStore {
             damage: "Verificado"
           });
         } else {
+          const slug = sub.characterName.toLowerCase().replace(/[^a-z0-9]/g, "-");
           game.characters.push({
-            id: `${sub.gameId}-${sub.characterName.toLowerCase().replace(/[^a-z0-9]/g, "-")}`,
+            id: `${sub.gameId}-${slug}`,
             name: sub.characterName,
             archetype: sub.archetype || "Competitivo",
             difficulty: sub.difficulty || "Media",
             isDLC: Boolean(sub.isDLC),
             dlcPack: sub.isDLC ? (sub.dlcPack || "Season Pass DLC") : null,
             recommendedSubSystem: game.subSystemName,
+            iconUrl: `/api/char-icon?name=${encodeURIComponent(sub.characterName)}&game=${sub.gameId}&bg=${sub.isDLC ? "2e1065" : "0f172a"}&border=${sub.isDLC ? "a855f7" : "f59e0b"}`,
             videoUrl: sub.videoUrl || game.basicGuide.videoUrl,
             sourceUrl: sub.sourceUrl || (game.officialSources[0] ? game.officialSources[0].url : "#"),
             overview: sub.notes,
@@ -147,10 +160,10 @@ class DataStore {
           });
         }
       }
-      this.addLog(`✅ Guía APROBADA desde Bot: ${sub.characterName} en ${sub.gameTitle}`);
+      this.addLog(`Guía APROBADA desde Bot: ${sub.characterName} en ${sub.gameTitle}`);
     } else if (action === "reject") {
       sub.status = "rejected";
-      this.addLog(`❌ Guía RECHAZADA desde Bot: ${sub.characterName} (${sub.id})`);
+      this.addLog(`Guía RECHAZADA desde Bot: ${sub.characterName} (${sub.id})`);
     }
 
     this.save();
@@ -161,14 +174,11 @@ class DataStore {
     const game = this.getGameById(gameId);
     if (!game) return null;
     game.currentPatch = newPatch;
-    this.addLog(`🔄 Parche actualizado en ${game.title}: ${newPatch}`);
+    this.addLog(`Parche actualizado en ${game.title}: ${newPatch}`);
     this.save();
     return game;
   }
 
-  // =========================================================================
-  // VERIFICACIÓN 2FA DE USUARIOS / ADMINS VÍA TELEGRAM BOT
-  // =========================================================================
   createAuthRequest(username, telegramHandle, role = "Colaborador Verificado") {
     const code = String(Math.floor(100000 + Math.random() * 900000));
     const reqObj = {
@@ -177,11 +187,11 @@ class DataStore {
       telegramHandle: telegramHandle.startsWith("@") ? telegramHandle.trim() : `@${telegramHandle.trim()}`,
       role,
       code,
-      status: "pending", // pending | approved | rejected
+      status: "pending",
       createdAt: new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })
     };
     this.state.authRequests.unshift(reqObj);
-    this.addLog(`🔐 Solicitud de verificación Telegram para ${reqObj.username} (${reqObj.telegramHandle}) - Código: ${code}`);
+    this.addLog(`Solicitud de verificación Telegram para ${reqObj.username} (${reqObj.telegramHandle}) - Código: ${code}`);
     this.save();
     return reqObj;
   }
@@ -207,10 +217,10 @@ class DataStore {
           verifiedAt: new Date().toISOString().slice(0, 10)
         });
       }
-      this.addLog(`🟢 Usuario VERIFICADO vía Telegram: ${reqObj.username} (${reqObj.telegramHandle})`);
+      this.addLog(`Usuario VERIFICADO vía Telegram: ${reqObj.username} (${reqObj.telegramHandle})`);
     } else {
       reqObj.status = "rejected";
-      this.addLog(`🔴 Solicitud de acceso DENEGADA para: ${reqObj.username}`);
+      this.addLog(`Solicitud de acceso DENEGADA para: ${reqObj.username}`);
     }
 
     this.save();
