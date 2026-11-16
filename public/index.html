@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=9" />
+  <link rel="stylesheet" href="/styles.css?v=10" />
 </head>
 <body>
   <!-- TOP NAVIGATION BAR (LIMPIA, SIN BOTONES DE BOT DE TELEGRAM NI APORTAR DLC ANTIGUO) -->
@@ -117,7 +117,43 @@
           <button class="saga-tab-btn active" data-newscat="all">Todas las Noticias</button>
           <button class="saga-tab-btn" data-newscat="Competitivo / Torneos">Competitivo y Torneos</button>
           <button class="saga-tab-btn" data-newscat="Parches y DLC">Parches y Nuevos DLC</button>
-          <button class="saga-tab-btn" data-newscat="Actualidad Internacional FGC">Feed Internacional en Vivo</button>
+          <button class="saga-tab-btn" data-newscat="Juegos de Lucha General">Juegos de Lucha en General</button>
+        </div>
+      </div>
+
+      <!-- BARRA DE FILTRADO POR FECHA Y TEXTO PARA BUSCAR NOTICIAS -->
+      <div class="news-filter-bar">
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+          <div class="date-filter-group">
+            <label for="newsSearchInput">Buscar por juego, torneo o jugador:</label>
+            <input type="search" id="newsSearchInput" placeholder="Ej. EVO, Tekken 8, MenaRD, 2XKO, Fatal Fury..." style="min-width:240px;" />
+          </div>
+
+          <div class="date-filter-group">
+            <label for="newsDateFrom">Desde fecha:</label>
+            <input type="date" id="newsDateFrom" />
+          </div>
+
+          <div class="date-filter-group">
+            <label for="newsDateTo">Hasta fecha:</label>
+            <input type="date" id="newsDateTo" />
+          </div>
+
+          <div class="date-filter-group">
+            <label for="newsQuickPeriod">Periodo rápido:</label>
+            <select id="newsQuickPeriod">
+              <option value="all">Cualquier fecha</option>
+              <option value="30d">Últimos 30 días</option>
+              <option value="90d">Últimos 3 meses</option>
+              <option value="2026">Año 2026</option>
+              <option value="2025">Año 2025</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span id="newsFilteredCountLabel" style="font-size:0.8rem;color:#fbbf24;font-weight:600;"></span>
+          <button class="btn btn-outline" id="btnResetNewsFilters">Limpiar filtros</button>
         </div>
       </div>
 
@@ -385,6 +421,6 @@
     </div>
   </div>
 
-  <script src="/app.js?v=9"></script>
+  <script src="/app.js?v=10"></script>
 </body>
 </html>

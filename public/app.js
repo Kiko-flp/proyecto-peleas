@@ -13,6 +13,10 @@ const state = {
   communityResources: [],
   missingContentRoadmap: [],
   selectedNewsCategory: "all",
+  newsSearchQuery: "",
+  newsDateFrom: "",
+  newsDateTo: "",
+  newsQuickPeriod: "all",
   sagas: [],
   games: [],
   selectedSagaId: "all",
@@ -428,11 +432,58 @@ function renderNewsSections() {
 
   const fullGrid = document.getElementById("fullNewsGridContainer");
   if (fullGrid) {
-    const list =
-      state.selectedNewsCategory === "all"
-        ? state.news
-        : state.news.filter((n) => n.category === state.selectedNewsCategory);
-    fullGrid.innerHTML = list.map((item) => buildNewsCardHTML(item)).join("");
+    let list = state.news.slice();
+
+    // 1. Filtrar por categoría
+    if (state.selectedNewsCategory !== "all") {
+      list = list.filter((n) => n.category === state.selectedNewsCategory);
+    }
+
+    // 2. Filtrar por texto (título, resumen, saga o fuente)
+    const q = (state.newsSearchQuery || "").trim().toLowerCase();
+    if (q) {
+      list = list.filter(
+        (n) =>
+          (n.title && n.title.toLowerCase().includes(q)) ||
+          (n.summary && n.summary.toLowerCase().includes(q)) ||
+          (n.saga && n.saga.toLowerCase().includes(q)) ||
+          (n.sourceName && n.sourceName.toLowerCase().includes(q))
+      );
+    }
+
+    // 3. Filtrar por rango de fechas exacto (Desde / Hasta)
+    if (state.newsDateFrom) {
+      list = list.filter((n) => String(n.isoDate || "") >= state.newsDateFrom);
+    }
+    if (state.newsDateTo) {
+      list = list.filter((n) => String(n.isoDate || "") <= state.newsDateTo);
+    }
+
+    // 4. Filtrar por periodo rápido
+    if (state.newsQuickPeriod !== "all") {
+      if (state.newsQuickPeriod === "2026" || state.newsQuickPeriod === "2025") {
+        list = list.filter((n) => String(n.isoDate || "").startsWith(state.newsQuickPeriod));
+      } else {
+        const days = state.newsQuickPeriod === "30d" ? 30 : 90;
+        const cutoff = new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
+        list = list.filter((n) => String(n.isoDate || "") >= cutoff);
+      }
+    }
+
+    const countLabel = document.getElementById("newsFilteredCountLabel");
+    if (countLabel) {
+      countLabel.textContent = `${list.length} noticias encontradas`;
+    }
+
+    if (list.length === 0) {
+      fullGrid.innerHTML = `
+        <div class="roster-block" style="grid-column: 1 / -1; text-align:center;">
+          <p style="color:#94a3b8;">No se encontraron noticias en ese rango de fechas o búsqueda.</p>
+        </div>
+      `;
+    } else {
+      fullGrid.innerHTML = list.map((item) => buildNewsCardHTML(item)).join("");
+    }
   }
 }
 
@@ -889,6 +940,98 @@ function openCharacterModal(gameId, charId) {
   const fallbackSrc = (ch.fallbackIconUrl || ch.iconUrl).replace(/'/g, "\\'");
   const safeName = ch.name.replace(/'/g, "\\'");
 
+  // Agrupar las tarjetas visuales de Frame Data estilo UltimateFrameData por categoría
+  const fdCards = ch.frameDataCards || [];
+  const fdCategories = [...new Set(fdCards.map((c) => c.category || "Ground Attacks"))];
+
+  const fdBlocksHTML = fdCategories
+    .map((catName) => {
+      const cardsInCat = fdCards.filter((c) => (c.category || "Ground Attacks") === catName);
+      return `
+        <div class="ufd-section-banner">${catName}</div>
+        <div class="ufd-cards-grid">
+          ${cardsInCat
+            .map(
+              (fc) => `
+              <div class="ufd-card">
+                <div class="ufd-card-title">
+                  <span>${fc.moveName}</span>
+                  <span class="ufd-card-input">${translateNotation(
+                    fc.input,
+                    game.sagaId,
+                    state.notationMode
+                  )}</span>
+                </div>
+                <div class="ufd-bar ufd-bar-startup">${fc.startup}</div>
+                <div class="ufd-bar ufd-bar-active">${fc.active}</div>
+                <div class="ufd-bar ufd-bar-recovery">${fc.recovery}</div>
+                <div class="ufd-bar ufd-bar-onblock">${fc.onBlock}</div>
+                <div class="ufd-card-notes">${fc.notes}</div>
+                <div class="ufd-card-footer">${fc.totalFrames}</div>
+              </div>
+            `
+            )
+            .join("")}
+        </div>
+      `;
+    })
+    .join("");
+
+  // Construir bloque de Matchups: Contra quién tiene Ventaja y Quién le hace Counter con el porqué
+  const favList = ch.matchups?.favorable || [];
+  const counterList = ch.matchups?.counters || [];
+
+  const matchupsHTML = `
+    <div class="ufd-section-banner" style="background:#38bdf8;color:#090d16;">
+      Matchups — Ventajas y Counters de ${ch.name}
+    </div>
+    <div class="matchups-grid">
+      <div class="matchup-column favorable-col">
+        <h4 style="color:#34d399;font-family:var(--font-display);font-size:1.08rem;">
+          Tiene Ventaja contra (Matchups Favorables)
+        </h4>
+        <p style="font-size:0.78rem;color:#94a3b8;">Personajes a los que ${ch.name} domina y por qué:</p>
+        ${favList
+          .map(
+            (m) => `
+            <div class="matchup-item">
+              <div class="portrait-img-box" style="width:54px;height:54px;flex-shrink:0;">
+                <img src="${m.opponentIcon}" alt="${m.opponentName}" onload="window.handlePortraitLoad(this)" />
+              </div>
+              <div>
+                <div class="matchup-opp-name">${m.opponentName} <span style="font-size:0.74rem;color:#34d399;">(${m.opponentArchetype || ""})</span></div>
+                <div class="matchup-reason"><strong>Por qué tiene ventaja:</strong> ${m.reason}</div>
+              </div>
+            </div>
+          `
+          )
+          .join("")}
+      </div>
+
+      <div class="matchup-column counter-col">
+        <h4 style="color:#f87171;font-family:var(--font-display);font-size:1.08rem;">
+          Le hacen Counter (Matchups Desfavorables)
+        </h4>
+        <p style="font-size:0.78rem;color:#94a3b8;">Personajes que complican a ${ch.name} y por qué:</p>
+        ${counterList
+          .map(
+            (m) => `
+            <div class="matchup-item">
+              <div class="portrait-img-box" style="width:54px;height:54px;flex-shrink:0;">
+                <img src="${m.opponentIcon}" alt="${m.opponentName}" onload="window.handlePortraitLoad(this)" />
+              </div>
+              <div>
+                <div class="matchup-opp-name">${m.opponentName} <span style="font-size:0.74rem;color:#f87171;">(${m.opponentArchetype || ""})</span></div>
+                <div class="matchup-reason"><strong>Por qué le hace counter:</strong> ${m.reason}</div>
+              </div>
+            </div>
+          `
+          )
+          .join("")}
+      </div>
+    </div>
+  `;
+
   header.innerHTML = `
     <div style="display:flex;align-items:center;gap:14px;">
       <div class="portrait-img-box" style="width:68px;height:68px;border:2px solid #f59e0b;flex-shrink:0;">
@@ -1006,6 +1149,12 @@ function openCharacterModal(gameId, charId) {
         </div>
       </div>
     </div>
+
+    <!-- TARJETAS DE FRAME DATA ESTILO ULTIMATEFRAMEDATA (STARTUP, ACTIVE, RECOVERY, ON BLOCK/SHIELD) -->
+    ${fdBlocksHTML}
+
+    <!-- SECCIÓN DE MATCHUPS: VENTAJAS Y COUNTERS CON EL PORQUÉ -->
+    ${matchupsHTML}
   `;
 
   backdrop.classList.remove("hidden");
@@ -1148,7 +1297,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Filtros de categorías de Noticias
+  // Filtros de categorías y fechas de Noticias
   document.querySelectorAll("#newsCategoryTabs .saga-tab-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       document
@@ -1159,6 +1308,50 @@ document.addEventListener("DOMContentLoaded", () => {
       renderNewsSections();
     });
   });
+
+  const newsSearchInput = document.getElementById("newsSearchInput");
+  const newsDateFrom = document.getElementById("newsDateFrom");
+  const newsDateTo = document.getElementById("newsDateTo");
+  const newsQuickPeriod = document.getElementById("newsQuickPeriod");
+  const btnResetNewsFilters = document.getElementById("btnResetNewsFilters");
+
+  if (newsSearchInput) {
+    newsSearchInput.addEventListener("input", (e) => {
+      state.newsSearchQuery = e.target.value;
+      renderNewsSections();
+    });
+  }
+  if (newsDateFrom) {
+    newsDateFrom.addEventListener("change", (e) => {
+      state.newsDateFrom = e.target.value;
+      renderNewsSections();
+    });
+  }
+  if (newsDateTo) {
+    newsDateTo.addEventListener("change", (e) => {
+      state.newsDateTo = e.target.value;
+      renderNewsSections();
+    });
+  }
+  if (newsQuickPeriod) {
+    newsQuickPeriod.addEventListener("change", (e) => {
+      state.newsQuickPeriod = e.target.value;
+      renderNewsSections();
+    });
+  }
+  if (btnResetNewsFilters) {
+    btnResetNewsFilters.addEventListener("click", () => {
+      state.newsSearchQuery = "";
+      state.newsDateFrom = "";
+      state.newsDateTo = "";
+      state.newsQuickPeriod = "all";
+      if (newsSearchInput) newsSearchInput.value = "";
+      if (newsDateFrom) newsDateFrom.value = "";
+      if (newsDateTo) newsDateTo.value = "";
+      if (newsQuickPeriod) newsQuickPeriod.value = "all";
+      renderNewsSections();
+    });
+  }
 
   document.getElementById("globalNotationSelect").addEventListener("change", (e) => {
     state.notationMode = e.target.value;

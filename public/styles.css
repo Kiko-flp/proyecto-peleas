@@ -1458,3 +1458,193 @@ body {
 .news-source-link:hover {
   text-decoration: underline;
 }
+
+/* =========================================================================
+   TARJETAS DE FRAME DATA ESTILO ULTIMATEFRAMEDATA.COM (CAPTURA DEL USUARIO)
+   ========================================================================= */
+.ufd-section-banner {
+  background: #f59e0b;
+  color: #090d16;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  text-align: center;
+  padding: 10px 16px;
+  border-radius: 8px;
+  margin: 22px 0 14px;
+  letter-spacing: 0.5px;
+}
+
+.ufd-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.ufd-card {
+  background: #1c1f26;
+  border: 1px solid #384152;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.8rem;
+}
+
+.ufd-card-title {
+  background: #272b33;
+  color: #ffffff;
+  font-weight: 700;
+  padding: 9px 11px;
+  border-bottom: 1px solid #384152;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+}
+
+.ufd-card-input {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: #fbbf24;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.ufd-bar {
+  padding: 6px 11px;
+  font-weight: 700;
+  color: #ffffff;
+  font-size: 0.78rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+}
+
+.ufd-bar-startup {
+  background: #15803d; /* Verde Startup */
+}
+
+.ufd-bar-active {
+  background: #3b5978; /* Azul Active */
+}
+
+.ufd-bar-recovery {
+  background: #5b3266; /* Morado End Lag / Recovery */
+}
+
+.ufd-bar-onblock {
+  background: #b91c1c; /* Rojo On Shield / On Block */
+}
+
+.ufd-card-notes {
+  padding: 10px 11px;
+  color: #cbd5e1;
+  font-size: 0.76rem;
+  flex: 1;
+  background: #181b20;
+}
+
+.ufd-card-footer {
+  background: #232730;
+  color: #e2e8f0;
+  padding: 6px 11px;
+  font-family: var(--font-mono);
+  font-size: 0.73rem;
+  border-top: 1px solid #384152;
+}
+
+/* =========================================================================
+   SECCIÓN DE MATCHUPS: VENTAJAS Y COUNTERS CON EL PORQUÉ
+   ========================================================================= */
+.matchups-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-top: 14px;
+}
+
+@media (max-width: 860px) {
+  .matchups-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.matchup-column {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.matchup-column.favorable-col {
+  border-top: 4px solid #10b981;
+}
+
+.matchup-column.counter-col {
+  border-top: 4px solid #ef4444;
+}
+
+.matchup-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 10px;
+}
+
+.matchup-opp-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.98rem;
+  color: #f8fafc;
+}
+
+.matchup-reason {
+  font-size: 0.81rem;
+  color: #cbd5e1;
+  margin-top: 4px;
+  line-height: 1.45;
+}
+
+/* =========================================================================
+   FILTROS DE FECHA Y BÚSQUEDA PARA NOTICIAS
+   ========================================================================= */
+.news-filter-bar {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.date-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.date-filter-group label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.date-filter-group input,
+.date-filter-group select {
+  background: var(--bg-dark);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 7px 11px;
+  border-radius: 8px;
+  font-size: 0.83rem;
+  font-family: var(--font-sans);
+}

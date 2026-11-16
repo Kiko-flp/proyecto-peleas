@@ -125,10 +125,18 @@ const DETAILED_OVERRIDES = {
 function hydrateRoster(gameId, sagaNotation, wikiBaseUrl, defaultVideo, colorHex, rawList) {
   return rawList.map((item) => {
     const override = DETAILED_OVERRIDES[`${gameId}:${item.name}`] || {};
-    return buildRosterEntry(gameId, sagaNotation, wikiBaseUrl, defaultVideo, colorHex, {
-      ...item,
-      ...override
-    });
+    return buildRosterEntry(
+      gameId,
+      sagaNotation,
+      wikiBaseUrl,
+      defaultVideo,
+      colorHex,
+      {
+        ...item,
+        ...override
+      },
+      rawList
+    );
   });
 }
 
