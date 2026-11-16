@@ -1,0 +1,221 @@
+const fs = require("fs");
+const path = require("path");
+const SEED_DATA = require("../data/seedData");
+
+const DATA_DIR = path.join(__dirname, "../../data");
+const DB_PATH = path.join(DATA_DIR, "runtime_db.json");
+
+class DataStore {
+  constructor() {
+    this.state = null;
+    this.init();
+  }
+
+  init() {
+    try {
+      if (!fs.existsSync(DATA_DIR)) {
+        fs.mkdirSync(DATA_DIR, { recursive: true });
+      }
+      if (fs.existsSync(DB_PATH)) {
+        const raw = fs.readFileSync(DB_PATH, "utf-8");
+        this.state = JSON.parse(raw);
+      } else {
+        this.state = JSON.parse(JSON.stringify(SEED_DATA));
+        this.state.authRequests = [];
+        this.state.botLogs = [
+          {
+            id: "log-1",
+            time: new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" }),
+            event: "Sistema FGC Vault inicializado con 6 sagas y verificación Telegram activa."
+          }
+        ];
+        this.save();
+      }
+    } catch (err) {
+      // Si el sistema de archivos es efímero, mantenemos estado en memoria
+      this.state = JSON.parse(JSON.stringify(SEED_DATA));
+      this.state.authRequests = [];
+      this.state.botLogs = [];
+    }
+  }
+
+  save() {
+    try {
+      if (!fs.existsSync(DATA_DIR)) {
+        fs.mkdirSync(DATA_DIR, { recursive: true });
+      }
+      fs.writeFileSync(DB_PATH, JSON.stringify(this.state, null, 2), "utf-8");
+    } catch (_) {
+      // En memoria si no se puede escribir en disco
+    }
+  }
+
+  addLog(eventText) {
+    const entry = {
+      id: "log-" + Date.now(),
+      time: new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
+      event: eventText
+    };
+    this.state.botLogs.unshift(entry);
+    if (this.state.botLogs.length > 35) {
+      this.state.botLogs.pop();
+    }
+    this.save();
+    return entry;
+  }
+
+  getSagas() {
+    return this.state.sagas;
+  }
+
+  getGames(sagaId = null) {
+    if (!sagaId || sagaId === "all") return this.state.games;
+    return this.state.games.filter((g) => g.sagaId === sagaId);
+  }
+
+  getGameById(gameId) {
+    return this.state.games.find((g) => g.id === gameId) || null;
+  }
+
+  getSubmissions(status = null) {
+    if (!status) return this.state.submissions;
+    return this.state.submissions.filter((s) => s.status === status);
+  }
+
+  createSubmission(payload) {
+    const game = this.getGameById(payload.gameId);
+    const newSub = {
+      id: "sub-" + Math.floor(100 + Math.random() * 900),
+      gameId: payload.gameId,
+      gameTitle: game ? game.title : payload.gameId,
+      characterName: payload.characterName,
+      archetype: payload.archetype || "Versátil / Competitivo",
+      difficulty: payload.difficulty || "Media",
+      isDLC: Boolean(payload.isDLC),
+      dlcPack: payload.isDLC ? (payload.dlcPack || "Season Pass DLC") : null,
+      author: payload.author || "Comunidad_FGC",
+      type: payload.isDLC ? `Personaje DLC (${payload.dlcPack || "Pack"})` : "Personaje Base / Guía",
+      comboNotation: payload.comboNotation,
+      notes: payload.notes || "Guía enviada por la comunidad y pendiente de verificación.",
+      videoUrl: payload.videoUrl || "https://www.youtube.com/embed/u7pTIg7vKBM",
+      sourceUrl: payload.sourceUrl || "https://wiki.supercombo.gg/",
+      status: "pending",
+      createdAt: "Ahora mismo"
+    };
+    this.state.submissions.unshift(newSub);
+    this.addLog(`Nueva propuesta enviada: ${newSub.characterName} (${newSub.gameTitle}) por ${newSub.author}`);
+    this.save();
+    return newSub;
+  }
+
+  moderateSubmission(subId, action) {
+    const sub = this.state.submissions.find((s) => s.id === subId);
+    if (!sub) return null;
+
+    if (action === "approve") {
+      sub.status = "approved";
+      const game = this.getGameById(sub.gameId);
+      if (game) {
+        const existingChar = game.characters.find(
+          (c) => c.name.toLowerCase() === sub.characterName.toLowerCase()
+        );
+        if (existingChar) {
+          existingChar.combos.push({
+            type: `Aporte Verificado (${sub.author})`,
+            notation: sub.comboNotation,
+            damage: "Verificado"
+          });
+        } else {
+          game.characters.push({
+            id: `${sub.gameId}-${sub.characterName.toLowerCase().replace(/[^a-z0-9]/g, "-")}`,
+            name: sub.characterName,
+            archetype: sub.archetype || "Competitivo",
+            difficulty: sub.difficulty || "Media",
+            isDLC: Boolean(sub.isDLC),
+            dlcPack: sub.isDLC ? (sub.dlcPack || "Season Pass DLC") : null,
+            recommendedSubSystem: game.subSystemName,
+            videoUrl: sub.videoUrl || game.basicGuide.videoUrl,
+            sourceUrl: sub.sourceUrl || (game.officialSources[0] ? game.officialSources[0].url : "#"),
+            overview: sub.notes,
+            keyMoves: [
+              { input: "Movimiento Principal", frames: "Verificado", notes: sub.notes }
+            ],
+            combos: [
+              { type: "Combo Principal BnB", notation: sub.comboNotation, damage: "Óptimo" }
+            ],
+            gameplan: sub.notes
+          });
+        }
+      }
+      this.addLog(`✅ Guía APROBADA desde Bot: ${sub.characterName} en ${sub.gameTitle}`);
+    } else if (action === "reject") {
+      sub.status = "rejected";
+      this.addLog(`❌ Guía RECHAZADA desde Bot: ${sub.characterName} (${sub.id})`);
+    }
+
+    this.save();
+    return sub;
+  }
+
+  updateGamePatch(gameId, newPatch) {
+    const game = this.getGameById(gameId);
+    if (!game) return null;
+    game.currentPatch = newPatch;
+    this.addLog(`🔄 Parche actualizado en ${game.title}: ${newPatch}`);
+    this.save();
+    return game;
+  }
+
+  // =========================================================================
+  // VERIFICACIÓN 2FA DE USUARIOS / ADMINS VÍA TELEGRAM BOT
+  // =========================================================================
+  createAuthRequest(username, telegramHandle, role = "Colaborador Verificado") {
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const reqObj = {
+      id: "auth-" + Date.now(),
+      username: username.trim(),
+      telegramHandle: telegramHandle.startsWith("@") ? telegramHandle.trim() : `@${telegramHandle.trim()}`,
+      role,
+      code,
+      status: "pending", // pending | approved | rejected
+      createdAt: new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })
+    };
+    this.state.authRequests.unshift(reqObj);
+    this.addLog(`🔐 Solicitud de verificación Telegram para ${reqObj.username} (${reqObj.telegramHandle}) - Código: ${code}`);
+    this.save();
+    return reqObj;
+  }
+
+  resolveAuthRequest(codeOrId, decision) {
+    const reqObj = this.state.authRequests.find(
+      (r) => r.code === String(codeOrId).trim() || r.id === String(codeOrId).trim()
+    );
+    if (!reqObj) return null;
+
+    if (decision === "approve") {
+      reqObj.status = "approved";
+      const existing = this.state.verifiedUsers.find(
+        (u) => u.username.toLowerCase() === reqObj.username.toLowerCase()
+      );
+      if (!existing) {
+        this.state.verifiedUsers.unshift({
+          id: "usr-" + Date.now(),
+          username: reqObj.username,
+          role: reqObj.role,
+          telegramHandle: reqObj.telegramHandle,
+          verified: true,
+          verifiedAt: new Date().toISOString().slice(0, 10)
+        });
+      }
+      this.addLog(`🟢 Usuario VERIFICADO vía Telegram: ${reqObj.username} (${reqObj.telegramHandle})`);
+    } else {
+      reqObj.status = "rejected";
+      this.addLog(`🔴 Solicitud de acceso DENEGADA para: ${reqObj.username}`);
+    }
+
+    this.save();
+    return reqObj;
+  }
+}
+
+module.exports = new DataStore();

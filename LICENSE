@@ -1,0 +1,67 @@
+================================================================================
+FGC VAULT — MODELO DE DOBLE LICENCIA (CÓDIGO FUENTE + CONTENIDO DE GUÍAS)
+Copyright (c) 2026 Kiko
+================================================================================
+
+Este repositorio aplica un modelo de doble licencia para proteger tanto la
+arquitectura de software como la base de datos de guías y textos recopilados:
+
+1. CÓDIGO FUENTE DEL SOFTWARE:
+   Licenciado bajo la GNU General Public License v3.0 (GPL-3.0).
+   Cualquier obra derivada o redistribución del código debe mantener el aviso
+   de autoría original y distribuirse bajo la misma licencia abierta GPLv3.
+
+2. CONTENIDO EDITORIAL, RECOPILACIÓN DE GUÍAS Y ESTRUCTURA DE DATOS:
+   Licenciado bajo Creative Commons Reconocimiento-NoComercial-CompartirIgual
+   4.0 Internacional (CC BY-NC-SA 4.0).
+   - Atribución (BY): Debe reconocerse la autoría del proyecto original.
+   - No Comercial (NC): Queda prohibido utilizar las guías o bases de datos de
+     este proyecto con fines comerciales sin autorización expresa del autor.
+   - Compartir Igual (SA): Si se remezcla o transforma el material, debe
+     difundirse bajo la misma licencia CC BY-NC-SA 4.0.
+
+3. AVISO DE MARCAS REGISTRADAS (FAIR USE / USO EDUCATIVO COMUNITARIO):
+   Mortal Kombat (NetherRealm Studios / Warner Bros.), Street Fighter (Capcom),
+   Tekken (Bandai Namco), Dragon Ball FighterZ y Guilty Gear (Arc System Works /
+   Bandai Namco / Bird Studio / Shueisha / Toei Animation) y Super Smash Bros.
+   (Nintendo / HAL Laboratory / Sora Ltd.) son marcas registradas de sus
+   respectivos propietarios. Este proyecto es una enciclopedia educativa y
+   comunitaria sin ánimo de lucro amparada en el uso legítimo informativo.
+
+================================================================================
+                    GNU GENERAL PUBLIC LICENSE
+                       Version 3, 29 June 2007
+================================================================================
+
+ Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
+ Everyone is permitted to copy and distribute verbatim copies
+ of this license document, but changing it is not allowed.
+
+                            Preamble
+
+  The GNU General Public License is a free, copyleft license for
+software and other kinds of works.
+
+  The licenses for most software and other practical works are designed
+to take away your freedom to share and change the works. By contrast,
+the GNU General Public License is intended to guarantee your freedom to
+share and change all versions of a program--to make sure it remains free
+software for all its users.
+
+  When we speak of free software, we are referring to freedom, not
+price. Our General Public Licenses are designed to make sure that you
+have the freedom to distribute copies of free software (and charge for
+them if you wish), that you receive source code or can get it if you
+want it, that you can change the software or use pieces of it in new
+free programs, and that you know you can do these things.
+
+  To protect your rights, we need to prevent others from denying you
+these rights or asking you to surrender the rights. Therefore, you have
+certain responsibilities if you distribute copies of the software, or if
+you modify it: responsibilities to respect the freedom of others.
+
+  For the full legal text of the GNU General Public License v3.0, see:
+  https://www.gnu.org/licenses/gpl-3.0.txt
+
+  For the full legal text of Creative Commons BY-NC-SA 4.0, see:
+  https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es

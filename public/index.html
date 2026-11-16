@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FGC Vault — Enciclopedia & Guías de Juegos de Lucha</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <!-- TOP NAVIGATION BAR -->
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <div class="brand" id="btnHomeBrand" title="Volver al catálogo de Sagas">
+        <span class="brand-logo">🥊</span>
+        <div>
+          <span class="brand-title">FGC VAULT</span>
+          <span class="brand-subtitle">ENCICLOPEDIA COMPETITIVA DE LUCHA</span>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <!-- Selector global de notación de botones -->
+        <div class="notation-switcher" title="Traduce automáticamente la notación de los combos">
+          <label for="globalNotationSelect">🎮 Notación:</label>
+          <select id="globalNotationSelect">
+            <option value="technical">Técnica FGC (1,2,3 / 236P)</option>
+            <option value="ps">PlayStation (▢ △ ✕ ○)</option>
+            <option value="xbox">Xbox / PC (X Y A B)</option>
+          </select>
+        </div>
+
+        <button class="btn btn-outline" id="btnOpenSubmitModal">
+          ➕ Aportar Guía / DLC
+        </button>
+
+        <button class="btn btn-telegram" id="btnOpenTelegramPanel">
+          <span class="tg-dot"></span>
+          🤖 Bot Telegram & Verificación
+          <span class="badge-counter" id="pendingBadgeCount">2</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="container main-content">
+    <!-- VISTA 1: PÁGINA PRINCIPAL (CATÁLOGO DE SAGAS Y JUEGOS) -->
+    <section id="homeView">
+      <div class="hero-banner">
+        <div class="hero-text">
+          <div class="hero-pill">✨ FUENTES VERIFICADAS: SUPERCOMBO • DUSTLOOP • WAVU • KOMBAT AKADEMY • ULTIMATE FRAME DATA</div>
+          <h1>Domina cualquier Juego de Lucha de principio a fin</h1>
+          <p>
+            Selecciona una saga o juego para acceder a su <strong>Guía Básica de Conceptos</strong>,
+            <strong>Guía Avanzada de Frame Data</strong> y <strong>Guías Individuales por Personaje</strong>
+            en vídeo y texto, con separación clara entre el <strong>Juego Base</strong> y cada <strong>Pack DLC</strong>.
+          </p>
+        </div>
+        <div class="hero-stats" id="heroStatsBox">
+          <!-- Renderizado dinámico -->
+        </div>
+      </div>
+
+      <!-- FILTRO DE SAGAS -->
+      <div class="saga-filter-Header">
+        <h2>Explorar por Saga Principal</h2>
+        <input type="search" id="searchGameOrCharInput" class="search-input" placeholder="🔍 Buscar juego, personaje o pack DLC (ej. Scorpion, Akuma, Kombat Pack 1)..." />
+      </div>
+
+      <div class="saga-tabs" id="sagaTabsContainer">
+        <!-- Renderizado dinámico de sagas -->
+      </div>
+
+      <!-- RESULTADOS RÁPIDOS DE PERSONAJES SI EL USUARIO BUSCA UN LUCHADOR -->
+      <div id="quickCharSearchResults" class="quick-char-results hidden"></div>
+
+      <!-- GRID DE JUEGOS -->
+      <div class="games-grid" id="gamesGridContainer">
+        <!-- Renderizado dinámico de juegos -->
+      </div>
+    </section>
+
+    <!-- VISTA 2: PÁGINA DE UN JUEGO SELECCIONADO (GUÍA BÁSICA, AVANZADA Y ROSTER BASE vs DLC) -->
+    <section id="gameDetailView" class="hidden">
+      <div class="breadcrumb-bar">
+        <button class="btn-back" id="btnBackToCatalog">⬅️ Volver a todas las Sagas</button>
+        <div class="sources-strip" id="gameOfficialSources"></div>
+      </div>
+
+      <!-- CABECERA DEL JUEGO -->
+      <div class="game-header-banner" id="gameHeaderBanner">
+        <!-- Renderizado dinámico -->
+      </div>
+
+      <!-- LEYENDA DE NOTACIÓN DEL JUEGO -->
+      <div class="notation-banner" id="gameNotationBanner"></div>
+
+      <!-- NAVEGACIÓN INTERNA DEL JUEGO -->
+      <div class="game-section-tabs">
+        <button class="game-tab active" data-tab="tab-roster">
+          🥊 Guías de Personajes (Base & DLC)
+        </button>
+        <button class="game-tab" data-tab="tab-basic">
+          📘 1. Guía Básica (Conceptos)
+        </button>
+        <button class="game-tab" data-tab="tab-advanced">
+          🔥 2. Guía Avanzada (Competitivo)
+        </button>
+      </div>
+
+      <!-- SECCIÓN A: ROSTER DE PERSONAJES (JUEGO BASE vs DLC SEPARADOS POR PACK) -->
+      <div id="tab-roster" class="game-tab-content">
+        <!-- BLOQUE 1: PLANTEL DEL JUEGO BASE -->
+        <div class="roster-block">
+          <div class="roster-block-header base-header">
+            <div>
+              <h3>🎮 Plantel del Juego Base (Base Roster)</h3>
+              <p>Personajes incluidos de serie con el lanzamiento estándar del juego.</p>
+            </div>
+            <span class="roster-count-pill" id="baseRosterCountPill">0 personajes</span>
+          </div>
+          <div class="characters-grid" id="baseCharactersGrid"></div>
+        </div>
+
+        <!-- BLOQUE 2: PERSONAJES DLC (SEPARADOS Y ETIQUETADOS POR PACK) -->
+        <div class="roster-block dlc-block">
+          <div class="roster-block-header dlc-header">
+            <div>
+              <h3>💎 Personajes DLC de Pago (Separados por Pack / Fighter Pass)</h3>
+              <p>Luchadores adicionales agrupados e identificados según su expansión o Season Pass correspondiente.</p>
+            </div>
+            <div class="dlc-filter-wrap">
+              <label for="dlcPackFilterSelect">Filtrar por Pack:</label>
+              <select id="dlcPackFilterSelect">
+                <option value="all">Todos los Packs DLC</option>
+              </select>
+            </div>
+          </div>
+          <div class="characters-grid" id="dlcCharactersGrid"></div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN B: GUÍA BÁSICA (VÍDEO + TEXTO) -->
+      <div id="tab-basic" class="game-tab-content hidden">
+        <div class="guide-split-layout" id="basicGuideContainer"></div>
+      </div>
+
+      <!-- SECCIÓN C: GUÍA AVANZADA (VÍDEO + TEXTO) -->
+      <div id="tab-advanced" class="game-tab-content hidden">
+        <div class="guide-split-layout" id="advancedGuideContainer"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- MODAL: GUÍA INDIVIDUAL DE UN PERSONAJE (VÍDEO + TEXTO + COMBOS) -->
+  <div class="modal-backdrop hidden" id="characterModalBackdrop">
+    <div class="modal-card char-modal-card">
+      <div class="modal-header" id="charModalHeader"></div>
+      <div class="modal-body" id="charModalBody"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: ENVIAR NUEVA GUÍA / PERSONAJE DLC (CONECTADO AL BOT DE TELEGRAM) -->
+  <div class="modal-backdrop hidden" id="submitModalBackdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h3>➕ Proponer Guía o Personaje al Bot de Telegram</h3>
+          <p class="modal-sub">La propuesta llegará al Bot de Telegram para aprobarla con un botón.</p>
+        </div>
+        <button class="btn-close-modal" id="btnCloseSubmitModal">✕</button>
+      </div>
+      <form id="submitGuideForm" class="modal-body form-grid">
+        <div class="form-group">
+          <label>Juego</label>
+          <select id="subGameSelect" required></select>
+        </div>
+        <div class="form-group">
+          <label>Nombre del Personaje</label>
+          <input type="text" id="subCharName" placeholder="Ej. Ermac, Cammy, Armor King..." required />
+        </div>
+        <div class="form-group">
+          <label>Arquetipo</label>
+          <input type="text" id="subArchetype" placeholder="Ej. Rushdown / Mix-up / Zoner" value="Rushdown / Competitivo" />
+        </div>
+        <div class="form-group">
+          <label>Dificultad</label>
+          <select id="subDifficulty">
+            <option value="Fácil">Fácil</option>
+            <option value="Media" selected>Media</option>
+            <option value="Difícil">Difícil</option>
+          </select>
+        </div>
+        <div class="form-group full-width dlc-checkbox-row">
+          <label class="checkbox-label">
+            <input type="checkbox" id="subIsDLC" />
+            <span>💎 ¿Es un personaje de un DLC de pago?</span>
+          </label>
+          <input type="text" id="subDlcPack" class="hidden" placeholder="Nombre del Pack/DLC (Ej: Kombat Pack 1, Year 2 Pass, Fighters Pass Vol. 2)" />
+        </div>
+        <div class="form-group full-width">
+          <label>Combo Principal (BnB) en Notación</label>
+          <input type="text" id="subCombo" placeholder="Ej. f+3,2 > j.1,2 ~ db+2 (360 dmg)" required />
+        </div>
+        <div class="form-group full-width">
+          <label>Guía en Texto (Resumen, Botones Clave y Plan de Juego)</label>
+          <textarea id="subNotes" rows="3" placeholder="Explica cómo jugar el neutro, sus mejores botones y fuente (SuperCombo, Dustloop, Kombat Akademy)..." required></textarea>
+        </div>
+        <div class="form-group">
+          <label>URL Vídeo Guía (YouTube Embed o link)</label>
+          <input type="url" id="subVideoUrl" placeholder="https://www.youtube.com/embed/u7pTIg7vKBM" />
+        </div>
+        <div class="form-group">
+          <label>Tu Nombre / Nick FGC</label>
+          <input type="text" id="subAuthor" placeholder="Ej. Kiko_FGC" required />
+        </div>
+        <div class="form-actions full-width">
+          <button type="submit" class="btn btn-primary">🚀 Enviar Propuesta al Bot de Telegram</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- DRAWER LATERAL: CENTRO DE CONTROL DEL BOT DE TELEGRAM (VERIFICACIÓN 2FA + GESTIÓN POR BOTONES) -->
+  <div class="modal-backdrop hidden" id="telegramDrawerBackdrop">
+    <aside class="telegram-drawer">
+      <div class="tg-drawer-header">
+        <div class="tg-title-row">
+          <span class="tg-icon">✈️</span>
+          <div>
+            <h3>Bot de Telegram — Verificación & Gestión</h3>
+            <p id="tgConnectionBadge">Modo Simulador Interactivo + API Telegram lista</p>
+          </div>
+        </div>
+        <button class="btn-close-modal" id="btnCloseTelegramDrawer">✕</button>
+      </div>
+
+      <div class="tg-drawer-tabs">
+        <button class="tg-tab active" data-tgtab="tg-bot-panel">📲 Botones de Moderación</button>
+        <button class="tg-tab" data-tgtab="tg-auth-panel">🔐 Verificación 2FA Usuarios</button>
+        <button class="tg-tab" data-tgtab="tg-deploy-panel">☁️ Despliegue Render & @BotFather</button>
+      </div>
+
+      <div class="tg-drawer-body">
+        <!-- BLOQUE DE CANDADO PRIVADO PARA EL PROPIETARIO (9297971350) -->
+        <div class="tg-card-box" id="tgPrivateLockBox" style="border-color:#f59e0b;background:rgba(245,158,11,0.08);">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+            <div>
+              <strong style="color:#fbbf24;font-size:0.88rem;" id="tgLockStatusTitle">🔒 Bot en Modo Privado Estricto</strong>
+              <p style="font-size:0.76rem;color:#cbd5e1;" id="tgLockStatusSub">
+                Solo el propietario autorizado puede usar los botones del bot.
+              </p>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;" id="tgUnlockFormRow">
+              <input
+                type="password"
+                id="tgOwnerKeyInput"
+                placeholder="ID / API Propietario"
+                style="background:#0e1621;border:1px solid #2b5278;color:#fff;padding:6px 10px;border-radius:6px;width:145px;font-size:0.8rem;"
+              />
+              <button class="tg-inline-btn approve" id="btnUnlockPrivateBot">🔓 Desbloquear</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PESTAÑA 1: SIMULADOR / PANEL EN VIVO DEL BOT CON BOTONES INLINE -->
+        <div id="tg-bot-panel" class="tg-tab-content">
+          <div class="tg-chat-window">
+            <div class="tg-message-bubble">
+              <div class="tg-msg-title">🤖 Clayface (@Clayfacefightbot) — Menú Principal (<code>/menu</code>)</div>
+              <p>Aprueba o rechaza propuestas de guías, separa personajes DLC y actualiza parches con un solo botón:</p>
+              <div class="tg-inline-grid">
+                <button class="tg-inline-btn" id="tgQuickBtnPending">📋 Ver Pendientes</button>
+                <button class="tg-inline-btn" id="tgQuickBtnPatch">🔄 Cambiar Parche Actual</button>
+              </div>
+            </div>
+
+            <h4 class="tg-section-subtitle">📋 Guías y Personajes Pendientes de Aprobar</h4>
+            <div id="tgPendingSubmissionsList"></div>
+
+            <h4 class="tg-section-subtitle">⚡ Actualizar Etiqueta de Parche Rápido</h4>
+            <div class="tg-patch-box">
+              <select id="tgPatchGameSelect"></select>
+              <input type="text" id="tgPatchTextInput" placeholder="Ej. Parche v1.12 (Balance Update)" />
+              <button class="tg-inline-btn approve" id="btnApplyPatchUpdate">Guardar Parche</button>
+            </div>
+
+            <h4 class="tg-section-subtitle">📜 Registro en Vivo del Bot</h4>
+            <div class="tg-logs-box" id="tgLiveLogsList"></div>
+          </div>
+        </div>
+
+        <!-- PESTAÑA 2: VERIFICACIÓN 2FA DE USUARIOS / ADMINS -->
+        <div id="tg-auth-panel" class="tg-tab-content hidden">
+          <div class="tg-card-box">
+            <h4>1. Solicitar Verificación de Cuenta / Admin</h4>
+            <p class="muted-small">El usuario introduce su alias de Telegram y recibe un código de 6 dígitos o un botón de confirmación instantánea en el bot.</p>
+            <form id="requestAuthForm" class="tg-auth-form">
+              <input type="text" id="authUsernameInput" placeholder="Nombre en la web (ej. Kiko_Pro)" required />
+              <input type="text" id="authTelegramInput" placeholder="@usuario_telegram" required />
+              <select id="authRoleSelect">
+                <option value="Editor Verificado FGC">Editor Verificado FGC</option>
+                <option value="Administrador Principal">Administrador Principal</option>
+              </select>
+              <button type="submit" class="btn btn-telegram">🔑 Generar Solicitud de Verificación</button>
+            </form>
+          </div>
+
+          <div class="tg-card-box">
+            <h4>2. Solicitudes Pendientes en el Bot (<code>/verificar CODIGO</code>)</h4>
+            <div id="tgPendingAuthsList"></div>
+          </div>
+
+          <div class="tg-card-box">
+            <h4>3. Usuarios y Administradores Verificados</h4>
+            <div id="tgVerifiedUsersList"></div>
+          </div>
+        </div>
+
+        <!-- PESTAÑA 3: GUÍA PASO A PASO PARA GITHUB + RENDER + BOTFATHER -->
+        <div id="tg-deploy-panel" class="tg-tab-content hidden">
+          <div class="tg-card-box deploy-steps">
+            <h4>🚀 Cómo alojar en GitHub + Render y activar tu Bot real</h4>
+            <ol>
+              <li>
+                <strong>Crear el Bot en Telegram (1 min):</strong>
+                Abre Telegram, busca <code>@BotFather</code>, envía <code>/newbot</code> y copia el token que te da.
+              </li>
+              <li>
+                <strong>Subir este proyecto a GitHub:</strong>
+                El proyecto ya incluye <code>render.yaml</code> y <code>.gitignore</code> listos. Sube la carpeta a tu repositorio de GitHub.
+              </li>
+              <li>
+                <strong>Conectar con Render (Onrender.com):</strong>
+                En Render haz clic en <em>New + → Web Service</em> (o <em>Blueprint</em>), selecciona tu repositorio de GitHub y añade en <em>Environment Variables</em>:
+                <code>TELEGRAM_BOT_TOKEN</code> = tu token de BotFather.<br/>
+                Envía <code>/miid</code> a tu bot en Telegram para que te diga tu ID y ponlo en <code>TELEGRAM_ADMIN_CHAT_ID</code>.
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
