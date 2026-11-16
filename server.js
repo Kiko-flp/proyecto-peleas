@@ -5,6 +5,7 @@ const path = require("path");
 const store = require("./src/db/store");
 const telegramBot = require("./src/bot/telegramBot");
 const { resolveCharacterPortraitUrl } = require("./src/utils/portraitResolver");
+const { CURATED_FGC_NEWS, getFgcNews } = require("./src/data/fgcNews");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -167,6 +168,7 @@ app.get("/api/bootstrap", (req, res) => {
 
   res.json({
     youtubeChannel: store.state.youtubeChannel,
+    news: CURATED_FGC_NEWS,
     sagas: store.getSagas(),
     games: store.getGames(),
     submissions: store.getSubmissions(),
@@ -223,6 +225,11 @@ app.post("/api/bot/unlock", (req, res) => {
 
   store.addLog("Intento fallido de acceso al Panel Privado.");
   return res.status(403).json({ unlocked: false, error: "Código o clave de propietario inválida." });
+});
+
+app.get("/api/news", async (req, res) => {
+  const allNews = await getFgcNews();
+  res.json({ news: allNews });
 });
 
 app.get("/api/games/:id", (req, res) => {

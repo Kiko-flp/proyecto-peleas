@@ -8,6 +8,17 @@
  * - Super Smash Bros. Ultimate (86 personajes: Base + Fighters Pass Vol. 1 y 2)
  */
 
+const crypto = require("crypto");
+
+function getMediaWikiHashedUrl(baseImagesUrl, fileName) {
+  const normalized = fileName.replace(/\s+/g, "_");
+  const firstUpper = normalized.charAt(0).toUpperCase() + normalized.slice(1);
+  const hash = crypto.createHash("md5").update(firstUpper).digest("hex");
+  const c1 = hash.slice(0, 1);
+  const c1c2 = hash.slice(0, 2);
+  return `${baseImagesUrl}/${c1}/${c1c2}/${encodeURIComponent(firstUpper)}`;
+}
+
 const SSBU_SLUGS = {
   "Mario": "mario", "Donkey Kong": "donkey_kong", "Link": "link", "Samus": "samus",
   "Dark Samus": "dark_samus", "Yoshi": "yoshi", "Kirby": "kirby", "Fox": "fox",
@@ -57,28 +68,74 @@ const MK1_CDN_SLUGS = {
   "Ghostface": "ghostface", "Conan the Barbarian": "conan", "T-1000": "t-1000"
 };
 
+const SF6_SUPERCOMBO_NAMES = {
+  "Ken Masters": "Ken",
+  "Juri Han": "Juri",
+  "Terry Bogard": "Terry",
+  "Mai Shiranui": "Mai"
+};
+
+const DBFZ_DUSTLOOP_NAMES = {
+  "Goku (Super Saiyan)": "SSJ_Goku",
+  "Vegeta (Super Saiyan)": "SSJ_Vegeta",
+  "Goku (SSGSS / Blue)": "SSGSS_Goku",
+  "Vegeta (SSGSS / Blue)": "SSGSS_Vegeta",
+  "Gohan (Teen)": "Teen_Gohan",
+  "Gohan (Adult)": "Adult_Gohan",
+  "Android 21 (Majin)": "Android_21",
+  "Broly (Z)": "Broly",
+  "Zamasu (Fused)": "Fused_Zamasu",
+  "Vegito (SSGSS)": "Vegito",
+  "Goku (Base)": "Base_Goku",
+  "Vegeta (Base)": "Base_Vegeta",
+  "Goku (GT)": "GT_Goku",
+  "Gogeta (SSGSS)": "Gogeta",
+  "Broly (DBS)": "DBS_Broly",
+  "Goku (Ultra Instinct)": "UI_Goku",
+  "Gogeta (SS4)": "SS4_Gogeta",
+  "Android 21 (Lab Coat)": "Lab_Coat_Android_21"
+};
+
 function getDirectPortraitUrl(gameId, charName, colorHex = "f59e0b", isDLC = false) {
+  // 1. Smash Ultimate: Mugshot cuadrado de cara oficial de Nintendo
   if (gameId === "ssbu" && SSBU_SLUGS[charName]) {
     return `https://www.smashbros.com/assets_v2/img/fighter/thumb_a/${SSBU_SLUGS[charName]}.png`;
   }
+  // 2. Street Fighter 6: Icono cuadrado de cara de SuperCombo Wiki (MD5 Hash exacto)
+  if (gameId === "sf6") {
+    const scName = (SF6_SUPERCOMBO_NAMES[charName] || charName).replace(/\s+/g, "_");
+    return getMediaWikiHashedUrl("https://wiki.supercombo.gg/images", `SF6_${scName}_Icon.png`);
+  }
+  // 3. Guilty Gear -Strive-: Icono cuadrado de cara de Dustloop Wiki (MD5 Hash exacto)
+  if (gameId === "gg-strive") {
+    const ggName = charName.replace(/\s+/g, "_");
+    return getMediaWikiHashedUrl("https://www.dustloop.com/w/images", `GGST_${ggName}_Icon.png`);
+  }
+  // 4. Dragon Ball FighterZ: Icono cuadrado de cara de Dustloop Wiki (MD5 Hash exacto)
+  if (gameId === "dbfz") {
+    const dbName = (DBFZ_DUSTLOOP_NAMES[charName] || charName).replace(/\s+/g, "_");
+    return getMediaWikiHashedUrl("https://www.dustloop.com/w/images", `DBFZ_${dbName}_Icon.png`);
+  }
+  // 5. Mortal Kombat 1: Retrato cuadrado oficial de rostro
+  if (gameId === "mk1" && MK1_CDN_SLUGS[charName]) {
+    return `https://cdn-mk1.mortalkombat.com/roster/${MK1_CDN_SLUGS[charName]}/thumb.webp`;
+  }
+  // 6. Tekken 8 y resto: Resolutor del servidor con caché de rostro
+  const slug = encodeURIComponent(charName);
+  const bg = isDLC ? "2e1065" : "0f172a";
+  const border = isDLC ? "a855f7" : colorHex.replace("#", "");
+  return `/api/char-icon?v=7&name=${slug}&game=${encodeURIComponent(gameId)}&bg=${bg}&border=${border}`;
+}
+
+function getFallbackIconUrl(gameId, charName, colorHex = "f59e0b", isDLC = false) {
   if (gameId === "sf6" && SF6_CDN_SLUGS[charName]) {
     const s = SF6_CDN_SLUGS[charName];
     return `https://www.streetfighter.com/6/assets/images/character/${s}/${s}.png`;
   }
-  if (gameId === "mk1" && MK1_CDN_SLUGS[charName]) {
-    return `https://cdn-mk1.mortalkombat.com/roster/${MK1_CDN_SLUGS[charName]}/thumb.webp`;
-  }
   const slug = encodeURIComponent(charName);
   const bg = isDLC ? "2e1065" : "0f172a";
   const border = isDLC ? "a855f7" : colorHex.replace("#", "");
-  return `/api/char-icon?v=6&name=${slug}&game=${encodeURIComponent(gameId)}&bg=${bg}&border=${border}`;
-}
-
-function getFallbackIconUrl(gameId, charName, colorHex = "f59e0b", isDLC = false) {
-  const slug = encodeURIComponent(charName);
-  const bg = isDLC ? "2e1065" : "0f172a";
-  const border = isDLC ? "a855f7" : colorHex.replace("#", "");
-  return `/api/char-icon?v=6&name=${slug}&game=${encodeURIComponent(gameId)}&bg=${bg}&border=${border}`;
+  return `/api/char-icon?v=7&name=${slug}&game=${encodeURIComponent(gameId)}&bg=${bg}&border=${border}`;
 }
 
 function buildRosterEntry(gameId, sagaNotation, wikiBaseUrl, defaultVideo, colorHex, raw) {

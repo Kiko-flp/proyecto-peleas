@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=6" />
+  <link rel="stylesheet" href="/styles.css?v=7" />
 </head>
 <body>
   <!-- TOP NAVIGATION BAR -->
@@ -31,6 +31,10 @@
             <option value="xbox">Xbox / PC (X Y A B)</option>
           </select>
         </div>
+
+        <button class="btn btn-outline" id="btnOpenNewsView">
+          Noticias y Competitivo
+        </button>
 
         <button class="btn btn-youtube" id="btnOpenYoutubeModal">
           Canal de YouTube
@@ -82,6 +86,48 @@
 
       <!-- GRID DE JUEGOS CON IMAGEN DE PORTADA OFICIAL -->
       <div class="games-grid" id="gamesGridContainer"></div>
+
+      <!-- BLOQUE DESTACADO DE NOTICIAS DE JUEGOS DE LUCHA Y COMPETITIVO EN PORTADA -->
+      <div class="home-news-preview">
+        <div class="section-heading-bar">
+          <div>
+            <h2>Últimas Noticias de Juegos de Lucha y Competitivo (FGC & Esports)</h2>
+            <span>Fuentes fiables: EVO.gg • Capcom Pro Tour • Tekken World Tour • Arc World Tour • EventHubs</span>
+          </div>
+          <button class="btn btn-outline" id="btnSeeAllNews">Ver todas las noticias ➔</button>
+        </div>
+        <div class="news-grid" id="homeNewsPreviewGrid"></div>
+      </div>
+    </section>
+
+    <!-- VISTA 1.5: PÁGINA COMPLETA DE NOTICIAS FGC Y COMPETITIVO -->
+    <section id="newsView" class="hidden">
+      <div class="breadcrumb-bar">
+        <button class="btn-back" id="btnBackFromNews">Volver a Todos los juegos</button>
+        <span style="font-size:0.8rem;color:#94a3b8;">Actualización continua desde fuentes oficiales del circuito competitivo</span>
+      </div>
+
+      <div class="hero-banner" style="margin-bottom:20px;">
+        <div class="hero-text">
+          <div class="hero-pill">ACTUALIDAD FGC & TORNEOS INTERNACIONALES</div>
+          <h1>Noticias de Juegos de Lucha y Competitivo</h1>
+          <p>
+            Cobertura verificada de torneos Majors (<strong>EVO, Capcom Cup, Tekken World Tour, Arc World Tour, Final Kombat</strong>),
+            notas de parche y lanzamientos de personajes DLC.
+          </p>
+        </div>
+      </div>
+
+      <div class="catalog-toolbar">
+        <div class="saga-tabs" id="newsCategoryTabs">
+          <button class="saga-tab-btn active" data-newscat="all">Todas las Noticias</button>
+          <button class="saga-tab-btn" data-newscat="Competitivo / Torneos">Competitivo y Torneos</button>
+          <button class="saga-tab-btn" data-newscat="Parches y DLC">Parches y Nuevos DLC</button>
+          <button class="saga-tab-btn" data-newscat="Actualidad Internacional FGC">Feed Internacional en Vivo</button>
+        </div>
+      </div>
+
+      <div class="news-grid" id="fullNewsGridContainer"></div>
     </section>
 
     <!-- VISTA 2: HUB DEL JUEGO CON 3 PÁGINAS SEPARADAS MANTENIENDO EL MENÚ -->
@@ -391,6 +437,6 @@
     </aside>
   </div>
 
-  <script src="/app.js?v=6"></script>
+  <script src="/app.js?v=7"></script>
 </body>
 </html>

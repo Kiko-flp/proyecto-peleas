@@ -1,15 +1,15 @@
 /**
- * FGC Vault — Frontend Application Logic (v6)
- * - 3 páginas independientes por juego manteniendo el menú fijo:
- *   Página 1: 1. Guía Básica
- *   Página 2: 2. Guía Avanzada
- *   Página 3: 3. Plantel de Personajes (Base y Packs DLC)
- * - Retratos oficiales reales de los personajes (CDN oficial + Resolución CORS en navegador + Fallback).
- * - Seguridad real del panel privado mediante código OTP enviado a @Clayfacefightbot (sin exponer claves en pantalla).
+ * FGC Vault — Frontend Application Logic (v7)
+ * - Sección de Noticias de Juegos de Lucha y Competitivo (EVO, Capcom Cup, TWT, Arc World Tour, EventHubs).
+ * - Retratos de personajes centrados en la CARA (encuadre automático + pilimit=50 + búsqueda individual de respaldo).
+ * - 3 páginas independientes por juego manteniendo el menú (1. Guía Básica | 2. Guía Avanzada | 3. Plantel).
+ * - Seguridad real del panel privado mediante código OTP enviado a @Clayfacefightbot.
  */
 
 const state = {
   youtubeChannel: null,
+  news: [],
+  selectedNewsCategory: "all",
   sagas: [],
   games: [],
   submissions: [],
@@ -19,19 +19,49 @@ const state = {
   botStatus: {},
   selectedSagaId: "all",
   selectedGameId: null,
-  selectedSubpage: "page-basic", // page-basic | page-advanced | page-roster
+  selectedSubpage: "page-basic",
   selectedCharacter: null,
   selectedDlcPackFilter: "all",
   inGameSearchQuery: "",
-  notationMode: "technical", // technical | ps | xbox
+  notationMode: "technical",
   searchQuery: "",
   adminKey: localStorage.getItem("fgc_private_session_token") || ""
 };
 
 const clientPortraitCache = new Map();
+const pendingWikiSearch = new Set();
+
+// Si la imagen descargada es de cuerpo entero (alta), aplicamos zoom automático a la cara
+window.handlePortraitLoad = function (imgEl) {
+  if (!imgEl) return;
+  if (imgEl.naturalHeight > imgEl.naturalWidth * 1.22) {
+    imgEl.classList.add("face-crop-zoom");
+  } else {
+    imgEl.classList.remove("face-crop-zoom");
+  }
+};
+
+// Si una URL directa de CDN falla, busca inmediatamente el retrato en la Wiki desde el navegador y usa fallback
+window.handlePortraitError = async function (imgEl, gameId, charId, charName, fallbackUrl) {
+  if (!imgEl) return;
+  const key = `${gameId}:${charId}`;
+  if (!pendingWikiSearch.has(key)) {
+    pendingWikiSearch.add(key);
+    const found = await searchSingleCharacterPortrait(gameId, charName);
+    if (found && imgEl.src !== found) {
+      clientPortraitCache.set(charId, found);
+      imgEl.src = found;
+      return;
+    }
+  }
+  if (fallbackUrl && imgEl.src !== fallbackUrl && !imgEl.dataset.usedFallback) {
+    imgEl.dataset.usedFallback = "1";
+    imgEl.src = fallbackUrl;
+  }
+};
 
 // =========================================================================
-// RESOLUTOR DE RETRATOS OFICIALES EN EL NAVEGADOR DEL USUARIO (CORS origin=*)
+// RESOLUTOR DE RETRATOS EN EL NAVEGADOR (CON pilimit=50 Y BÚSQUEDA INDIVIDUAL)
 // =========================================================================
 const FANDOM_WIKIS = {
   mk1: "https://mortalkombat.fandom.com/api.php",
@@ -41,11 +71,37 @@ const FANDOM_WIKIS = {
   "gg-strive": "https://guiltygear.fandom.com/api.php"
 };
 
+async function searchSingleCharacterPortrait(gameId, charName) {
+  const cleanName = charName.replace(/\s+\(.*?\)/g, "").trim();
+  const endpoints = [
+    FANDOM_WIKIS[gameId],
+    "https://en.wikipedia.org/w/api.php"
+  ].filter(Boolean);
+
+  for (const api of endpoints) {
+    try {
+      const url = `${api}?action=query&generator=search&gsrsearch=${encodeURIComponent(
+        cleanName
+      )}&gsrlimit=3&prop=pageimages&piprop=thumbnail&pithumbsize=320&pilimit=10&format=json&origin=*`;
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const data = await res.json();
+      const pages = data?.query?.pages || {};
+      for (const pid of Object.keys(pages)) {
+        const src = pages[pid]?.thumbnail?.source;
+        if (src) return src;
+      }
+    } catch (_) {
+      // Continuar al siguiente endpoint
+    }
+  }
+  return null;
+}
+
 async function hydrateBrowserPortraits(game) {
   if (!game || !FANDOM_WIKIS[game.id]) return;
   const api = FANDOM_WIKIS[game.id];
 
-  // Consultar en lotes de 20 personajes usando MediaWiki pageimages con origin=*
   const chars = game.characters.filter((c) => !clientPortraitCache.has(c.id));
   for (let i = 0; i < chars.length; i += 20) {
     const chunk = chars.slice(i, i + 20);
@@ -62,7 +118,7 @@ async function hydrateBrowserPortraits(game) {
     try {
       const url = `${api}?action=query&titles=${encodeURIComponent(
         titlesParam
-      )}&prop=pageimages&piprop=thumbnail&pithumbsize=220&redirects=1&format=json&origin=*`;
+      )}&prop=pageimages&piprop=thumbnail&pithumbsize=320&pilimit=50&redirects=1&format=json&origin=*`;
       const res = await fetch(url);
       if (!res.ok) continue;
       const data = await res.json();
@@ -72,6 +128,8 @@ async function hydrateBrowserPortraits(game) {
       redirects.forEach((r) => {
         redirectLookup[r.to.toLowerCase()] = r.from.toLowerCase();
       });
+
+      const resolvedInChunk = new Set();
 
       Object.values(pages).forEach((p) => {
         const thumb = p?.thumbnail?.source;
@@ -85,6 +143,7 @@ async function hydrateBrowserPortraits(game) {
           );
 
         if (matchedChar) {
+          resolvedInChunk.add(matchedChar.id);
           clientPortraitCache.set(matchedChar.id, thumb);
           matchedChar.iconUrl = thumb;
           document
@@ -94,8 +153,25 @@ async function hydrateBrowserPortraits(game) {
             });
         }
       });
+
+      // Para cualquier personaje del lote que tuviera sufijo especial en la wiki, buscar individualmente
+      for (const ch of chunk) {
+        if (!resolvedInChunk.has(ch.id) && !clientPortraitCache.has(ch.id)) {
+          searchSingleCharacterPortrait(game.id, ch.name).then((foundUrl) => {
+            if (foundUrl) {
+              clientPortraitCache.set(ch.id, foundUrl);
+              ch.iconUrl = foundUrl;
+              document
+                .querySelectorAll(`img[data-charimg="${ch.id}"]`)
+                .forEach((imgEl) => {
+                  imgEl.src = foundUrl;
+                });
+            }
+          });
+        }
+      }
     } catch (_) {
-      // Si el usuario tiene bloqueador estricto, mantiene el CDN directo o fallback
+      // Mantiene CDN directo o fallback
     }
   }
 }
@@ -180,17 +256,14 @@ function getGameCoverBackground(game) {
 function switchGameSubpage(subpageId) {
   state.selectedSubpage = subpageId;
 
-  // Actualizar botones del menú
   document.querySelectorAll(".game-tab[data-subpage]").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.subpage === subpageId);
   });
 
-  // Mostrar únicamente la página seleccionada y ocultar las otras dos
   document.querySelectorAll(".game-subpage").forEach((pageEl) => {
     pageEl.classList.toggle("hidden", pageEl.id !== subpageId);
   });
 
-  // Mostrar buscador de personajes solo cuando estamos en la Página 3 (Plantel)
   const rosterControls = document.getElementById("rosterQuickControls");
   if (rosterControls) {
     rosterControls.classList.toggle("hidden", subpageId !== "page-roster");
@@ -209,6 +282,7 @@ async function loadBootstrap() {
     });
     const data = await res.json();
     state.youtubeChannel = data.youtubeChannel || null;
+    state.news = data.news || [];
     state.sagas = data.sagas || [];
     state.games = data.games || [];
     state.submissions = data.submissions || [];
@@ -217,6 +291,17 @@ async function loadBootstrap() {
     state.botLogs = data.botLogs || [];
     state.botStatus = data.botStatus || {};
     renderAll();
+
+    // Actualizar noticias con el feed en directo en segundo plano
+    fetch("/api/news")
+      .then((r) => r.json())
+      .then((nData) => {
+        if (nData && Array.isArray(nData.news)) {
+          state.news = nData.news;
+          renderNewsSections();
+        }
+      })
+      .catch(() => {});
   } catch (err) {
     console.error("Error cargando datos del servidor:", err);
   }
@@ -226,6 +311,7 @@ function renderAll() {
   renderHeroStats();
   renderSagaTabs();
   renderGamesGrid();
+  renderNewsSections();
   renderQuickSearch();
   renderTelegramBadgeAndDrawer();
   renderYoutubeModal();
@@ -239,13 +325,71 @@ function renderAll() {
   }
 }
 
+// =========================================================================
+// SECCIÓN DE NOTICIAS DE JUEGOS DE LUCHA Y COMPETITIVO
+// =========================================================================
+function buildNewsCardHTML(item) {
+  const bg = item.imageUrl
+    ? `linear-gradient(180deg, rgba(9,13,22,0.2) 0%, rgba(9,13,22,0.92) 100%), url('${item.imageUrl}')`
+    : "linear-gradient(135deg, #1e293b, #090d16)";
+
+  return `
+    <article class="news-card">
+      <div>
+        <div class="news-card-banner" style="background-image: ${bg};">
+          <span class="news-cat-badge">${item.category}</span>
+          <span class="news-saga-badge">${item.saga}</span>
+        </div>
+        <div class="news-card-body">
+          <h3>${item.title}</h3>
+          <p>${item.summary}</p>
+        </div>
+      </div>
+      <div class="news-card-footer">
+        <span style="color:#94a3b8;">${item.sourceName} • ${item.date}</span>
+        <a href="${item.sourceUrl}" target="_blank" rel="noopener" class="news-source-link">
+          Leer fuente oficial ➔
+        </a>
+      </div>
+    </article>
+  `;
+}
+
+function renderNewsSections() {
+  const homePreview = document.getElementById("homeNewsPreviewGrid");
+  if (homePreview) {
+    homePreview.innerHTML = state.news
+      .slice(0, 3)
+      .map((item) => buildNewsCardHTML(item))
+      .join("");
+  }
+
+  const fullGrid = document.getElementById("fullNewsGridContainer");
+  if (fullGrid) {
+    const list =
+      state.selectedNewsCategory === "all"
+        ? state.news
+        : state.news.filter((n) => n.category === state.selectedNewsCategory);
+    fullGrid.innerHTML = list.map((item) => buildNewsCardHTML(item)).join("");
+  }
+}
+
+function openNewsPage() {
+  state.selectedGameId = null;
+  document.getElementById("homeView").classList.add("hidden");
+  document.getElementById("gameDetailView").classList.add("hidden");
+  document.getElementById("newsView").classList.remove("hidden");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  renderNewsSections();
+}
+
 function renderHeroStats() {
   const box = document.getElementById("heroStatsBox");
   let totalBase = 0;
   let totalDLC = 0;
   state.games.forEach((g) => {
     totalBase += g.characters.filter((c) => !c.isDLC).length;
-    totalDLC += g.characters.filter((c) => !c.isDLC === false).length;
+    totalDLC += g.characters.filter((c) => c.isDLC).length;
   });
 
   box.innerHTML = `
@@ -336,7 +480,8 @@ function renderQuickSearch() {
         .slice(0, 28)
         .map(({ game, ch }) => {
           const cachedSrc = clientPortraitCache.get(ch.id) || ch.iconUrl;
-          const fallbackSrc = ch.fallbackIconUrl || ch.iconUrl;
+          const fallbackSrc = (ch.fallbackIconUrl || ch.iconUrl).replace(/'/g, "\\'");
+          const safeName = ch.name.replace(/'/g, "\\'");
           return `
             <div class="portrait-tile ${ch.isDLC ? "is-dlc" : ""}" data-quickgame="${game.id}" data-quickchar="${ch.id}">
               <div class="portrait-img-box">
@@ -345,7 +490,8 @@ function renderQuickSearch() {
                   src="${cachedSrc}"
                   alt="${ch.name}"
                   loading="lazy"
-                  onerror="if(this.src!=='${fallbackSrc}')this.src='${fallbackSrc}';"
+                  onload="window.handlePortraitLoad(this)"
+                  onerror="window.handlePortraitError(this, '${game.id}', '${ch.id}', '${safeName}', '${fallbackSrc}')"
                 />
               </div>
               <div class="portrait-name">${ch.name}</div>
@@ -444,6 +590,7 @@ function openGameHub(gameId, initialSubpage = "page-basic") {
   if (inGameInput) inGameInput.value = "";
 
   document.getElementById("homeView").classList.add("hidden");
+  document.getElementById("newsView").classList.add("hidden");
   document.getElementById("gameDetailView").classList.remove("hidden");
 
   renderGameDetailView(gameId);
@@ -524,19 +671,16 @@ function renderGameDetailView(gameId) {
     renderDlcGrid(game, filteredDlcChars);
   };
 
-  // Renderizar Grid Juego Base
   const baseGrid = document.getElementById("baseCharactersGrid");
   baseGrid.innerHTML = baseChars.map((ch) => buildCharacterCardHTML(game, ch)).join("");
   attachCharacterCardEvents(baseGrid, game.id);
 
-  // Renderizar Grid Personajes DLC por Pack
   renderDlcGrid(game, filteredDlcChars);
 
-  // Renderizar Página 1 (Guía Básica) y Página 2 (Guía Avanzada)
   renderGuideSplit("basicGuideContainer", game.basicGuide, "Guía Básica de Conceptos", game.officialSources);
   renderGuideSplit("advancedGuideContainer", game.advancedGuide, "Guía Avanzada Competitiva", game.officialSources);
 
-  // Resolver retratos oficiales reales desde la Wiki en segundo plano
+  // Resolver todos los retratos de personajes con pilimit=50 y búsqueda de respaldo
   hydrateBrowserPortraits(game);
 }
 
@@ -578,7 +722,8 @@ function renderDlcGrid(game, dlcChars) {
 
 function buildCharacterCardHTML(game, ch) {
   const cachedSrc = clientPortraitCache.get(ch.id) || ch.iconUrl;
-  const fallbackSrc = ch.fallbackIconUrl || ch.iconUrl;
+  const fallbackSrc = (ch.fallbackIconUrl || ch.iconUrl).replace(/'/g, "\\'");
+  const safeName = ch.name.replace(/'/g, "\\'");
 
   return `
     <div
@@ -592,7 +737,8 @@ function buildCharacterCardHTML(game, ch) {
           src="${cachedSrc}"
           alt="${ch.name}"
           loading="lazy"
-          onerror="if(this.src!=='${fallbackSrc}')this.src='${fallbackSrc}';"
+          onload="window.handlePortraitLoad(this)"
+          onerror="window.handlePortraitError(this, '${game.id}', '${ch.id}', '${safeName}', '${fallbackSrc}')"
         />
       </div>
       <div class="portrait-name">${ch.name}</div>
@@ -673,18 +819,20 @@ function openCharacterModal(gameId, charId) {
     : `<span class="base-game-badge" style="font-size:0.8rem;">INCLUIDO EN EL JUEGO BASE</span>`;
 
   const cachedSrc = clientPortraitCache.get(ch.id) || ch.iconUrl;
-  const fallbackSrc = ch.fallbackIconUrl || ch.iconUrl;
+  const fallbackSrc = (ch.fallbackIconUrl || ch.iconUrl).replace(/'/g, "\\'");
+  const safeName = ch.name.replace(/'/g, "\\'");
 
   header.innerHTML = `
     <div style="display:flex;align-items:center;gap:14px;">
-      <img
-        class="char-avatar-img"
-        style="width:68px;height:68px;border:2px solid #f59e0b;"
-        data-charimg="${ch.id}"
-        src="${cachedSrc}"
-        alt="${ch.name}"
-        onerror="if(this.src!=='${fallbackSrc}')this.src='${fallbackSrc}';"
-      />
+      <div class="portrait-img-box" style="width:68px;height:68px;border:2px solid #f59e0b;flex-shrink:0;">
+        <img
+          data-charimg="${ch.id}"
+          src="${cachedSrc}"
+          alt="${ch.name}"
+          onload="window.handlePortraitLoad(this)"
+          onerror="window.handlePortraitError(this, '${game.id}', '${ch.id}', '${safeName}', '${fallbackSrc}')"
+        />
+      </div>
       <div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:5px;">
           ${statusBadge}
@@ -1043,10 +1191,31 @@ document.addEventListener("DOMContentLoaded", () => {
   const goHome = () => {
     state.selectedGameId = null;
     document.getElementById("gameDetailView").classList.add("hidden");
+    document.getElementById("newsView").classList.add("hidden");
     document.getElementById("homeView").classList.remove("hidden");
   };
   document.getElementById("btnHomeBrand").addEventListener("click", goHome);
   document.getElementById("btnBackToCatalog").addEventListener("click", goHome);
+  document.getElementById("btnBackFromNews").addEventListener("click", goHome);
+
+  // Abrir vista de Noticias y Competitivo
+  document.getElementById("btnOpenNewsView").addEventListener("click", openNewsPage);
+  const seeAllNewsBtn = document.getElementById("btnSeeAllNews");
+  if (seeAllNewsBtn) {
+    seeAllNewsBtn.addEventListener("click", openNewsPage);
+  }
+
+  // Filtros de categorías de Noticias
+  document.querySelectorAll("#newsCategoryTabs .saga-tab-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document
+        .querySelectorAll("#newsCategoryTabs .saga-tab-btn")
+        .forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      state.selectedNewsCategory = btn.dataset.newscat;
+      renderNewsSections();
+    });
+  });
 
   document.getElementById("globalNotationSelect").addEventListener("change", (e) => {
     state.notationMode = e.target.value;
@@ -1071,21 +1240,18 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Pestañas del menú del juego (cambian entre las 3 páginas independientes)
   document.querySelectorAll(".game-tab[data-subpage]").forEach((tab) => {
     tab.addEventListener("click", () => {
       switchGameSubpage(tab.dataset.subpage);
     });
   });
 
-  // Botones de paginación inferior (Anterior / Siguiente página)
   document.querySelectorAll("[data-goto-subpage]").forEach((btn) => {
     btn.addEventListener("click", () => {
       switchGameSubpage(btn.dataset.gotoSubpage);
     });
   });
 
-  // Modal Canal de YouTube
   const ytModal = document.getElementById("youtubeModalBackdrop");
   document.getElementById("btnOpenYoutubeModal").addEventListener("click", () => {
     ytModal.classList.remove("hidden");
@@ -1094,7 +1260,6 @@ document.addEventListener("DOMContentLoaded", () => {
     ytModal.classList.add("hidden");
   });
 
-  // Modal de enviar guía / personaje
   const submitModal = document.getElementById("submitModalBackdrop");
   document.getElementById("btnOpenSubmitModal").addEventListener("click", () => {
     submitModal.classList.remove("hidden");
@@ -1138,7 +1303,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("telegramDrawerBackdrop").classList.remove("hidden");
   });
 
-  // Drawer de Telegram
   const tgDrawer = document.getElementById("telegramDrawerBackdrop");
   document.getElementById("btnOpenTelegramPanel").addEventListener("click", () => {
     tgDrawer.classList.remove("hidden");
@@ -1156,7 +1320,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Solicitar código temporal OTP por Telegram
   const otpBtn = document.getElementById("btnRequestTelegramOtp");
   if (otpBtn) {
     otpBtn.addEventListener("click", async () => {
@@ -1175,7 +1338,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Verificar código OTP o clave de propietario
   const unlockBtn = document.getElementById("btnUnlockPrivateBot");
   if (unlockBtn) {
     unlockBtn.addEventListener("click", async () => {

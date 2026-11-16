@@ -181,22 +181,40 @@ async function loadHubPageImages(apiEndpoint, pageTitle) {
 }
 
 /**
- * Busca la imagen principal (pageimages) en una wiki Fandom o MediaWiki
+ * Busca la imagen principal (pageimages) en una wiki Fandom o MediaWiki (con pilimit=50 y búsqueda por aproximación)
  */
-async function queryPageImage(apiEndpoint, titlesArray) {
+async function queryPageImage(apiEndpoint, titlesArray, searchFallbackTerm = null) {
   try {
     const url = `${apiEndpoint}?action=query&titles=${encodeURIComponent(
       titlesArray.join("|")
-    )}&prop=pageimages&piprop=thumbnail|original&pithumbsize=250&format=json&origin=*`;
+    )}&prop=pageimages&piprop=thumbnail|original&pithumbsize=300&pilimit=50&redirects=1&format=json&origin=*`;
 
     const res = await fetch(url, { headers: { "User-Agent": USER_AGENT } });
-    if (!res.ok) return null;
-    const data = await res.json();
-    const pages = data?.query?.pages || {};
-    for (const pid of Object.keys(pages)) {
-      const p = pages[pid];
-      if (p?.thumbnail?.source) return p.thumbnail.source;
-      if (p?.original?.source) return p.original.source;
+    if (res.ok) {
+      const data = await res.json();
+      const pages = data?.query?.pages || {};
+      for (const pid of Object.keys(pages)) {
+        const p = pages[pid];
+        if (p?.thumbnail?.source) return p.thumbnail.source;
+        if (p?.original?.source) return p.original.source;
+      }
+    }
+
+    // Si el título exacto tenía sufijo o desambiguación, buscar con generator=search
+    if (searchFallbackTerm) {
+      const searchUrl = `${apiEndpoint}?action=query&generator=search&gsrsearch=${encodeURIComponent(
+        searchFallbackTerm
+      )}&gsrlimit=3&prop=pageimages&piprop=thumbnail|original&pithumbsize=300&pilimit=10&format=json&origin=*`;
+      const sRes = await fetch(searchUrl, { headers: { "User-Agent": USER_AGENT } });
+      if (sRes.ok) {
+        const sData = await sRes.json();
+        const sPages = sData?.query?.pages || {};
+        for (const pid of Object.keys(sPages)) {
+          const p = sPages[pid];
+          if (p?.thumbnail?.source) return p.thumbnail.source;
+          if (p?.original?.source) return p.original.source;
+        }
+      }
     }
   } catch (_) {
     // Fallback silencioso
@@ -306,19 +324,30 @@ async function resolveCharacterPortraitUrl(gameId, charName) {
     if (match) {
       resolvedUrl = match.url;
     } else {
-      resolvedUrl = await queryPageImage("https://tekken.fandom.com/api.php", [
-        charName,
-        charName.split(" ")[0]
-      ]);
+      resolvedUrl = await queryPageImage(
+        "https://tekken.fandom.com/api.php",
+        [charName, charName.split(" ")[0]],
+        charName
+      );
     }
   }
 
   // 6. MORTAL KOMBAT 1 (Mortal Kombat Fandom Wiki)
   else if (gameId === "mk1") {
-    resolvedUrl = await queryPageImage("https://mortalkombat.fandom.com/api.php", [
-      charName,
-      `${charName}/Mortal Kombat 1`
-    ]);
+    resolvedUrl = await queryPageImage(
+      "https://mortalkombat.fandom.com/api.php",
+      [charName, `${charName}/Mortal Kombat 1`],
+      charName
+    );
+  }
+
+  // 7. Respaldo universal en Wikipedia (ideal para personajes invitados como Clive, Yujiro, T-1000, Conan, Ghostface, Lucy)
+  if (!resolvedUrl) {
+    resolvedUrl = await queryPageImage(
+      "https://en.wikipedia.org/w/api.php",
+      [charName],
+      `${charName} character`
+    );
   }
 
   if (resolvedUrl) {
