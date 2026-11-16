@@ -148,8 +148,260 @@ window.decorateTextWithGlossaryTooltips = function (rootEl) {
 };
 
 // =========================================================================
-// D. INSPECTOR DE HITBOXES FRAME A FRAME
+// D. INSPECTOR DE HITBOXES FRAME A FRAME (CON DECODIFICADOR REAL DE GIF Y VÍDEO)
 // =========================================================================
+const gifFramesCache = new Map();
+
+function parseGifBinaryToFrames(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let pos = 0;
+  const sig = String.fromCharCode(...bytes.slice(0, 6));
+  if (sig !== "GIF87a" && sig !== "GIF89a") return null;
+  pos = 6;
+
+  const lsdW = bytes[pos] | (bytes[pos + 1] << 8);
+  const lsdH = bytes[pos + 2] | (bytes[pos + 3] << 8);
+  const packed = bytes[pos + 4];
+  pos += 7; // incl. bgColorIndex + pixelAspectRatio
+
+  const readColorTable = (size) => {
+    const tbl = [];
+    for (let i = 0; i < size; i++) {
+      tbl.push([bytes[pos++], bytes[pos++], bytes[pos++]]);
+    }
+    return tbl;
+  };
+
+  let gct = null;
+  if (packed & 0x80) {
+    gct = readColorTable(1 << ((packed & 0x07) + 1));
+  }
+
+  const readSubBlocks = () => {
+    const out = [];
+    while (pos < bytes.length) {
+      const sz = bytes[pos++];
+      if (sz === 0) break;
+      for (let i = 0; i < sz && pos < bytes.length; i++) out.push(bytes[pos++]);
+    }
+    return new Uint8Array(out);
+  };
+
+  const decodeLzw = (minCodeSize, data, pixelCount) => {
+    const clearCode = 1 << minCodeSize;
+    const eoiCode = clearCode + 1;
+    let codeSize = minCodeSize + 1;
+    let codeMask = (1 << codeSize) - 1;
+    let nextCode = eoiCode + 1;
+    const prefix = new Int32Array(4096);
+    const suffix = new Uint8Array(4096);
+    const stack = new Uint8Array(4096);
+    const pixels = new Uint8Array(pixelCount);
+
+    for (let i = 0; i < clearCode; i++) {
+      prefix[i] = -1;
+      suffix[i] = i;
+    }
+
+    let bitBuf = 0;
+    let bitCnt = 0;
+    let bytePos = 0;
+    let pxPos = 0;
+    let prevCode = -1;
+    let firstChar = 0;
+
+    while (pxPos < pixelCount) {
+      while (bitCnt < codeSize && bytePos < data.length) {
+        bitBuf |= data[bytePos++] << bitCnt;
+        bitCnt += 8;
+      }
+      if (bitCnt < codeSize) break;
+      const code = bitBuf & codeMask;
+      bitBuf >>= codeSize;
+      bitCnt -= codeSize;
+
+      if (code === clearCode) {
+        codeSize = minCodeSize + 1;
+        codeMask = (1 << codeSize) - 1;
+        nextCode = eoiCode + 1;
+        prevCode = -1;
+        continue;
+      }
+      if (code === eoiCode) break;
+
+      let inCode = code;
+      let sp = 0;
+      if (code >= nextCode) {
+        stack[sp++] = firstChar;
+        inCode = prevCode;
+      }
+      while (inCode >= clearCode && sp < 4095) {
+        stack[sp++] = suffix[inCode];
+        inCode = prefix[inCode];
+      }
+      firstChar = suffix[inCode] & 0xff;
+      stack[sp++] = firstChar;
+
+      if (prevCode !== -1 && nextCode < 4096) {
+        prefix[nextCode] = prevCode;
+        suffix[nextCode] = firstChar;
+        nextCode++;
+        if (nextCode > codeMask && codeSize < 12) {
+          codeSize++;
+          codeMask = (1 << codeSize) - 1;
+        }
+      }
+      prevCode = code;
+      while (sp > 0 && pxPos < pixelCount) {
+        pixels[pxPos++] = stack[--sp];
+      }
+    }
+    return pixels;
+  };
+
+  const master = document.createElement("canvas");
+  master.width = lsdW;
+  master.height = lsdH;
+  const mctx = master.getContext("2d");
+
+  const tempCanvas = document.createElement("canvas");
+  const tctx = tempCanvas.getContext("2d");
+
+  let disposal = 0;
+  let delayCs = 5;
+  let transpIdx = -1;
+  const frames = [];
+
+  while (pos < bytes.length) {
+    const b = bytes[pos++];
+    if (b === 0x3b) break;
+    if (b === 0x21) {
+      const label = bytes[pos++];
+      if (label === 0xf9) {
+        pos++; // block size (4)
+        const gcePacked = bytes[pos++];
+        disposal = (gcePacked >> 2) & 0x07;
+        delayCs = bytes[pos] | (bytes[pos + 1] << 8);
+        pos += 2;
+        transpIdx = (gcePacked & 0x01) ? bytes[pos++] : (pos++, -1);
+        pos++; // terminator
+      } else {
+        readSubBlocks();
+      }
+    } else if (b === 0x2c) {
+      const left = bytes[pos] | (bytes[pos + 1] << 8);
+      const top = bytes[pos + 2] | (bytes[pos + 3] << 8);
+      const w = bytes[pos + 4] | (bytes[pos + 5] << 8);
+      const h = bytes[pos + 6] | (bytes[pos + 7] << 8);
+      const imgPacked = bytes[pos + 8];
+      pos += 9;
+
+      const lct = (imgPacked & 0x80) ? readColorTable(1 << ((imgPacked & 0x07) + 1)) : gct;
+      const interlaced = Boolean(imgPacked & 0x40);
+      const minCodeSize = bytes[pos++];
+      const lzwData = readSubBlocks();
+      const idxPixels = decodeLzw(minCodeSize, lzwData, w * h);
+
+      let prevImageData = null;
+      if (disposal === 3) {
+        prevImageData = mctx.getImageData(0, 0, lsdW, lsdH);
+      }
+
+      tempCanvas.width = w;
+      tempCanvas.height = h;
+      const imgData = tctx.createImageData(w, h);
+      const d = imgData.data;
+
+      const passStarts = [0, 4, 2, 1];
+      const passSteps = [8, 8, 4, 2];
+      let srcY = 0;
+
+      const writeRow = (targetY, rowOffset) => {
+        for (let x = 0; x < w; x++) {
+          const ci = idxPixels[rowOffset + x];
+          if (ci === transpIdx || !lct || !lct[ci]) continue;
+          const off = (targetY * w + x) * 4;
+          d[off] = lct[ci][0];
+          d[off + 1] = lct[ci][1];
+          d[off + 2] = lct[ci][2];
+          d[off + 3] = 255;
+        }
+      };
+
+      if (!interlaced) {
+        for (let y = 0; y < h; y++) writeRow(y, y * w);
+      } else {
+        for (let p = 0; p < 4; p++) {
+          for (let y = passStarts[p]; y < h; y += passSteps[p]) {
+            writeRow(y, srcY * w);
+            srcY++;
+          }
+        }
+      }
+
+      tctx.putImageData(imgData, 0, 0);
+      mctx.drawImage(tempCanvas, left, top);
+
+      const snap = document.createElement("canvas");
+      snap.width = lsdW;
+      snap.height = lsdH;
+      snap.getContext("2d").drawImage(master, 0, 0);
+      frames.push({ canvas: snap, delayMs: Math.max(16, (delayCs || 5) * 10) });
+
+      if (disposal === 2) {
+        mctx.clearRect(left, top, w, h);
+      } else if (disposal === 3 && prevImageData) {
+        mctx.putImageData(prevImageData, 0, 0);
+      }
+      disposal = 0;
+      delayCs = 5;
+      transpIdx = -1;
+    }
+  }
+  return frames.length > 0 ? { frames, width: lsdW, height: lsdH } : null;
+}
+
+async function decodeGifFramesFromUrl(url) {
+  if (gifFramesCache.has(url)) return gifFramesCache.get(url);
+
+  const res = await fetch(url);
+  if (!res.ok) return null;
+  const buf = await res.arrayBuffer();
+
+  if (typeof window.ImageDecoder === "function") {
+    try {
+      const decoder = new ImageDecoder({ data: buf, type: "image/gif" });
+      await decoder.tracks.ready;
+      const count = decoder.tracks.selectedTrack ? decoder.tracks.selectedTrack.frameCount : 0;
+      if (count > 0) {
+        const frames = [];
+        let w = 0;
+        let h = 0;
+        for (let i = 0; i < count; i++) {
+          const decoded = await decoder.decode({ frameIndex: i });
+          const vf = decoded.image;
+          w = vf.displayWidth || vf.codedWidth || w;
+          h = vf.displayHeight || vf.codedHeight || h;
+          const c = document.createElement("canvas");
+          c.width = w;
+          c.height = h;
+          c.getContext("2d").drawImage(vf, 0, 0);
+          const delayMs = vf.duration ? Math.max(16, Math.round(vf.duration / 1000)) : 50;
+          vf.close();
+          frames.push({ canvas: c, delayMs });
+        }
+        const out = { frames, width: w, height: h };
+        gifFramesCache.set(url, out);
+        return out;
+      }
+    } catch (_) {}
+  }
+
+  const parsed = parseGifBinaryToFrames(buf);
+  if (parsed) gifFramesCache.set(url, parsed);
+  return parsed;
+}
+
 const inspectorState = {
   charId: "",
   charName: "Luchador",
@@ -159,6 +411,11 @@ const inspectorState = {
   realHitboxUrl: "",
   realHitboxType: "image",
   realHitboxSource: "",
+  fetchingReal: false,
+  gifFrames: null,
+  decodingGif: false,
+  videoDuration: 0,
+  videoRaf: null,
   moveName: "",
   input: "",
   category: "",
@@ -167,11 +424,12 @@ const inspectorState = {
   activeEnd: 7,
   recoveryNum: 18,
   totalFrames: 25,
+  meterTotalFrames: 25,
   onBlock: "-4 On Block",
   currentFrame: 5,
   playing: false,
   timer: null,
-  fps: 12
+  fps: 18
 };
 
 function parseFrameNumbers(fc) {
@@ -187,6 +445,48 @@ function parseFrameNumbers(fc) {
   const totalFrames = tMatch ? parseInt(tMatch[1], 10) : activeEnd + recoveryNum;
 
   return { startupNum, activeStart, activeEnd, recoveryNum, totalFrames };
+}
+
+function updatePlaybackControlsVisibility() {
+  const wrap = document.getElementById("hbPlaybackControlsWrap");
+  if (!wrap) return;
+  const hasPlayableVideo = inspectorState.realHitboxType === "video" && Boolean(inspectorState.realHitboxUrl);
+  const hasPlayableGif = Array.isArray(inspectorState.gifFrames) && inspectorState.gifFrames.length > 1;
+  wrap.style.display = hasPlayableVideo || hasPlayableGif ? "block" : "none";
+
+  const slider = document.getElementById("hbFrameSlider");
+  if (slider) {
+    slider.min = 1;
+    slider.max = inspectorState.totalFrames;
+    slider.value = Math.min(inspectorState.totalFrames, Math.max(1, inspectorState.currentFrame));
+  }
+  const minLbl = document.getElementById("hbSliderMinLabel");
+  const maxLbl = document.getElementById("hbSliderMaxLabel");
+  if (minLbl) minLbl.textContent = "F1";
+  if (maxLbl) maxLbl.textContent = `F${inspectorState.totalFrames}`;
+}
+
+async function preparePlayableMediaIfGif(targetKey, url) {
+  if (!url || !url.toLowerCase().includes(".gif") || inspectorState.realHitboxType === "video") return;
+  inspectorState.decodingGif = true;
+  renderInspectorFrame();
+  try {
+    const decoded = await decodeGifFramesFromUrl(url);
+    const currentKey = `${inspectorState.gameId}:${inspectorState.charName}:${inspectorState.moveName}`;
+    if (currentKey !== targetKey) return;
+    inspectorState.decodingGif = false;
+    if (decoded && decoded.frames && decoded.frames.length > 1) {
+      inspectorState.gifFrames = decoded.frames;
+      inspectorState.totalFrames = decoded.frames.length;
+      const ratio = Math.min(1, Math.max(0, (inspectorState.activeStart - 1) / Math.max(1, inspectorState.meterTotalFrames - 1)));
+      inspectorState.currentFrame = Math.max(1, Math.min(decoded.frames.length, Math.round(ratio * (decoded.frames.length - 1)) + 1));
+    }
+    const cb = document.getElementById("hbInteractiveCanvas");
+    if (cb) cb.innerHTML = "";
+    renderInspectorFrame();
+  } catch (_) {
+    inspectorState.decodingGif = false;
+  }
 }
 
 window.openHitboxInspector = async function (fcEncoded) {
@@ -210,6 +510,9 @@ window.openHitboxInspector = async function (fcEncoded) {
   inspectorState.realHitboxType = fc.realHitboxType || "image";
   inspectorState.realHitboxSource = fc.realHitboxSource || "";
   inspectorState.fetchingReal = !inspectorState.realHitboxUrl;
+  inspectorState.gifFrames = null;
+  inspectorState.decodingGif = false;
+  inspectorState.videoDuration = 0;
   inspectorState.moveName = fc.moveName;
   inspectorState.input = fc.translatedInput || fc.input;
   inspectorState.category = fc.category || "";
@@ -218,6 +521,7 @@ window.openHitboxInspector = async function (fcEncoded) {
   inspectorState.activeEnd = nums.activeEnd;
   inspectorState.recoveryNum = nums.recoveryNum;
   inspectorState.totalFrames = nums.totalFrames;
+  inspectorState.meterTotalFrames = Math.max(nums.totalFrames, nums.activeEnd);
   inspectorState.onBlock = fc.onBlock;
   inspectorState.currentFrame = nums.activeStart;
   stopInspectorPlayback();
@@ -229,18 +533,16 @@ window.openHitboxInspector = async function (fcEncoded) {
   const canvasBox = document.getElementById("hbInteractiveCanvas");
   if (canvasBox) canvasBox.innerHTML = "";
 
-  const slider = document.getElementById("hbFrameSlider");
-  if (slider) {
-    slider.min = 1;
-    slider.max = inspectorState.totalFrames;
-    slider.value = inspectorState.currentFrame;
-  }
-
+  const targetKey = `${inspectorState.gameId}:${inspectorState.charName}:${inspectorState.moveName}`;
   renderInspectorFrame();
 
-  if (!inspectorState.realHitboxUrl && inspectorState.gameId && inspectorState.charName) {
+  if (inspectorState.realHitboxUrl) {
+    await preparePlayableMediaIfGif(targetKey, inspectorState.realHitboxUrl);
+    return;
+  }
+
+  if (inspectorState.gameId && inspectorState.charName) {
     try {
-      const targetKey = `${inspectorState.gameId}:${inspectorState.charName}:${inspectorState.moveName}`;
       const res = await fetch(
         `/api/char-hitboxes?gameId=${encodeURIComponent(inspectorState.gameId)}&charName=${encodeURIComponent(inspectorState.charName)}`
       );
@@ -265,6 +567,9 @@ window.openHitboxInspector = async function (fcEncoded) {
       const cb = document.getElementById("hbInteractiveCanvas");
       if (cb) cb.innerHTML = "";
       renderInspectorFrame();
+      if (inspectorState.realHitboxUrl) {
+        await preparePlayableMediaIfGif(targetKey, inspectorState.realHitboxUrl);
+      }
     }
   }
 };
@@ -272,8 +577,12 @@ window.openHitboxInspector = async function (fcEncoded) {
 function stopInspectorPlayback() {
   inspectorState.playing = false;
   if (inspectorState.timer) {
-    clearInterval(inspectorState.timer);
+    clearTimeout(inspectorState.timer);
     inspectorState.timer = null;
+  }
+  if (inspectorState.videoRaf) {
+    cancelAnimationFrame(inspectorState.videoRaf);
+    inspectorState.videoRaf = null;
   }
   const vid = document.getElementById("hbRealVideoEl");
   if (vid && !vid.paused) vid.pause();
@@ -284,42 +593,81 @@ function stopInspectorPlayback() {
 function toggleInspectorPlayback() {
   if (inspectorState.playing) {
     stopInspectorPlayback();
+    renderInspectorFrame();
     return;
   }
+
+  const hasGif = Array.isArray(inspectorState.gifFrames) && inspectorState.gifFrames.length > 1;
+  const vidEl = document.getElementById("hbRealVideoEl");
+  const hasVid = inspectorState.realHitboxType === "video" && Boolean(vidEl);
+  if (!hasGif && !hasVid) return;
+
   inspectorState.playing = true;
   const playBtn = document.getElementById("btnHbPlayPause");
   if (playBtn) playBtn.textContent = "⏸ Pausar Frame";
 
-  inspectorState.timer = setInterval(() => {
-    inspectorState.currentFrame++;
-    if (inspectorState.currentFrame > inspectorState.totalFrames) {
-      inspectorState.currentFrame = 1;
-    }
-    const slider = document.getElementById("hbFrameSlider");
-    if (slider) slider.value = inspectorState.currentFrame;
-    renderInspectorFrame();
-  }, Math.round(1000 / inspectorState.fps));
+  if (hasVid && vidEl) {
+    vidEl.play().catch(() => {});
+    const syncVideoLoop = () => {
+      if (!inspectorState.playing) return;
+      if (vidEl.duration > 0) {
+        const frac = Math.min(1, Math.max(0, vidEl.currentTime / vidEl.duration));
+        inspectorState.currentFrame = Math.min(
+          inspectorState.totalFrames,
+          Math.max(1, Math.round(frac * (inspectorState.totalFrames - 1)) + 1)
+        );
+        const slider = document.getElementById("hbFrameSlider");
+        if (slider) slider.value = inspectorState.currentFrame;
+        renderInspectorFrame(true);
+      }
+      inspectorState.videoRaf = requestAnimationFrame(syncVideoLoop);
+    };
+    inspectorState.videoRaf = requestAnimationFrame(syncVideoLoop);
+    return;
+  }
+
+  if (hasGif) {
+    const stepGif = () => {
+      if (!inspectorState.playing) return;
+      inspectorState.currentFrame++;
+      if (inspectorState.currentFrame > inspectorState.totalFrames) {
+        inspectorState.currentFrame = 1;
+      }
+      const slider = document.getElementById("hbFrameSlider");
+      if (slider) slider.value = inspectorState.currentFrame;
+      renderInspectorFrame();
+      const idx = Math.min(inspectorState.gifFrames.length - 1, Math.max(0, inspectorState.currentFrame - 1));
+      const delay = inspectorState.gifFrames[idx]?.delayMs || 50;
+      inspectorState.timer = setTimeout(stepGif, delay);
+    };
+    const initIdx = Math.min(inspectorState.gifFrames.length - 1, Math.max(0, inspectorState.currentFrame - 1));
+    inspectorState.timer = setTimeout(stepGif, inspectorState.gifFrames[initIdx]?.delayMs || 50);
+  }
 }
 
-function renderInspectorFrame() {
+function renderInspectorFrame(fromVideoSync = false) {
   const f = inspectorState.currentFrame;
   const {
     charName,
     activeStart,
     activeEnd,
     totalFrames,
+    meterTotalFrames,
     moveName,
     input,
     onBlock
   } = inspectorState;
 
+  const progressRatio = (f - 1) / Math.max(1, totalFrames - 1);
+  const approxGameFrame = Math.round(progressRatio * Math.max(1, meterTotalFrames - 1)) + 1;
+
   let phaseName = "STARTUP (Preparación antes del impacto)";
   let phaseColor = "#15803d";
 
-  if (f >= activeStart && f <= activeEnd) {
+  if (approxGameFrame >= activeStart && approxGameFrame <= activeEnd) {
     phaseName = "VENTANA ACTIVA — ¡FRAMES CON HITBOX ACTIVA!";
     phaseColor = "#e11d48";
-  } else if (f > activeEnd) {
+  } else if (approxGameFrame > activeEnd) {
     phaseName = "RECUPERACIÓN / END LAG (Frames vulnerables)";
     phaseColor = "#6d28d9";
   }
@@ -335,56 +683,117 @@ function renderInspectorFrame() {
     statusBanner.textContent = `FRAME ${f} de ${totalFrames} — ${phaseName}`;
   }
 
+  updatePlaybackControlsVisibility();
+
   const canvasBox = document.getElementById("hbInteractiveCanvas");
   if (canvasBox) {
-    const cursorPct = `${((f - 0.5) / totalFrames) * 100}%`;
+    const cursorPct = `${((f - 0.5) / Math.max(1, totalFrames)) * 100}%`;
+    const mStartW = (Math.max(0, activeStart - 1) / Math.max(1, meterTotalFrames)) * 100;
+    const mActW = (Math.max(1, activeEnd - activeStart + 1) / Math.max(1, meterTotalFrames)) * 100;
+    const mRecW = Math.max(0, 100 - mStartW - mActW);
 
     if (inspectorState.realHitboxUrl) {
-      const existingStage = canvasBox.querySelector("[data-hb-src]");
-      if (!existingStage || existingStage.getAttribute("data-hb-src") !== inspectorState.realHitboxUrl) {
-        const mediaTag =
-          inspectorState.realHitboxType === "video"
-            ? `<video id="hbRealVideoEl" src="${inspectorState.realHitboxUrl}" loop muted playsinline preload="auto" style="width:100%;height:210px;object-fit:contain;background:#262626;border-radius:6px;display:block;"></video>`
-            : `<img id="hbRealImgEl" src="${inspectorState.realHitboxUrl}" alt="Frame real de ${moveName}" style="width:100%;height:210px;object-fit:contain;background:#262626;border-radius:6px;display:block;" />`;
+      const hasDecodedGif = Array.isArray(inspectorState.gifFrames) && inspectorState.gifFrames.length > 1;
+      const modeKey = `${inspectorState.realHitboxUrl}|${hasDecodedGif ? "gifcanvas" : inspectorState.realHitboxType}`;
+      const existingStage = canvasBox.querySelector("[data-hb-mode]");
+
+      if (!existingStage || existingStage.getAttribute("data-hb-mode") !== modeKey) {
+        let mediaTag = "";
+        if (inspectorState.realHitboxType === "video") {
+          mediaTag = `<video id="hbRealVideoEl" src="${inspectorState.realHitboxUrl}" loop muted playsinline preload="auto" style="width:100%;height:210px;object-fit:contain;background:#262626;border-radius:6px;display:block;"></video>`;
+        } else if (hasDecodedGif) {
+          mediaTag = `<canvas id="hbRealGifCanvas" style="width:100%;height:210px;object-fit:contain;background:#262626;border-radius:6px;display:block;"></canvas>`;
+        } else {
+          mediaTag = `<img id="hbRealImgEl" src="${inspectorState.realHitboxUrl}" alt="Hitbox real de ${moveName}" style="width:100%;height:210px;object-fit:contain;background:#262626;border-radius:6px;display:block;" />`;
+        }
+
+        const badgeHint = inspectorState.decodingGif
+          ? "⏳ Extrayendo frames del GIF..."
+          : hasDecodedGif
+            ? `${inspectorState.realHitboxSource || "Wiki Oficial"} • ${inspectorState.gifFrames.length} frames reales`
+            : inspectorState.realHitboxType === "video"
+              ? `${inspectorState.realHitboxSource || "Wiki Oficial"} • Vídeo MP4/WebM`
+              : `${inspectorState.realHitboxSource || "Wiki Oficial"} • Captura fija (1 imagen)`;
 
         canvasBox.innerHTML = `
-          <div class="hb-char-stage" data-hb-src="${inspectorState.realHitboxUrl}" style="height:265px;background:#262626;padding:8px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;font-family:var(--font-mono);font-size:0.72rem;color:#fff;margin-bottom:6px;">
+          <div class="hb-char-stage" data-hb-mode="${modeKey}" style="height:265px;background:#262626;padding:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;font-family:var(--font-mono);font-size:0.72rem;color:#fff;margin-bottom:6px;gap:8px;">
               <span id="hbStageFrameLabel"><strong>${charName}</strong> • ${moveName} (${input}) — F${f}/${totalFrames}</span>
-              <span style="color:#fbbf24;">Fuente real: ${inspectorState.realHitboxSource || "Wiki Oficial"}</span>
+              <span id="hbStageSourceBadge" style="color:#fbbf24;">${badgeHint}</span>
             </div>
             ${mediaTag}
             <div style="position:absolute;bottom:8px;left:14px;right:14px;height:14px;background:#07090f;border-radius:6px;overflow:hidden;display:flex;border:1px solid rgba(255,255,255,0.14);z-index:6;">
-              <div style="width:${((activeStart - 1) / totalFrames) * 100}%;background:#15803d;" title="Startup"></div>
-              <div style="width:${((activeEnd - activeStart + 1) / totalFrames) * 100}%;background:#e11d48;" title="Hitbox Activa"></div>
-              <div style="width:${((totalFrames - activeEnd) / totalFrames) * 100}%;background:#6d28d9;" title="Recovery"></div>
+              <div style="width:${mStartW}%;background:#15803d;" title="Startup"></div>
+              <div style="width:${mActW}%;background:#e11d48;" title="Hitbox Activa"></div>
+              <div style="width:${mRecW}%;background:#6d28d9;" title="Recovery"></div>
             </div>
-            <div id="hbCursorEl" style="position:absolute;bottom:6px;left:calc(14px + (100% - 28px) * ${(f - 0.5) / totalFrames});width:6px;height:18px;background:#fbbf24;border-radius:3px;transform:translateX(-50%);z-index:7;"></div>
+            <div id="hbCursorEl" style="position:absolute;bottom:6px;left:calc(14px + (100% - 28px) * ${(f - 0.5) / Math.max(1, totalFrames)});width:6px;height:18px;background:#fbbf24;border-radius:3px;transform:translateX(-50%);z-index:7;"></div>
           </div>
         `;
+
+        const vidEl = document.getElementById("hbRealVideoEl");
+        if (vidEl) {
+          const applyVideoMeta = () => {
+            if (vidEl.duration > 0) {
+              inspectorState.videoDuration = vidEl.duration;
+              inspectorState.totalFrames = Math.max(12, Math.min(180, Math.round(vidEl.duration * 60)));
+              const frac = Math.min(1, Math.max(0, (inspectorState.activeStart - 1) / Math.max(1, inspectorState.meterTotalFrames - 1)));
+              inspectorState.currentFrame = Math.max(1, Math.round(frac * (inspectorState.totalFrames - 1)) + 1);
+              updatePlaybackControlsVisibility();
+              renderInspectorFrame();
+            }
+          };
+          vidEl.addEventListener("loadedmetadata", applyVideoMeta, { once: true });
+          if (vidEl.readyState >= 1) applyVideoMeta();
+        }
       } else {
         const lbl = document.getElementById("hbStageFrameLabel");
         if (lbl) lbl.innerHTML = `<strong>${charName}</strong> • ${moveName} (${input}) — F${f}/${totalFrames}`;
+        const badgeEl = document.getElementById("hbStageSourceBadge");
+        if (badgeEl) {
+          badgeEl.textContent = inspectorState.decodingGif
+            ? "⏳ Extrayendo frames del GIF..."
+            : hasDecodedGif
+              ? `${inspectorState.realHitboxSource || "Wiki Oficial"} • ${inspectorState.gifFrames.length} frames reales`
+              : inspectorState.realHitboxType === "video"
+                ? `${inspectorState.realHitboxSource || "Wiki Oficial"} • Vídeo MP4/WebM`
+                : `${inspectorState.realHitboxSource || "Wiki Oficial"} • Captura fija (1 imagen)`;
+        }
         const cur = document.getElementById("hbCursorEl");
-        if (cur) cur.style.left = `calc(14px + (100% - 28px) * ${cursorPct})`;
+        if (cur) cur.style.left = `calc(14px + (100% - 28px) * ${(f - 0.5) / Math.max(1, totalFrames)})`;
+      }
+
+      if (hasDecodedGif) {
+        const gifCanvas = document.getElementById("hbRealGifCanvas");
+        if (gifCanvas) {
+          const idx = Math.min(inspectorState.gifFrames.length - 1, Math.max(0, f - 1));
+          const frameObj = inspectorState.gifFrames[idx];
+          if (frameObj && frameObj.canvas) {
+            if (gifCanvas.width !== frameObj.canvas.width || gifCanvas.height !== frameObj.canvas.height) {
+              gifCanvas.width = frameObj.canvas.width;
+              gifCanvas.height = frameObj.canvas.height;
+            }
+            const gctx = gifCanvas.getContext("2d");
+            gctx.clearRect(0, 0, gifCanvas.width, gifCanvas.height);
+            gctx.drawImage(frameObj.canvas, 0, 0);
+          }
+        }
       }
 
       const vidEl = document.getElementById("hbRealVideoEl");
-      if (vidEl && inspectorState.realHitboxType === "video") {
-        if (inspectorState.playing) {
-          if (vidEl.paused) vidEl.play().catch(() => {});
-        } else {
+      if (vidEl && inspectorState.realHitboxType === "video" && !fromVideoSync) {
+        if (!inspectorState.playing) {
           if (!vidEl.paused) vidEl.pause();
-          const targetSec = Math.max(0, (f - 1) / 60);
-          if (vidEl.readyState >= 1) {
-            vidEl.currentTime = vidEl.duration ? Math.min(vidEl.duration, targetSec) : targetSec;
+          if (vidEl.readyState >= 1 && vidEl.duration > 0) {
+            const targetSec = ((f - 1) / Math.max(1, totalFrames - 1)) * vidEl.duration;
+            vidEl.currentTime = Math.min(vidEl.duration, Math.max(0, targetSec));
           }
         }
       }
     } else {
       const noticeText = inspectorState.fetchingReal
         ? "⏳ Buscando captura/animación real del juego en wikis oficiales y carpeta local..."
-        : `📊 Frame Meter exacto (Frame ${f}/${totalFrames}). Las wikis públicas de este título no disponen de archivo de hitbox frame-a-frame para "${moveName}".`;
+        : `📊 Frame Meter exacto (${moveName}). Las wikis públicas de este título no disponen de archivo animado frame-a-frame para este ataque.`;
 
       canvasBox.innerHTML = `
         <div class="hb-char-stage" style="height:210px;background:#18191c;padding:16px;display:flex;flex-direction:column;justify-content:space-between;">
@@ -399,9 +808,9 @@ function renderInspectorFrame() {
 
           <div style="position:relative;height:28px;display:flex;align-items:center;">
             <div style="width:100%;height:16px;background:#07090f;border-radius:6px;overflow:hidden;display:flex;border:1px solid rgba(255,255,255,0.14);">
-              <div style="width:${((activeStart - 1) / totalFrames) * 100}%;background:#15803d;" title="Startup"></div>
-              <div style="width:${((activeEnd - activeStart + 1) / totalFrames) * 100}%;background:#e11d48;" title="Hitbox Activa"></div>
-              <div style="width:${((totalFrames - activeEnd) / totalFrames) * 100}%;background:#6d28d9;" title="Recovery"></div>
+              <div style="width:${mStartW}%;background:#15803d;" title="Startup"></div>
+              <div style="width:${mActW}%;background:#e11d48;" title="Hitbox Activa"></div>
+              <div style="width:${mRecW}%;background:#6d28d9;" title="Recovery"></div>
             </div>
             <div style="position:absolute;top:3px;left:calc(${cursorPct});width:6px;height:22px;background:#fbbf24;border-radius:3px;transform:translateX(-50%);box-shadow:0 0 8px #fbbf24;"></div>
           </div>
@@ -415,7 +824,7 @@ function renderInspectorFrame() {
     metaEl.innerHTML = `
       <span><strong style="color:#4ade80;">Startup:</strong> Frames 1–${activeStart - 1}</span>
       <span><strong style="color:#fb7185;">Hitbox Activa:</strong> Frames ${activeStart}–${activeEnd}</span>
-      <span><strong style="color:#c084fc;">End Lag:</strong> Frames ${activeEnd + 1}–${totalFrames}</span>
+      <span><strong style="color:#c084fc;">End Lag:</strong> Frames ${activeEnd + 1}–${meterTotalFrames}</span>
       <span><strong style="color:#f87171;">Bloqueo:</strong> ${onBlock}</span>
     `;
   }
