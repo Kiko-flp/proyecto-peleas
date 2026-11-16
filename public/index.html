@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=15" />
+  <link rel="stylesheet" href="/styles.css?v=16" />
 </head>
 <body>
   <!-- TOP NAVIGATION BAR (LIMPIA, SIN BOTONES DE BOT DE TELEGRAM NI APORTAR DLC ANTIGUO) -->
@@ -130,19 +130,20 @@
 
       <div class="catalog-toolbar">
         <div class="saga-tabs" id="newsCategoryTabs">
-          <button class="saga-tab-btn active" data-newscat="all">Todas las Noticias</button>
+          <button class="saga-tab-btn active" data-newscat="all">Todo (Eventos y Noticias)</button>
+          <button class="saga-tab-btn" data-newscat="events-only">Solo Eventos (Inicio y Fin)</button>
           <button class="saga-tab-btn" data-newscat="Competitivo / Torneos">Competitivo y Torneos</button>
           <button class="saga-tab-btn" data-newscat="Parches y DLC">Parches y Nuevos DLC</button>
           <button class="saga-tab-btn" data-newscat="Juegos de Lucha General">Juegos de Lucha en General</button>
         </div>
       </div>
 
-      <!-- BARRA DE FILTRADO POR FECHA Y TEXTO PARA BUSCAR NOTICIAS -->
+      <!-- BARRA DE FILTRADO POR FECHA Y TEXTO PARA BUSCAR NOTICIAS Y EVENTOS -->
       <div class="news-filter-bar">
         <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
           <div class="date-filter-group">
-            <label for="newsSearchInput">Buscar por juego, torneo o jugador:</label>
-            <input type="search" id="newsSearchInput" placeholder="Ej. EVO, Tekken 8, MenaRD, 2XKO, Fatal Fury..." style="min-width:240px;" />
+            <label for="newsSearchInput">Buscar noticia, evento, juego o sede:</label>
+            <input type="search" id="newsSearchInput" placeholder="Ej. EVO, Capcom Cup, Tekken, Singapur, Tokio..." style="min-width:240px;" />
           </div>
 
           <div class="date-filter-group">
@@ -161,6 +162,7 @@
               <option value="all">Cualquier fecha</option>
               <option value="30d">Últimos 30 días</option>
               <option value="90d">Últimos 3 meses</option>
+              <option value="2027">Año 2027 (Próximos Eventos)</option>
               <option value="2026">Año 2026</option>
               <option value="2025">Año 2025</option>
             </select>
@@ -173,7 +175,23 @@
         </div>
       </div>
 
-      <div class="news-grid" id="fullNewsGridContainer"></div>
+      <!-- BLOQUE 1: CALENDARIO DE EVENTOS Y TORNEOS (CON FECHA DE INICIO Y FECHA DE FIN) -->
+      <div id="eventsCalendarSection" style="margin-bottom:32px;">
+        <div class="section-heading-bar">
+          <h2>Calendario de Eventos y Torneos (Fecha de Inicio y Fecha de Fin)</h2>
+          <span>Torneos oficiales Majors, Finales Mundiales y circuitos de la FGC</span>
+        </div>
+        <div class="news-grid" id="eventsGridContainer"></div>
+      </div>
+
+      <!-- BLOQUE 2: LISTADO DE NOTICIAS DE JUEGOS DE LUCHA Y COMPETITIVO -->
+      <div id="newsArticlesSection">
+        <div class="section-heading-bar">
+          <h2>Noticias de Juegos de Lucha y Competitivo</h2>
+          <span>Actualidad, resultados de torneos y notas de parche</span>
+        </div>
+        <div class="news-grid" id="fullNewsGridContainer"></div>
+      </div>
     </section>
 
     <!-- VISTA 1.8: COMUNIDAD — AÑADIR WIKIS / CANALES DE YOUTUBE Y RESUMEN DE LO QUE FALTA -->
@@ -552,7 +570,7 @@
     </div>
   </div>
 
-  <script src="/features.js?v=15"></script>
-  <script src="/app.js?v=15"></script>
+  <script src="/features.js?v=16"></script>
+  <script src="/app.js?v=16"></script>
 </body>
 </html>

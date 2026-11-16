@@ -9,6 +9,7 @@
 
 const state = {
   youtubeChannel: null,
+  events: [],
   news: [],
   communityResources: [],
   missingContentRoadmap: [],
@@ -280,6 +281,7 @@ async function loadBootstrap() {
     const res = await fetch("/api/bootstrap");
     const data = await res.json();
     state.youtubeChannel = data.youtubeChannel || null;
+    state.events = data.events || [];
     state.news = data.news || [];
     state.communityResources = data.communityResources || [];
     state.missingContentRoadmap = data.missingContentRoadmap || [];
@@ -292,6 +294,9 @@ async function loadBootstrap() {
       .then((nData) => {
         if (nData && Array.isArray(nData.news)) {
           state.news = nData.news;
+          if (Array.isArray(nData.events)) {
+            state.events = nData.events;
+          }
           renderNewsSections();
         }
       })
@@ -446,6 +451,49 @@ function buildNewsCardHTML(item) {
   `;
 }
 
+function buildEventCardHTML(evt) {
+  const bg = evt.imageUrl
+    ? `linear-gradient(180deg, rgba(9,13,22,0.2) 0%, rgba(9,13,22,0.92) 100%), url('${evt.imageUrl}')`
+    : "linear-gradient(135deg, #1e293b, #090d16)";
+  const isLive = evt.status === "En Curso";
+
+  return `
+    <article class="news-card" style="border-color: ${isLive ? "#10b981" : "rgba(245, 158, 11, 0.45)"};">
+      <div>
+        <div class="news-card-banner" style="background-image: ${bg};">
+          <span class="news-cat-badge" style="background:${isLive ? "#10b981" : "#f59e0b"};">
+            ${evt.status}
+          </span>
+          <span class="news-saga-badge">${evt.location}</span>
+        </div>
+        <div class="news-card-body">
+          <h3>${evt.title}</h3>
+          <div style="background:rgba(9,13,22,0.65);border:1px solid #293548;border-radius:8px;padding:10px 12px;margin:10px 0;font-size:0.81rem;">
+            <div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:4px;">
+              <strong style="color:#4ade80;">Cuándo empieza:</strong>
+              <span style="font-family:var(--font-mono);color:#f8fafc;">${evt.startLabel}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:8px;">
+              <strong style="color:#f87171;">Cuándo termina:</strong>
+              <span style="font-family:var(--font-mono);color:#f8fafc;">${evt.endLabel}</span>
+            </div>
+          </div>
+          <p style="margin-bottom:8px;">${evt.summary}</p>
+          <div style="font-size:0.77rem;color:#fbbf24;">
+            <strong>Juegos principales:</strong> ${evt.games}
+          </div>
+        </div>
+      </div>
+      <div class="news-card-footer">
+        <span style="color:#94a3b8;">${evt.saga}</span>
+        <a href="${evt.sourceUrl}" target="_blank" rel="noopener" class="news-source-link">
+          Web oficial del evento ➔
+        </a>
+      </div>
+    </article>
+  `;
+}
+
 function renderNewsSections() {
   const homePreview = document.getElementById("homeNewsPreviewGrid");
   if (homePreview) {
@@ -455,17 +503,73 @@ function renderNewsSections() {
       .join("");
   }
 
+  const eventsSection = document.getElementById("eventsCalendarSection");
+  const eventsGrid = document.getElementById("eventsGridContainer");
+  const newsSection = document.getElementById("newsArticlesSection");
   const fullGrid = document.getElementById("fullNewsGridContainer");
-  if (fullGrid) {
+
+  const q = (state.newsSearchQuery || "").trim().toLowerCase();
+
+  // Filtrar Eventos por texto y fecha (Inicio / Fin)
+  let filteredEvents = (state.events || []).slice();
+  if (q) {
+    filteredEvents = filteredEvents.filter(
+      (e) =>
+        e.title.toLowerCase().includes(q) ||
+        e.summary.toLowerCase().includes(q) ||
+        e.games.toLowerCase().includes(q) ||
+        e.location.toLowerCase().includes(q)
+    );
+  }
+  if (state.newsDateFrom) {
+    filteredEvents = filteredEvents.filter((e) => String(e.endDate || "") >= state.newsDateFrom);
+  }
+  if (state.newsDateTo) {
+    filteredEvents = filteredEvents.filter((e) => String(e.startDate || "") <= state.newsDateTo);
+  }
+  if (
+    state.newsQuickPeriod === "2027" ||
+    state.newsQuickPeriod === "2026" ||
+    state.newsQuickPeriod === "2025"
+  ) {
+    filteredEvents = filteredEvents.filter(
+      (e) =>
+        String(e.startDate || "").startsWith(state.newsQuickPeriod) ||
+        String(e.endDate || "").startsWith(state.newsQuickPeriod)
+    );
+  }
+
+  // Mostrar u ocultar secciones según la pestaña activa
+  const showEvents =
+    state.selectedNewsCategory === "all" ||
+    state.selectedNewsCategory === "events-only" ||
+    state.selectedNewsCategory === "Competitivo / Torneos";
+  const showNews = state.selectedNewsCategory !== "events-only";
+
+  if (eventsSection && eventsGrid) {
+    eventsSection.classList.toggle("hidden", !showEvents);
+    if (filteredEvents.length === 0) {
+      eventsGrid.innerHTML = `
+        <div class="roster-block" style="grid-column: 1 / -1; text-align:center;">
+          <p style="color:#94a3b8;">No hay eventos programados que coincidan con ese filtro de fechas.</p>
+        </div>
+      `;
+    } else {
+      eventsGrid.innerHTML = filteredEvents.map((evt) => buildEventCardHTML(evt)).join("");
+    }
+  }
+
+  if (newsSection && fullGrid) {
+    newsSection.classList.toggle("hidden", !showNews);
     let list = state.news.slice();
 
-    // 1. Filtrar por categoría
-    if (state.selectedNewsCategory !== "all") {
+    if (
+      state.selectedNewsCategory !== "all" &&
+      state.selectedNewsCategory !== "events-only"
+    ) {
       list = list.filter((n) => n.category === state.selectedNewsCategory);
     }
 
-    // 2. Filtrar por texto (título, resumen, saga o fuente)
-    const q = (state.newsSearchQuery || "").trim().toLowerCase();
     if (q) {
       list = list.filter(
         (n) =>
@@ -476,7 +580,6 @@ function renderNewsSections() {
       );
     }
 
-    // 3. Filtrar por rango de fechas exacto (Desde / Hasta)
     if (state.newsDateFrom) {
       list = list.filter((n) => String(n.isoDate || "") >= state.newsDateFrom);
     }
@@ -484,9 +587,12 @@ function renderNewsSections() {
       list = list.filter((n) => String(n.isoDate || "") <= state.newsDateTo);
     }
 
-    // 4. Filtrar por periodo rápido
     if (state.newsQuickPeriod !== "all") {
-      if (state.newsQuickPeriod === "2026" || state.newsQuickPeriod === "2025") {
+      if (
+        state.newsQuickPeriod === "2027" ||
+        state.newsQuickPeriod === "2026" ||
+        state.newsQuickPeriod === "2025"
+      ) {
         list = list.filter((n) => String(n.isoDate || "").startsWith(state.newsQuickPeriod));
       } else {
         const days = state.newsQuickPeriod === "30d" ? 30 : 90;
@@ -497,7 +603,7 @@ function renderNewsSections() {
 
     const countLabel = document.getElementById("newsFilteredCountLabel");
     if (countLabel) {
-      countLabel.textContent = `${list.length} noticias encontradas`;
+      countLabel.textContent = `${filteredEvents.length} eventos y ${list.length} noticias`;
     }
 
     if (list.length === 0) {

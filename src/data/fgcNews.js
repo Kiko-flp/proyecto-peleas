@@ -7,6 +7,147 @@
  * - Se sincroniza además en vivo con la API oficial de noticias de Steam y el feed RSS de EventHubs.
  */
 
+/**
+ * Calendario de Eventos y Torneos Oficiales de Juegos de Lucha (Con Fecha de Inicio y Fecha de Fin)
+ */
+const FGC_EVENTS = [
+  {
+    id: "evt-cc13-tokyo-qualifier",
+    title: "Capcom Pro Tour — World Warrior Regional Finals",
+    saga: "Street Fighter 6",
+    location: "Online / Global Regional",
+    startDate: "2026-11-14",
+    endDate: "2026-11-29",
+    startLabel: "14 de Noviembre de 2026",
+    endLabel: "29 de Noviembre de 2026",
+    status: "En Curso",
+    games: "Street Fighter 6",
+    sourceUrl: "https://sf.esports.capcom.com/",
+    imageUrl: "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1364780/header.jpg",
+    summary: "Finales regionales clasificatorias de todo el mundo que otorgan las últimas plazas directas para la Capcom Cup 13 en Tokio."
+  },
+  {
+    id: "evt-final-kombat",
+    title: "Final Kombat — Campeonato Mundial de Mortal Kombat 1",
+    saga: "Mortal Kombat 1",
+    location: "Presencial Internacional",
+    startDate: "2026-12-11",
+    endDate: "2026-12-13",
+    startLabel: "11 de Diciembre de 2026",
+    endLabel: "13 de Diciembre de 2026",
+    status: "Próximo Evento",
+    games: "Mortal Kombat 1 (Khaos Reigns)",
+    sourceUrl: "https://www.mortalkombat.com/",
+    imageUrl: "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1971870/header.jpg",
+    summary: "Gran final mundial del circuito Pro Kompetition de NetherRealm Studios con los 20 mejores jugadores clasificados y el Last Chance Qualifier."
+  },
+  {
+    id: "evt-twt-finals-singapore",
+    title: "Tekken World Tour Global Finals & EVO Singapore",
+    saga: "Tekken 8 / Multi-Juego",
+    location: "Singapur (Singapore Expo)",
+    startDate: "2027-01-14",
+    endDate: "2027-01-17",
+    startLabel: "14 de Enero de 2027",
+    endLabel: "17 de Enero de 2027",
+    status: "Próximo Evento",
+    games: "Tekken 8, Street Fighter 6, Guilty Gear -Strive-",
+    sourceUrl: "https://tekkenworldtour.com/",
+    imageUrl: "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1778820/header.jpg",
+    summary: "Las Finales Globales del Tekken World Tour reúnen a los mejores jugadores del ranking mundial y del Last Chance Qualifier (LCQ) durante cuatro días en Singapur."
+  },
+  {
+    id: "evt-frosty-faustings",
+    title: "Frosty Faustings XIX — Major Internacional de Invierno",
+    saga: "Multi-Juego FGC",
+    location: "Lombard, Illinois (EE. UU.)",
+    startDate: "2027-01-28",
+    endDate: "2027-01-31",
+    startLabel: "28 de Enero de 2027",
+    endLabel: "31 de Enero de 2027",
+    status: "Próximo Evento",
+    games: "Guilty Gear -Strive-, Street Fighter 6, Tekken 8, DBFZ, MK1, Granblue Rising",
+    sourceUrl: "https://frostyfaustings.com/",
+    imageUrl: "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1384160/header.jpg",
+    summary: "Uno de los mayores Majors de invierno de la FGC con más de 25 torneos oficiales de juegos de lucha 2D, 3D y Anime Fighters."
+  },
+  {
+    id: "evt-genesis-smash",
+    title: "GENESIS — Supermajor Mundial de Super Smash Bros.",
+    saga: "Super Smash Bros. & Rivals",
+    location: "San José, California (EE. UU.)",
+    startDate: "2027-02-12",
+    endDate: "2027-02-14",
+    startLabel: "12 de Febrero de 2027",
+    endLabel: "14 de Febrero de 2027",
+    status: "Próximo Evento",
+    games: "Super Smash Bros. Ultimate, Super Smash Bros. Melee",
+    sourceUrl: "https://www.start.gg/",
+    imageUrl: "https://assets.nintendo.com/image/upload/c_fill,w_1200/q_auto:best/f_auto/dpr_2.0/ncom/software/switch/70010000012332/ac4d1fc9824876ce756406f0525d50c57ded4b2a666f6dfe40a6ac5c3563fad9",
+    summary: "El torneo histórico más prestigioso de la comunidad de Super Smash Bros., con cuadros individuales, dobles y exhibiciones internacionales."
+  },
+  {
+    id: "evt-awt-finals-ny",
+    title: "Arc World Tour Finals — Gran Final Mundial Arc System Works",
+    saga: "Guilty Gear -Strive-",
+    location: "Nueva York (Terminal 5, EE. UU.)",
+    startDate: "2027-03-05",
+    endDate: "2027-03-07",
+    startLabel: "05 de Marzo de 2027",
+    endLabel: "07 de Marzo de 2027",
+    status: "Próximo Evento",
+    games: "Guilty Gear -Strive-, Granblue Fantasy Versus: Rising, Under Night In-Birth II",
+    sourceUrl: "https://www.arcsystemworks.jp/",
+    imageUrl: "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1384160/header.jpg",
+    summary: "Tres días de competición en Nueva York con clasificatorio presencial de última oportunidad (LCQ) y las finales mundiales del circuito Arc World Tour."
+  },
+  {
+    id: "evt-capcom-cup-13",
+    title: "Capcom Cup 13 & Street Fighter League World Championship",
+    saga: "Street Fighter 6",
+    location: "Tokio, Japón (Estadio Ryogoku Kokugikan)",
+    startDate: "2027-03-10",
+    endDate: "2027-03-14",
+    startLabel: "10 de Marzo de 2027",
+    endLabel: "14 de Marzo de 2027",
+    status: "Próximo Evento",
+    games: "Street Fighter 6",
+    sourceUrl: "https://sf.esports.capcom.com/",
+    imageUrl: "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1364780/header.jpg",
+    summary: "Cinco días en el legendario estadio de sumo de Tokio: Fase de Grupos (10-12 Mar), Top 16 a Gran Final de Capcom Cup 13 (13 Mar) y Final Mundial SFL (14 Mar)."
+  },
+  {
+    id: "evt-evo-japan",
+    title: "EVO Japan — Evolution Championship Series Tokyo",
+    saga: "Multi-Juego (EVO)",
+    location: "Tokio, Japón (Tokyo Big Sight)",
+    startDate: "2027-04-30",
+    endDate: "2027-05-02",
+    startLabel: "30 de Abril de 2027",
+    endLabel: "02 de Mayo de 2027",
+    status: "Próximo Evento",
+    games: "Street Fighter 6, Tekken 8, Guilty Gear -Strive-, KOF XV, Fatal Fury, Granblue",
+    sourceUrl: "https://www.evojapan.gg/",
+    imageUrl: "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1364780/header.jpg",
+    summary: "La gran cita asiática de EVO durante la Golden Week japonesa, con miles de competidores en los principales títulos 2D y 3D."
+  },
+  {
+    id: "evt-combo-breaker",
+    title: "COMBO BREAKER — Festival Internacional de Juegos de Lucha",
+    saga: "Multi-Juego FGC",
+    location: "Schaumburg, Illinois (EE. UU.)",
+    startDate: "2027-05-28",
+    endDate: "2027-05-30",
+    startLabel: "28 de Mayo de 2027",
+    endLabel: "30 de Mayo de 2027",
+    status: "Próximo Evento",
+    games: "Mortal Kombat 1, Street Fighter 6, Tekken 8, DBFZ, GGST, Smash, Juegos Clásicos",
+    sourceUrl: "https://combobreaker.org/",
+    imageUrl: "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1971870/header.jpg",
+    summary: "Tres días ininterrumpidos dedicados al 100% a los juegos de lucha modernos y retro, parada oficial de los principales circuitos mundiales."
+  }
+];
+
 const CURATED_FGC_NEWS = [
   {
     id: "news-capcom-cup-13-tickets",
@@ -329,6 +470,7 @@ async function getFgcNews() {
 }
 
 module.exports = {
+  FGC_EVENTS,
   CURATED_FGC_NEWS,
   getFgcNews
 };

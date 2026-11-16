@@ -5,7 +5,7 @@ const path = require("path");
 const store = require("./src/db/store");
 const telegramBot = require("./src/bot/telegramBot");
 const { resolveCharacterPortraitUrl } = require("./src/utils/portraitResolver");
-const { CURATED_FGC_NEWS, getFgcNews } = require("./src/data/fgcNews");
+const { FGC_EVENTS, CURATED_FGC_NEWS, getFgcNews } = require("./src/data/fgcNews");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -283,6 +283,7 @@ app.get("/api/bootstrap", (req, res) => {
 
   res.json({
     youtubeChannel: store.state.youtubeChannel,
+    events: FGC_EVENTS,
     news: [...customNews, ...CURATED_FGC_NEWS],
     communityResources: store.getCommunityResources(),
     missingContentRoadmap: store.getMissingContentRoadmap(),
@@ -294,7 +295,7 @@ app.get("/api/bootstrap", (req, res) => {
 app.get("/api/news", async (req, res) => {
   const allNews = await getFgcNews();
   const customNews = store.getCustomNews();
-  res.json({ news: [...customNews, ...allNews] });
+  res.json({ news: [...customNews, ...allNews], events: FGC_EVENTS });
 });
 
 app.post("/api/community-resources", async (req, res) => {

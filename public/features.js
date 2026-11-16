@@ -558,75 +558,74 @@ window.initPunishCalculator = function () {
 };
 
 // =========================================================================
-// F. SISTEMA DE TESTS DE 10 PREGUNTAS:
-//    1) TEST GENERAL (TODOS LOS JUEGOS)
-//    2) TEST ESPECÍFICO DE 10 PREGUNTAS POR CADA JUEGO (MK1, SF6, TEKKEN 8, DBFZ, GGST, SSBU)
+// F. SISTEMA DE TESTS DE 10 PREGUNTAS (PREGUNTAS GENÉRICAS Y ACCESIBLES SOBRE
+//    CÓMO QUIERES JUGAR Y TU PERSONALIDAD — TEST GENERAL + 1 POR JUEGO)
 // =========================================================================
 
-// Banco de preguntas comunes de Estilo de Juego + Personalidad (Preguntas 5 a 10 para completar los 10 ítems de cada juego)
+// Preguntas genéricas de Estilo de Juego + Personalidad (Preguntas 5 a 10)
 const SHARED_PERSONALITY_AND_PLAYSTYLE_TAIL = [
   {
     num: 5,
-    category: "Cómo Quieres Jugar — Exigencia Técnica",
-    question: "5. ¿Qué nivel de dificultad técnica y práctica en entrenamiento prefieres?",
+    category: "Cómo Quieres Jugar — Aprendizaje y Controles",
+    question: "5. ¿Qué prefieres a la hora de aprender a manejar a tu personaje?",
     options: [
-      { label: "Fácil e intuitivo: quiero combos directos para centrarme en leer al rival", diff: "Fácil", tags: ["simple", "fácil"] },
-      { label: "Dificultad media: buen equilibrio entre profundidad y consistencia en torneo", diff: "Media", tags: ["versatil", "equilibrado"] },
-      { label: "Alta dificultad: disfruto dominando personajes técnicos, posturas o ejecuciones precisas", diff: "Difícil", tags: ["postura", "puppet", "mishima", "difícil"] }
+      { label: "Sencillo y directo: quiero aprender lo básico rápido y centrarme en la pelea", diff: "Fácil", tags: ["simple", "fácil"] },
+      { label: "Un punto intermedio: fácil de entender pero con trucos por descubrir", diff: "Media", tags: ["versatil", "equilibrado"] },
+      { label: "Complejo y profundo: me gusta dedicar tiempo a dominar un personaje único y difícil", diff: "Difícil", tags: ["postura", "puppet", "mishima", "difícil"] }
     ]
   },
   {
     num: 6,
-    category: "Personalidad — Reacción Bajo Presión en la Esquina",
-    question: "6. Estás acorralado contra el muro con poca vida. ¿Cómo reacciona tu personalidad?",
+    category: "Personalidad — Reacción en Situaciones Límite",
+    question: "6. Te queda muy poca vida y tu rival te tiene contra las cuerdas. ¿Cómo reaccionas?",
     options: [
-      { label: "Sin miedo: lanzo un Parry o ataque invencible para robar el turno al instante", tags: ["parry", "contraataque", "shoto", "reversals"] },
-      { label: "Escurridizo: escapo usando teletransporte, vuelo o movilidad aérea", tags: ["movilidad", "teleport", "aereo", "evasion"] },
-      { label: "Imparable: aguanto con armadura y borro la vida rival de un solo golpe pesado", tags: ["armadura", "heavy", "grappler", "powerhouse"] },
-      { label: "Frío y paciente: bloqueo hasta ver el hueco exacto para castigar con precisión", tags: ["all-rounder", "footsies", "defensivo", "whiff"] }
+      { label: "Arriesgo todo con un contraataque sorpresa para dar la vuelta a la partida", tags: ["parry", "contraataque", "shoto", "reversals"] },
+      { label: "Uso mi agilidad para escapar del peligro y recolocarme en el escenario", tags: ["movilidad", "teleport", "aereo", "evasion"] },
+      { label: "Aguanto el golpe con fuerza bruta esperando conectar un solo impacto decisivo", tags: ["armadura", "heavy", "grappler", "powerhouse"] },
+      { label: "Mantengo la calma, me defiendo bien y espero a que el rival cometa un error", tags: ["all-rounder", "footsies", "defensivo", "whiff"] }
     ]
   },
   {
     num: 7,
-    category: "Cómo Quieres Jugar — Velocidad vs. Potencia",
-    question: "7. Entre velocidad de movimiento o potencia de daño por golpe, ¿qué eliges?",
+    category: "Cómo Quieres Jugar — Velocidad vs. Fuerza",
+    question: "7. ¿Qué prefieres sentir cuando mueves a tu personaje por la pantalla?",
     options: [
-      { label: "Velocidad vertiginosa: quiero cruzar la pantalla y abrumar con ataques rápidos", tags: ["velocidad", "rushdown", "aereo", "glass", "rápido"] },
-      { label: "Equilibrio completo: buena velocidad de paso y buen daño en cualquier situación", tags: ["all-rounder", "shoto", "equilibrado", "versátil"] },
-      { label: "Potencia demoledora: prefiero golpes pesados que quiten media barra de vida", tags: ["powerhouse", "heavy", "grappler", "brawler", "daño"] }
+      { label: "Mucha velocidad: moverme rapidísimo y lanzar muchos golpes seguidos", tags: ["velocidad", "rushdown", "aereo", "glass", "rápido"] },
+      { label: "Equilibrio total: ni muy lento ni muy frágil, adaptable a todo", tags: ["all-rounder", "shoto", "equilibrado", "versátil"] },
+      { label: "Mucha fuerza: aunque sea más lento, quiero que cada golpe quite muchísima vida", tags: ["powerhouse", "heavy", "grappler", "brawler", "daño"] }
     ]
   },
   {
     num: 8,
-    category: "Personalidad — Carisma e Identidad de tu Luchador",
-    question: "8. ¿Con qué personalidad y carisma de personaje te sientes más identificado?",
+    category: "Personalidad — Carácter e Identidad",
+    question: "8. ¿Con qué tipo de personalidad de personaje te sientes más cómodo?",
     options: [
-      { label: "Maestro marcial disciplinado, héroe honorable o luchador clásico", tags: ["shoto", "all-rounder", "swordie", "karate", "equilibrado"] },
-      { label: "Villano imponente, antihéroe oscuro o usuario de poderes sombríos", tags: ["mishima", "oscuridad", "caos", "veneno", "zoner", "powerhouse"] },
-      { label: "Guerrero rebelde, ninja veloz, asesino letal o prodigio acrobático", tags: ["rushdown", "ninja", "movilidad", "sigilo", "velocidad"] },
-      { label: "Coloso carismático, luchador de wrestling o mente maestra impredecible", tags: ["grappler", "heavy", "tricky", "puppet", "setplay"] }
+      { label: "Alguien disciplinado, heroico, serio o centrado en las artes marciales", tags: ["shoto", "all-rounder", "swordie", "karate", "equilibrado"] },
+      { label: "Alguien oscuro, intimidante, implacable o con estética de villano", tags: ["mishima", "oscuridad", "caos", "veneno", "zoner", "powerhouse"] },
+      { label: "Alguien rebelde, veloz, energético, confiado o acrobático", tags: ["rushdown", "ninja", "movilidad", "sigilo", "velocidad"] },
+      { label: "Alguien gigante, imponente o con un estilo raro y divertido", tags: ["grappler", "heavy", "tricky", "puppet", "setplay"] }
     ]
   },
   {
     num: 9,
-    category: "Cómo Quieres Jugar — Cómo Abrir la Guardia Rival",
-    question: "9. ¿Cuál es tu forma favorita de romper a un oponente que no deja de bloquear?",
+    category: "Cómo Quieres Jugar — Romper la Defensa",
+    question: "9. Si tu rival se pasa toda la partida cubriéndose, ¿cómo prefieres abrir su defensa?",
     options: [
-      { label: "Obligarle a adivinar un 50/50 constante entre golpe bajo, overhead o cruce", tags: ["mix-up", "50/50", "overhead", "postura"] },
-      { label: "Intimidarle con agarres de comando e imbloqueables de alto daño", tags: ["grappler", "agarre", "strike-throw"] },
-      { label: "Desgastarle desde lejos con proyectiles, trampas y daño residual (Chip)", tags: ["zoner", "chip", "trapper", "proyectil"] },
-      { label: "Hacer que falle un golpe al aire (Whiff) y castigarle con un combo óptimo", tags: ["whiff", "alcance", "footsies", "counter"] }
+      { label: "Atacando por arriba y por abajo rápido para que no sepa dónde cubrirse", tags: ["mix-up", "50/50", "overhead", "postura"] },
+      { label: "Acercándome para hacerle un agarre que no pueda bloquear", tags: ["grappler", "agarre", "strike-throw"] },
+      { label: "Lanzando ataques desde lejos para desgastarle poco a poco", tags: ["zoner", "chip", "trapper", "proyectil"] },
+      { label: "Amagando para que lance un golpe al aire y castigar su fallo", tags: ["whiff", "alcance", "footsies", "counter"] }
     ]
   },
   {
     num: 10,
-    category: "Personalidad — Tu Mayor Satisfacción al Ganar",
-    question: "10. ¿Qué te produce mayor satisfacción personal al cerrar una ronda?",
+    category: "Personalidad — TuForma de Disfrutar la Victoria",
+    question: "10. ¿Qué es lo que más te divierte conseguir durante una partida?",
     options: [
-      { label: "Leer la mente del rival como un libro abierto con un Counter o agarre letal", tags: ["counter", "parry", "grappler", "mishima"] },
-      { label: "Ejecutar un combo largo y vistoso llevando al rival de punta a punta al muro", tags: ["rushdown", "combo", "corner"] },
-      { label: "Ganar controlando toda la pantalla sin que el rival haya podido ni tocarme", tags: ["zoner", "alcance", "keepout", "trapper"] },
-      { label: "Ganar por fundamentos puros adaptándome a cualquier situación de la partida", tags: ["all-rounder", "shoto", "equilibrado", "fundamentos"] }
+      { label: "Adivinar exactamente qué iba a hacer el rival y anticiparme a él", tags: ["counter", "parry", "grappler", "mishima"] },
+      { label: "Hacer combos largos y espectaculares sin dejar caer al oponente", tags: ["rushdown", "combo", "corner"] },
+      { label: "Dominar el espacio de forma que el rival no pueda ni acercarse a mí", tags: ["zoner", "alcance", "keepout", "trapper"] },
+      { label: "Tener una respuesta sólida para cualquier situación que se presente", tags: ["all-rounder", "shoto", "equilibrado", "fundamentos"] }
     ]
   }
 ];
@@ -634,376 +633,376 @@ const SHARED_PERSONALITY_AND_PLAYSTYLE_TAIL = [
 const QUIZ_BANKS = {
   // 1. TEST GENERAL (TODOS LOS JUEGOS)
   general: {
-    title: "Test General FGC (Todos los Juegos)",
-    subtitle: "Descubre qué personajes de los 6 juegos encajan mejor con tu forma de jugar y tu personalidad.",
+    title: "Test General (Todos los Juegos)",
+    subtitle: "Responde 10 preguntas generales sobre tu personalidad y cómo te gusta jugar para descubrir tus personajes ideales.",
     targetGameId: "all",
     questions: [
       {
         num: 1,
-        category: "Cómo Quieres Jugar — Distancia en Pantalla",
-        question: "1. ¿En qué distancia de la pantalla te sientes más cómodo durante el combate?",
+        category: "Cómo Quieres Jugar — Distancia Favorita",
+        question: "1. ¿A qué distancia del rival prefieres estar durante la pelea?",
         options: [
-          { label: "Pegado al rival sin dejarle respirar (Cuerpo a cuerpo asfixiante)", tags: ["rushdown", "presión", "mix-up"] },
-          { label: "A media distancia, controlando el espacio con golpes de buen alcance", tags: ["all-rounder", "shoto", "footsies", "whiff", "swordie"] },
-          { label: "Desde lejos, dominando la pantalla con proyectiles o trampas", tags: ["zoner", "trapper", "alcance"] },
-          { label: "Avanzando con fuerza para atrapar al rival con agarres o golpes pesados", tags: ["grappler", "heavy", "powerhouse", "brawler"] }
+          { label: "Muy cerca: quiero estar encima del rival atacando sin parar", tags: ["rushdown", "presión", "mix-up"] },
+          { label: "A media distancia: ni muy lejos ni pegado, controlando el terreno", tags: ["all-rounder", "shoto", "footsies", "whiff", "swordie"] },
+          { label: "De lejos: prefiero atacar a distancia y frenar su avance", tags: ["zoner", "trapper", "alcance"] },
+          { label: "Cara a cara buscando el momento de conectar un agarre o golpe demoledor", tags: ["grappler", "heavy", "powerhouse", "brawler"] }
         ]
       },
       {
         num: 2,
-        category: "Personalidad — Temperamento Competitivo",
-        question: "2. ¿Cómo describes tu personalidad cuando juegas una partida competitiva?",
+        category: "Personalidad — Tu Actitud Jugando",
+        question: "2. ¿Cuál de estas frases define mejor tu personalidad al jugar?",
         options: [
-          { label: "Agresivo, audaz y eléctrico: quiero llevar el ritmo del combate siempre", tags: ["rushdown", "velocidad", "ofensivo"] },
-          { label: "Calculador, sereno y metódico: espero el error del rival para castigar", tags: ["defensivo", "parry", "contraataque", "whiff", "equilibrado"] },
-          { label: "Creativo, travieso e impredecible: me encanta engañar y confundir", tags: ["mix-up", "setplay", "puppet", "tricky", "invisibilidad"] },
-          { label: "Dominante e intimidante: prefiero que el rival tenga miedo de acercarse", tags: ["grappler", "powerhouse", "heavy", "daño"] }
+          { label: "“La mejor defensa es un buen ataque”: soy directo y ofensivo", tags: ["rushdown", "velocidad", "ofensivo"] },
+          { label: "“La paciencia gana partidas”: observo y espero el momento perfecto", tags: ["defensivo", "parry", "contraataque", "whiff", "equilibrado"] },
+          { label: "“Sé impredecible”: me gusta usar engaños, trampas y sorprender", tags: ["mix-up", "setplay", "puppet", "tricky", "invisibilidad"] },
+          { label: "“Pega fuerte una vez”: prefiero imponer respeto con pura potencia", tags: ["grappler", "powerhouse", "heavy", "daño"] }
         ]
       },
       {
         num: 3,
-        category: "Cómo Quieres Jugar — Mecánicas de Sistema",
-        question: "3. ¿Qué tipo de sistema de combate disfrutas más?",
+        category: "Cómo Quieres Jugar — Estilo de Acción",
+        question: "3. ¿Qué estilo de combate te resulta más atractivo visualmente?",
         options: [
-          { label: "Combos con asistencias o compañeros en pantalla (Kameos / 3v3 Assists)", tags: ["kameo", "setplay", "point", "anchor"] },
-          { label: "Duelo 1 contra 1 puro de suelo, footsies y gestión de barra (Drive / Tension)", tags: ["shoto", "footsies", "all-rounder", "rushdown"] },
-          { label: "Combate 3D con pasos laterales (Sidestep), posturas y muros explosivos", tags: ["mishima", "postura", "counter"] },
-          { label: "Libertad total de plataformas, saltos múltiples y sacar al rival del escenario", tags: ["aereo", "swordie", "bair"] }
+          { label: "Combates donde puedo llamar a un compañero en pantalla para ayudarme", tags: ["kameo", "setplay", "point", "anchor"] },
+          { label: "Artes marciales clásicas uno contra uno midiendo cada paso", tags: ["shoto", "footsies", "all-rounder", "rushdown"] },
+          { label: "Peleas cuerpo a cuerpo intensas con esquivas laterales y combinaciones", tags: ["mishima", "postura", "counter"] },
+          { label: "Combates muy ágiles con saltos altos, armas y gran movilidad por el escenario", tags: ["aereo", "swordie", "bair"] }
         ]
       },
       {
         num: 4,
-        category: "Cómo Quieres Jugar — Recursos Especiales",
-        question: "4. ¿Qué te gusta hacer durante el transcurso de la ronda?",
+        category: "Cómo Quieres Jugar — Habilidades Preferidas",
+        question: "4. ¿Qué tipo de habilidades especiales te gusta más tener en tu personaje?",
         options: [
-          { label: "Subir niveles, cargar medidores propios o desbloquear transformaciones", tags: ["nivel", "stocks", "carga", "instakill", "arsene"] },
-          { label: "Plagar el escenario de clones, bombas o proyectiles de control", tags: ["setplay", "trapper", "clones", "zoner"] },
-          { label: "Alternar entre distintas posturas de ataque para ser impredecible", tags: ["postura", "stance", "mix-up"] },
-          { label: "Ir directo al grano con mis ataques normales y especiales sin recargas extra", tags: ["shoto", "all-rounder", "rushdown", "brawler"] }
+          { label: "Habilidades que hacen más fuerte a mi personaje a medida que avanza la pelea", tags: ["nivel", "stocks", "carga", "instakill", "arsene"] },
+          { label: "Proyectiles, trampas u objetos que controlan el escenario", tags: ["setplay", "trapper", "clones", "zoner"] },
+          { label: "Distintas posturas o formas de ataque para variar mi estilo", tags: ["postura", "stance", "mix-up"] },
+          { label: "Golpes directos, rápidos y efectivos sin tener que cargar nada", tags: ["shoto", "all-rounder", "rushdown", "brawler"] }
         ]
       },
       ...SHARED_PERSONALITY_AND_PLAYSTYLE_TAIL
     ]
   },
 
-  // 2. TEST ESPECÍFICO: MORTAL KOMBAT 1
+  // 2. TEST MORTAL KOMBAT 1 (PREGUNTAS GENÉRICAS ADAPTADAS A MK1)
   mk1: {
     title: "Test de Mortal Kombat 1 (10 Preguntas)",
-    subtitle: "Encuentra tu luchador ideal entre los 35 personajes (Juego Base, Kombat Pack 1 y Khaos Reigns).",
+    subtitle: "Descubre qué luchador de Mortal Kombat 1 encaja mejor con tu forma de jugar y tu personalidad.",
     targetGameId: "mk1",
     questions: [
       {
         num: 1,
-        category: "Mortal Kombat 1 — Plan de Juego en Neutro",
-        question: "1. En Mortal Kombat 1, ¿cómo quieres dominar el inicio de la ronda?",
+        category: "Cómo Quieres Jugar — Estrategia Principal",
+        question: "1. ¿Cómo te gustaría llevar el control del combate en Mortal Kombat 1?",
         options: [
-          { label: "Castigando fallos a media distancia con arpón, espadas o látigos largos", tags: ["whiff", "alcance", "mid-range"] },
-          { label: "Entrando con presión cuerpo a cuerpo, Frame Traps y daño por Chip en bloqueo", tags: ["rushdown", "presión", "chip", "frame"] },
-          { label: "Controlando el escenario con clones de hielo/sombra, portales o proyectiles", tags: ["zoner", "clones", "portales", "setplay"] },
-          { label: "Con invisibilidad, teletransportes o vuelo para sorprender por cualquier ángulo", tags: ["invisibilidad", "teletransporte", "vuelo", "mix-up"] }
+          { label: "Alcanzando al rival desde media distancia con armas o ataques largos", tags: ["whiff", "alcance", "mid-range"] },
+          { label: "Pegándome al oponente con combinaciones rápidas sin dejarle turno", tags: ["rushdown", "presión", "chip", "frame"] },
+          { label: "Dominando desde lejos con magia, proyectiles o trampas en el suelo", tags: ["zoner", "clones", "portales", "setplay"] },
+          { label: "Apareciendo por sorpresa con teletransportes, vuelo o invisibilidad", tags: ["invisibilidad", "teletransporte", "vuelo", "mix-up"] }
         ]
       },
       {
         num: 2,
-        category: "Mortal Kombat 1 — Sinergia con tu Kameo",
-        question: "2. ¿Para qué quieres usar principalmente a tu compañero Kameo (R1)?",
+        category: "Cómo Quieres Jugar — Uso del Compañero",
+        question: "2. ¿Qué ayuda prefieres recibir de tu compañero de apoyo durante la pelea?",
         options: [
-          { label: "Para hacer seguros mis ataques arriesgados y mantenerme pegado presionando", tags: ["rushdown", "presión", "chip"] },
-          { label: "Para crear un 50/50 imposible de bloquear (Overhead + Bajo simultáneo)", tags: ["mix-up", "invisibilidad", "clones"] },
-          { label: "Para extender combos de más del 40-45% de daño desde cualquier toque", tags: ["whiff", "daño", "powerhouse", "vuelo"] },
-          { label: "Para controlar toda la pantalla con proyectiles, bombas o redes de captura", tags: ["zoner", "setplay", "bombas", "trampas"] }
+          { label: "Que me cubra cuando ataco para poder seguir presionando sin peligro", tags: ["rushdown", "presión", "chip"] },
+          { label: "Que golpee a la vez que yo para que el rival no pueda bloquearlo todo", tags: ["mix-up", "invisibilidad", "clones"] },
+          { label: "Que alargue mis combos para quitar muchísima más vida de un solo toque", tags: ["whiff", "daño", "powerhouse", "vuelo"] },
+          { label: "Que me ayude a mantener al rival lejos con proyectiles o barreras", tags: ["zoner", "setplay", "bombas", "trampas"] }
         ]
       },
       {
         num: 3,
-        category: "Personalidad en MK1 — Identidad en el Torneo",
-        question: "3. ¿Con qué facción o personalidad del universo de Mortal Kombat 1 conectas más?",
+        category: "Personalidad — Afinidad de Personaje",
+        question: "3. ¿Qué temática de personaje va más con tus gustos personales?",
         options: [
-          { label: "Ninjas clásicos (Lin Kuei / Shirai Ryu: fuego, hielo, humo, ácido o sombras)", tags: ["whiff", "clones", "invisibilidad", "teletransporte"] },
-          { label: "Campeones marciales y realeza del Mundo Exterior (fuego, rayos, abanicos, magia)", tags: ["shoto", "rushdown", "zoner", "levitate"] },
-          { label: "Hechiceros oscuros, cibernéticos (Cyrax/Sektor) o señores de la guerra implacables", tags: ["portales", "bombas", "misiles", "hacha", "grappler"] },
-          { label: "Invitados icónicos del cine y cómics (Omni-Man, Homelander, Ghostface, Conan, T-1000)", tags: ["viltrumita", "vuelo", "sigilo", "metal", "bárbaro"] }
+          { label: "Ninjas y asesinos elementales (fuego, hielo, humo, sombras o sigilo)", tags: ["whiff", "clones", "invisibilidad", "teletransporte"] },
+          { label: "Guerreros marciales, monjes o realeza con poderes místicos", tags: ["shoto", "rushdown", "zoner", "levitate"] },
+          { label: "Hechiceros oscuros, guerreros cibernéticos o conquistadores implacables", tags: ["portales", "bombas", "misiles", "hacha", "grappler"] },
+          { label: "Personajes invitados de cine, series y cómics de acción", tags: ["viltrumita", "vuelo", "sigilo", "metal", "bárbaro"] }
         ]
       },
       {
         num: 4,
-        category: "Mortal Kombat 1 — Herramienta Favorita",
-        question: "4. ¿Qué herramienta específica de MK1 te resulta más divertida de usar?",
+        category: "Cómo Quieres Jugar — Herramienta Especial",
+        question: "4. ¿Cuál de estas ventajas te gustaría que tuviera tu luchador?",
         options: [
-          { label: "Controlar un espíritu/marioneta (Sento) o clon para atacar en sándwich", tags: ["puppet", "clon", "setplay"] },
-          { label: "Vuelo libre en el aire (Levitate / Air Dash) para dominar desde arriba", tags: ["vuelo", "levitate", "aérea"] },
-          { label: "Agarres de comando, armadura o parries que destrozan al rival de cerca", tags: ["grappler", "parries", "armadura", "powerhouse"] },
-          { label: "Cadenas rápidas de 7-9 frames y proyectiles sólidos sin complicaciones", tags: ["shoto", "rushdown", "frame"] }
+          { label: "Poder atacar desde dos sitios a la vez con un clon o espíritu", tags: ["puppet", "clon", "setplay"] },
+          { label: "Poder volar o flotar en el aire para esquivar ataques del suelo", tags: ["vuelo", "levitate", "aérea"] },
+          { label: "Tener agarres potentes, escudos de armadura o contraataques físicos", tags: ["grappler", "parries", "armadura", "powerhouse"] },
+          { label: "Tener golpes muy rápidos y equilibrados que sirvan para todo", tags: ["shoto", "rushdown", "frame"] }
         ]
       },
       ...SHARED_PERSONALITY_AND_PLAYSTYLE_TAIL
     ]
   },
 
-  // 3. TEST ESPECÍFICO: STREET FIGHTER 6
+  // 3. TEST STREET FIGHTER 6 (PREGUNTAS GENÉRICAS ADAPTADAS A SF6)
   sf6: {
     title: "Test de Street Fighter 6 (10 Preguntas)",
-    subtitle: "Encuentra tu Main entre los 30 luchadores de SF6 (Juego Base y Pases de Año 1, 2 y 3).",
+    subtitle: "Descubre qué luchador de Street Fighter 6 encaja mejor con tu forma de jugar y tu personalidad.",
     targetGameId: "sf6",
     questions: [
       {
         num: 1,
-        category: "Street Fighter 6 — Uso del Drive Gauge",
-        question: "1. En Street Fighter 6 empiezas con 6 barras verdes de Drive. ¿Cómo prefieres gastarlas?",
+        category: "Cómo Quieres Jugar — Ritmo de la Partida",
+        question: "1. ¿Cómo prefieres usar tu barra de energía desde que empieza la ronda?",
         options: [
-          { label: "Lanzando Drive Rush en neutro para entrar a toda velocidad con ventaja (+frames)", tags: ["rushdown", "corner", "movilidad"] },
-          { label: "Haciendo 2MK cancelado en Drive Rush para confirmar combos y llevar a la esquina", tags: ["shoto", "footsies", "equilibrado"] },
-          { label: "Usando proyectiles OD y control de espacio para agotar el Drive rival (Burnout)", tags: ["zoner", "portales", "veneno"] },
-          { label: "Avanzando con Parry y armadura para conectar un agarre de comando devastador", tags: ["grappler", "armadura", "medallas", "brawler"] }
+          { label: "Correr hacia adelante de forma explosiva para atacar primero", tags: ["rushdown", "corner", "movilidad"] },
+          { label: "Controlar el centro del escenario y convertir cualquier toque en un buen combo", tags: ["shoto", "footsies", "equilibrado"] },
+          { label: "Lanzar ataques a distancia para agotar la paciencia y energía del rival", tags: ["zoner", "portales", "veneno"] },
+          { label: "Avanzar bloqueando con firmeza para acorralar al oponente", tags: ["grappler", "armadura", "medallas", "brawler"] }
         ]
       },
       {
         num: 2,
-        category: "Street Fighter 6 — Arquetipo de Combate",
-        question: "2. ¿Qué estilo de Street Fighter 6 va más con tu forma de pensar?",
+        category: "Cómo Quieres Jugar — Estilo de Pelea",
+        question: "2. ¿Con cuál de estos estilos de lucha te sientes más cómodo?",
         options: [
-          { label: "Shoto versátil (Hadoken, Shoryuken antiaéreo y patada giratoria)", tags: ["shoto", "denjin", "equilibrado"] },
-          { label: "Rushdown de presión constante, Divekicks, fintas o latas explosivas en esquina", tags: ["rushdown", "divekick", "fintas", "latas"] },
-          { label: "Grappler o Brawler pesado: un par de lecturas correctas y se acabó la ronda", tags: ["grappler", "brawler", "armadura", "piledriver", "medallas"] },
-          { label: "Zoner táctico de largo alcance (Sonic Boom, extremidades largas, veneno o portales)", tags: ["zoner", "portales", "veneno", "extremidades"] }
+          { label: "Equilibrado clásico: buen proyectil, buen antiaéreo y buenos golpes de suelo", tags: ["shoto", "denjin", "equilibrado"] },
+          { label: "Ofensiva veloz: saltos rápidos, engaños y presión constante", tags: ["rushdown", "divekick", "fintas", "latas"] },
+          { label: "Potencia física: agarres demoledores o golpes con armadura que rompen todo", tags: ["grappler", "brawler", "armadura", "piledriver", "medallas"] },
+          { label: "Control lejano: ataques que cubren toda la pantalla y mantienen lejos al rival", tags: ["zoner", "portales", "veneno", "extremidades"] }
         ]
       },
       {
         num: 3,
-        category: "Street Fighter 6 — Mecánica de Recurso Propio",
-        question: "3. Muchos personajes de SF6 tienen un recurso único. ¿Cuál te llama más la atención?",
+        category: "Cómo Quieres Jugar — Mecánica Propia",
+        question: "3. ¿Te gusta que tu personaje pueda acumular cargas para mejorar sus golpes?",
         options: [
-          { label: "Cargas elementales o stocks para potenciar mis especiales (Denjin, Fuha, Viento, Bebida)", tags: ["denjin", "fuha", "viento", "bebida"] },
-          { label: "Subir medallas de agarre (Nivel 1 a 5) o plantar minas explosivas (Psycho Mine)", tags: ["medallas", "mine", "grappler"] },
-          { label: "Fintas de movimiento, posturas técnicas o gadgets de alta ejecución", tags: ["postura", "fintas", "gadgets", "capoeira"] },
-          { label: "Prefiero no depender de contadores extra y centrarme en el Drive System puro", tags: ["shoto", "rushdown", "divekick", "grappler"] }
+          { label: "Sí, me gusta cargar energía durante la ronda para desbloquear golpes más fuertes", tags: ["denjin", "fuha", "viento", "bebida"] },
+          { label: "Sí, quiero que mis agarres o bombas hagan cada vez más daño en la partida", tags: ["medallas", "mine", "grappler"] },
+          { label: "Prefiero tener fintas de movimiento, baile o técnicas ágiles", tags: ["postura", "fintas", "gadgets", "capoeira"] },
+          { label: "No, prefiero tener todos mis golpes al 100% desde el primer segundo", tags: ["shoto", "rushdown", "divekick", "grappler"] }
         ]
       },
       {
         num: 4,
-        category: "Personalidad en SF6 — Tu Actitud en el Ring",
-        question: "4. ¿Con qué personalidad de luchador de Street Fighter 6 te identificas más?",
+        category: "Personalidad — Actitud de tu Luchador",
+        question: "4. ¿Qué personalidad de luchador te inspira más al competir?",
         options: [
-          { label: "El buscador de la perfección marcial (Ryu, Luke, Ken, Sagat, Terry)", tags: ["shoto", "muay", "equilibrado"] },
-          { label: "El depredador agresivo y despiadado (Akuma, M. Bison, Juri, A.K.I.)", tags: ["glass", "mine", "fuha", "veneno"] },
-          { label: "El espectáculo carismático y lleno de ritmo (Dee Jay, Kimberly, Rashid, Mai, Elena)", tags: ["fintas", "ninja", "movilidad", "abanicos", "capoeira"] },
-          { label: "La fuerza imparable del coliseo (Marisa, Zangief, Manon, Alex, E. Honda)", tags: ["armadura", "grappler", "medallas", "carga"] }
+          { label: "Un luchador honorable y centrado en superarse a sí mismo", tags: ["shoto", "muay", "equilibrado"] },
+          { label: "Alguien agresivo, rebelde, despiadado o intimidante", tags: ["glass", "mine", "fuha", "veneno"] },
+          { label: "Alguien alegre, con ritmo, carismático y lleno de estilo", tags: ["fintas", "ninja", "movilidad", "abanicos", "capoeira"] },
+          { label: "Un coloso imparable que impone respeto solo con su presencia", tags: ["armadura", "grappler", "medallas", "carga"] }
         ]
       },
       ...SHARED_PERSONALITY_AND_PLAYSTYLE_TAIL
     ]
   },
 
-  // 4. TEST ESPECÍFICO: TEKKEN 8
+  // 4. TEST TEKKEN 8 (PREGUNTAS GENÉRICAS ADAPTADAS A TEKKEN 8)
   tekken8: {
     title: "Test de Tekken 8 (10 Preguntas)",
-    subtitle: "Encuentra tu personaje ideal entre los 44 luchadores de Tekken 8 (Base + Seasons 1, 2 y 3).",
+    subtitle: "Descubre qué luchador de Tekken 8 encaja mejor con tu forma de jugar y tu personalidad.",
     targetGameId: "tekken8",
     questions: [
       {
         num: 1,
-        category: "Tekken 8 — Enfoque del Combate 3D",
-        question: "1. En Tekken 8, ¿cuál quieres que sea tu arma principal para ganar?",
+        category: "Cómo Quieres Jugar — Tu Punto Fuerte",
+        question: "1. En un combate cuerpo a cuerpo en 3D, ¿cuál quieres que sea tu mayor virtud?",
         options: [
-          { label: "Dominio Mishima: Wave Dash, Electric (EWGF) y un Vortex 50/50 letal", tags: ["mishima", "vortex", "sentai", "warrior"] },
-          { label: "Presión infinita con posturas (Stances), cadenas de patadas o fintas de boxeo", tags: ["posturas", "flamingo", "boxeador", "sentai", "capoeira"] },
-          { label: "Cazar botones rivales con Counter Hits devastadores y muros explosivos", tags: ["counter", "powerhouse", "deathfist", "muay"] },
-          { label: "Evasión extrema, Parries, Sabakis o cadenas de agarres imposibles de romper", tags: ["evasión", "parries", "grappler", "sidestep", "ninjutsu"] }
+          { label: "Un avance agresivo que obligue al rival a adivinar entre golpes bajos o medios", tags: ["mishima", "vortex", "sentai", "warrior"] },
+          { label: "Una lluvia constante de ataques fluidos y cambios de postura", tags: ["posturas", "flamingo", "boxeador", "sentai", "capoeira"] },
+          { label: "Golpes contundentes que castiguen cualquier intento de ataque del rival", tags: ["counter", "powerhouse", "deathfist", "muay"] },
+          { label: "Esquivar los golpes rivales con agilidad, contraataques o llaves de agarre", tags: ["evasión", "parries", "grappler", "sidestep", "ninjutsu"] }
         ]
       },
       {
         num: 2,
-        category: "Tekken 8 — Cómo Usas el Heat System",
-        question: "2. Cuando activas el estado Heat en Tekken 8, ¿qué buscas hacer?",
+        category: "Cómo Quieres Jugar — Modo Ofensivo",
+        question: "2. Cuando activas tu modo de potencia en la ronda, ¿qué prefieres conseguir?",
         options: [
-          { label: "Lanzar Electrics sin ejecución perfecta o potenciar mis barridos bajos", tags: ["mishima", "vortex", "devil"] },
-          { label: "Asfixiar el bloqueo rival con daño residual (Chip) usando armas, motosierras o pistolas", tags: ["pistolas", "motosierras", "espada", "eikons"] },
-          { label: "Forzar una adivinanza 50/50 garantizada tras correr con un Heat Engager", tags: ["mix-up", "posturas", "powerhouse", "grappler"] },
-          { label: "Recuperar vida (curación) o tener un contraataque listo si el rival se precipita", tags: ["curación", "defensivo", "contraataques", "parries"] }
+          { label: "Que mis técnicas más difíciles y potentes salgan con mucha más facilidad", tags: ["mishima", "vortex", "devil"] },
+          { label: "Usar armas o ataques especiales que desgasten al rival aunque se cubra", tags: ["pistolas", "motosierras", "espada", "eikons"] },
+          { label: "Acercarme corriendo al instante para acorralar al oponente contra el muro", tags: ["mix-up", "posturas", "powerhouse", "grappler"] },
+          { label: "Recuperar vida y tener defensas especiales listas contra ataques enemigos", tags: ["curación", "defensivo", "contraataques", "parries"] }
         ]
       },
       {
         num: 3,
-        category: "Tekken 8 — Movimiento y Complejidad",
-        question: "3. ¿Qué tipo de catálogo de movimientos prefieres manejar en Tekken 8?",
+        category: "Cómo Quieres Jugar — Estilo de Arte Marcial",
+        question: "3. ¿Qué tipo de estilo de combate te resulta más cómodo en las manos?",
         options: [
-          { label: "Directo y contundente: pocos movimientos clave pero de enorme impacto", tags: ["simple", "powerhouse", "keepout", "starburst"] },
-          { label: "Fluido con transiciones automáticas a posturas de ataque", tags: ["posturas", "sentai", "libertador", "capoeira"] },
-          { label: "Artes marciales tradicionales con pokes evasivos y excelente Sidestep", tags: ["sidestep", "kenpo", "karate", "bajiquan"] },
-          { label: "Técnico y único: Just Frames, múltiples cadenas de agarres o trucos ninja", tags: ["just", "grappler", "ninjutsu", "flash", "boxeador"] }
+          { label: "Directo y demoledor: pocos golpes clave pero que quitan muchísima vida", tags: ["simple", "powerhouse", "keepout", "starburst"] },
+          { label: "Dinámico y acrobático: encadenar movimientos que fluyen solos entre sí", tags: ["posturas", "sentai", "libertador", "capoeira"] },
+          { label: "Elegante y técnico: esquivar de lado y castigar con precisión quirúrgica", tags: ["sidestep", "kenpo", "karate", "bajiquan"] },
+          { label: "Especializado: boxeo puro, lucha libre de agarres o ninjutsu con armas", tags: ["just", "grappler", "ninjutsu", "flash", "boxeador"] }
         ]
       },
       {
         num: 4,
-        category: "Personalidad en Tekken 8 — Tu Estilo en el Torneo del Puño de Hierro",
-        question: "4. ¿Qué perfil de luchador de Tekken 8 encaja mejor con tu personalidad?",
+        category: "Personalidad — Carácter en el Torneo",
+        question: "4. ¿Qué perfil de personaje va más con tu personalidad?",
         options: [
-          { label: "Linaje Mishima / Kazama: ambición, rayos y poder absoluto (Jin, Kazuya, Reina, Heihachi)", tags: ["mishima", "kazama", "sentai"] },
-          { label: "Luchador implacable de contacto puro (Bryan, Paul,Steve, Armor King, Fahkumram, Yujiro)", tags: ["counter", "powerhouse", "boxeador", "grappler", "muay", "baki"] },
-          { label: "Maestro elegante, veloz o de armas (Victor, Clive, Kunimitsu, Lee, Lili, Lars)", tags: ["espada", "eikons", "ninjutsu", "sidestep", "posturas"] },
-          { label: "Especialista impredecible o irreverente (Yoshimitsu, Xiaoyu, Kuma, Roger Jr., Azucena)", tags: ["flash", "evasión", "bear", "canguro", "libertador"] }
+          { label: "Ambicioso, serio y con aura de poder oscuro o eléctrico", tags: ["mishima", "kazama", "sentai"] },
+          { label: "Duro, directo y amante del combate físico sin adornos", tags: ["counter", "powerhouse", "boxeador", "grappler", "muay", "baki"] },
+          { label: "Sofisticado, veloz y con estilo propio", tags: ["espada", "eikons", "ninjutsu", "sidestep", "posturas"] },
+          { label: "Divertido, impredecible y capaz de sacar de quicio al rival", tags: ["flash", "evasión", "bear", "canguro", "libertador"] }
         ]
       },
       ...SHARED_PERSONALITY_AND_PLAYSTYLE_TAIL
     ]
   },
 
-  // 5. TEST ESPECÍFICO: DRAGON BALL FIGHTERZ
+  // 5. TEST DRAGON BALL FIGHTERZ (PREGUNTAS GENÉRICAS ADAPTADAS A DBFZ)
   dbfz: {
     title: "Test de Dragon Ball FighterZ (10 Preguntas)",
-    subtitle: "Descubre tus personajes ideales (y tu equipo 3v3: Point, Mid y Anchor) entre los 44 luchadores.",
+    subtitle: "Descubre qué personajes de Dragon Ball FighterZ encajan mejor con tu juego y personalidad.",
     targetGameId: "dbfz",
     questions: [
       {
         num: 1,
-        category: "Dragon Ball FighterZ — Tu Rol Favorito en el Equipo 3v3",
-        question: "1. En un equipo de 3 personajes de DBFZ, ¿en qué posición disfrutas más brillando?",
+        category: "Cómo Quieres Jugar — Tu Rol en el Equipo",
+        question: "1. Al formar un equipo de tres luchadores, ¿qué papel te gusta más protagonizar?",
         options: [
-          { label: "Point (1º en salir): quiero abrir al rival respaldado por mis dos asistencias", tags: ["point", "mix-up", "loops", "presión"] },
-          { label: "Mid (2º en salir): quiero dominar el neutro, tener buena asistencia y daño masivo", tags: ["mid", "alcance", "espada", "contraataques"] },
-          { label: "Anchor (Último en pie): quiero remontar partidas 1 contra 3 con Limit Break y Sparking", tags: ["anchor", "beam", "todoterreno", "daño"] },
-          { label: "Todoterreno flexible: quiero un personaje que funcione bien en cualquier posición", tags: ["todoterreno", "lariat", "fácil"] }
+          { label: "El que sale primero para llevar la iniciativa ayudado por sus compañeros", tags: ["point", "mix-up", "loops", "presión"] },
+          { label: "El refuerzo intermedio que controla la pantalla y apoya al equipo", tags: ["mid", "alcance", "espada", "contraataques"] },
+          { label: "El as final capaz de remontar la partida él solo cuando queda último", tags: ["anchor", "beam", "todoterreno", "daño"] },
+          { label: "Un luchador versátil que rinda igual de bien en cualquier puesto", tags: ["todoterreno", "lariat", "fácil"] }
         ]
       },
       {
         num: 2,
-        category: "Dragon Ball FighterZ — Cómo Ganar el Neutro",
-        question: "2. A la velocidad de Dragon Ball FighterZ, ¿cómo prefieres controlar la pantalla?",
+        category: "Cómo Quieres Jugar — Control de la Pantalla",
+        question: "2. En un combate aéreo tan rápido, ¿cómo prefieres acercarte o controlar al rival?",
         options: [
-          { label: "Con Kamehamehas (Beams) y Ki Blasts que cubran todo el ángulo horizontal", tags: ["beam", "zoner", "ki"] },
-          { label: "Cruzando la pantalla al instante con un Lariat, espada de Ki o teletransporte", tags: ["lariat", "teleport", "espada", "velocidad"] },
-          { label: "Con armadura de gigante, agarres imbloqueables o barreras defensivas", tags: ["grappler", "armadura", "barrera"] },
-          { label: "Con contraataques (Counters), esquivas automáticas o doble Air Dash aéreo", tags: ["contraataques", "defensivo", "reversals", "air dash"] }
+          { label: "Lanzando grandes ondas de energía que crucen toda la pantalla", tags: ["beam", "zoner", "ki"] },
+          { label: "Avanzando a toda velocidad con embestidas o teletransportes instantáneos", tags: ["lariat", "teleport", "espada", "velocidad"] },
+          { label: "Abase de tamaño gigante, escudos de energía y agarres que rompen la guardia", tags: ["grappler", "armadura", "barrera"] },
+          { label: "Usando esquivas, contraataques automáticos o doble impulso en el aire", tags: ["contraataques", "defensivo", "reversals", "air dash"] }
         ]
       },
       {
         num: 3,
-        category: "Dragon Ball FighterZ — Estilo de Presión en Bloqueo",
-        question: "3. Cuando tienes al rival bloqueando tus cadenas con asistencias, ¿qué buscas?",
+        category: "Cómo Quieres Jugar — Estilo de Ataque",
+        question: "3. Cuando tienes acorralado al oponente, ¿qué te divierte más hacer?",
         options: [
-          { label: "Mezclar varios golpes bajos (2L/2M), saltos rápidos (IAD) y teletransportes", tags: ["mix-up", "point", "loops", "flips"] },
-          { label: "Invocar ayudantes (Saibamen, Fuerzas Ginyu, Androide 17 o Fantasmas) para encerrarlo", tags: ["setplay", "invocación", "fantasmas", "barrera"] },
-          { label: "Subir niveles (Gohan Adulto / Gogeta SS4) o aplicar debuffs (Lab Coat 21)", tags: ["niveles", "instakill", "debuff"] },
-          { label: "Agarrarlo o romper su paciencia con ataques de alcance enorme", tags: ["grappler", "alcance", "patadas"] }
+          { label: "Atacarle por todos los ángulos posibles a gran velocidad", tags: ["mix-up", "point", "loops", "flips"] },
+          { label: "Llamar a compañeros o trampas de energía para no dejarle hueco de salida", tags: ["setplay", "invocación", "fantasmas", "barrera"] },
+          { label: "Aumentar el poder de mi personaje durante la pelea para un ataque definitivo", tags: ["niveles", "instakill", "debuff"] },
+          { label: "Usar golpes largos y potentes que alcancen desde lejos", tags: ["grappler", "alcance", "patadas"] }
         ]
       },
       {
         num: 4,
-        category: "Personalidad en DBFZ — Tu Energía Saiyajin",
-        question: "4. ¿Con qué grupo de luchadores de Dragon Ball conectas más por personalidad?",
+        category: "Personalidad — Tu Afinidad en Dragon Ball",
+        question: "4. ¿Con qué tipo de luchador conectas más por su personalidad?",
         options: [
-          { label: "Guerreros Saiyajin y Fusiones imparables (Goku, Vegeta, Vegito, Gogeta, Gohan, Bardock)", tags: ["anchor", "point", "lariat", "patadas", "instakill"] },
-          { label: "Villanos icónicos y destructores (Cell, Frieza, Kid Buu, Broly, Zamasu, Baby, Janemba)", tags: ["perfect", "zoner", "grappler", "vuelo", "teletransporte"] },
-          { label: "Androides implacables (Androide 16, 17, 18, Androide 21 Majin / Lab Coat)", tags: ["grappler", "barrera", "absorción", "debuff"] },
-          { label: "Maestros tácticos y asesinos de élite (Hit, Piccolo, Trunks, Jiren, Beerus, Roshi)", tags: ["contraataques", "orbes", "flips", "esferas", "mafuba"] }
+          { label: "Héroes competitivos que siempre buscan superar sus límites", tags: ["anchor", "point", "lariat", "patadas", "instakill"] },
+          { label: "Villanos imponentes y destructivos que dominan por intimidación", tags: ["perfect", "zoner", "grappler", "vuelo", "teletransporte"] },
+          { label: "Luchadores calculadores, sintéticos o con habilidades de absorción", tags: ["grappler", "barrera", "absorción", "debuff"] },
+          { label: "Maestros estratégicos con técnicas únicas y poco convencionales", tags: ["contraataques", "orbes", "flips", "esferas", "mafuba"] }
         ]
       },
       ...SHARED_PERSONALITY_AND_PLAYSTYLE_TAIL
     ]
   },
 
-  // 6. TEST ESPECÍFICO: GUILTY GEAR -STRIVE-
+  // 6. TEST GUILTY GEAR -STRIVE- (PREGUNTAS GENÉRICAS ADAPTADAS A GGST)
   "gg-strive": {
     title: "Test de Guilty Gear -Strive- (10 Preguntas)",
-    subtitle: "Encuentra tu personaje ideal entre los 32 luchadores de GGST (Juego Base y Seasons 1, 2, 3 y 4).",
+    subtitle: "Descubre qué personaje de Guilty Gear -Strive- encaja mejor con tu forma de jugar y tu personalidad.",
     targetGameId: "gg-strive",
     questions: [
       {
         num: 1,
-        category: "Guilty Gear -Strive- — Ritmo de Combate",
-        question: "1. En Guilty Gear -Strive- los personajes tienen estilos extremos. ¿Cuál buscas tú?",
+        category: "Cómo Quieres Jugar — Estilo Principal",
+        question: "1. ¿Qué forma de pelear te llama más la atención en Guilty Gear -Strive-?",
         options: [
-          { label: "Rushdown explosivo de corta distancia: botones positivos (+frames), agarre y daño brutal", tags: ["rushdown", "strike-throw", "dandy", "carrera"] },
-          { label: "Dominio de media y larga distancia con espadas enormes, guadañas, látigos o Yo-Yo", tags: ["esquina", "espadas", "zoner", "yo-yo", "alcance"] },
-          { label: "Mix-up de alta velocidad, vuelo Hoverdash o proyectiles de setplay en el despertar", tags: ["mix-up", "hoverdash", "velocidad", "setplay"] },
-          { label: "Especialista único: Grappler colosal (Potemkin), Marioneta (Zato/Jack-O) o Mago (Asuka)", tags: ["grappler", "puppet", "siervos", "cartas", "billar"] }
+          { label: "Ir hacia adelante sin freno con golpes cuerpo a cuerpo de muchísimo daño", tags: ["rushdown", "strike-throw", "dandy", "carrera"] },
+          { label: "Controlar la pantalla con armas largas que golpeen desde muy lejos", tags: ["esquina", "espadas", "zoner", "yo-yo", "alcance"] },
+          { label: "Moverme por el aire a toda velocidad confundiendo la defensa del rival", tags: ["mix-up", "hoverdash", "velocidad", "setplay"] },
+          { label: "Jugar de forma única: agarres gigantes, controlar una sombra o lanzar hechizos", tags: ["grappler", "puppet", "siervos", "cartas", "billar"] }
         ]
       },
       {
         num: 2,
-        category: "Guilty Gear -Strive- — Gestión de Recursos y Medidores",
-        question: "2. ¿Qué relación quieres tener con los medidores especiales en Guilty Gear -Strive-?",
+        category: "Cómo Quieres Jugar — Sencillez vs. Gestión",
+        question: "2. ¿Te gusta estar pendiente de barras o recursos especiales propios durante el combate?",
         options: [
-          { label: "Solo quiero gestionar la barra universal de Tension (Roman Cancel) y Burst (Wild Assault)", tags: ["rushdown", "all-rounder", "shock", "carga"] },
-          { label: "Me gusta controlar un medidor de riesgo/recompensa (Blood Gauge de Nago o Jealous Rage de A.B.A)", tags: ["blood", "celos", "samurái"] },
-          { label: "Quiero gestionar munición, concentración, estamina o hechizos (Happy Chaos, Sin, Asuka)", tags: ["pistola", "stamina", "cartas"] },
-          { label: "Prefiero colocar objetos en pantalla (Yo-Yo, Espadas, Siervos, Tatamis, Bolas de Billar)", tags: ["yo-yo", "siervos", "tatami", "billar", "hielo"] }
+          { label: "No, prefiero centrarme solo en la pelea sin medidores complicados", tags: ["rushdown", "all-rounder", "shock", "carga"] },
+          { label: "Me gusta el riesgo: ganar muchísimo poder a cambio de controlar mi límite", tags: ["blood", "celos", "samurái"] },
+          { label: "Sí, disfruto gestionando munición, energía o cartas mágicas", tags: ["pistola", "stamina", "cartas"] },
+          { label: "Prefiero colocar objetos o proyectiles en la pantalla para preparar mi jugada", tags: ["yo-yo", "siervos", "tatami", "billar", "hielo"] }
         ]
       },
       {
         num: 3,
-        category: "Guilty Gear -Strive- — Cómo Romper el Muro (Wall Break)",
-        question: "3. ¿Cómo prefieres llevar al rival hasta el Wall Break para ganar Positive Bonus?",
+        category: "Cómo Quieres Jugar — Presión Ofensiva",
+        question: "3. ¿Cómo prefieres ganar tus intercambios de golpes?",
         options: [
-          { label: "Con un Counter Hit masivo de Heavy Slash o Pilebunker que borre el 60% de la vida", tags: ["daño", "dandy", "behemoth", "samurái"] },
-          { label: "Abase de velocidad, Rekka infinita, delfines o carreras imparables", tags: ["rekka", "delfín", "carrera", "velocidad"] },
-          { label: "Atrapando al rival con una cuerda (Tether), un Parry de 1 frame o un Potemkin Buster", tags: ["parry", "tether", "grappler", "autoguard"] },
-          { label: "Encerrándolo en la esquina con espadas, proyectiles o ataques de marioneta", tags: ["esquina", "espadas", "puppet", "zoner", "hielo"] }
+          { label: "Con un solo golpe fortísimo que castigue el error del rival", tags: ["daño", "dandy", "behemoth", "samurái"] },
+          { label: "Con ataques encadenados rápidos y constantes que no den respiro", tags: ["rekka", "delfín", "carrera", "velocidad"] },
+          { label: "Con un contraataque instantáneo o un agarre que cambie la ronda", tags: ["parry", "tether", "grappler", "autoguard"] },
+          { label: "Acorralando al oponente contra la esquina sin dejarle escapar", tags: ["esquina", "espadas", "puppet", "zoner", "hielo"] }
         ]
       },
       {
         num: 4,
-        category: "Personalidad en GGST — Tu Espíritu Rockero",
-        question: "4. ¿Con qué personalidad del universo de Guilty Gear -Strive- vibras más?",
+        category: "Personalidad — Tu Carácter",
+        question: "4. ¿Con cuál de estas personalidades te identificas más?",
         options: [
-          { label: "Rebelde directo, feroz y sin filtros (Sol, Slayer, Baiken, Giovanna, Johnny)", tags: ["strike-throw", "dandy", "parry", "carrera", "mist"] },
-          { label: "Estratega elegante, caballeroso o místico (Ky, Nagoriyuki, Testament, Queen Dizzy, Venom)", tags: ["shock", "samurái", "stain", "hielo", "billar"] },
-          { label: "Energía desbordante, carisma y velocidad (May, Bridget, Elphelt, Sin, Chipp, Millia)", tags: ["delfín", "yo-yo", "rekka", "stamina", "velocidad", "disco"] },
-          { label: "Enigmático, caótico o fuera de toda norma (Happy Chaos, Faust, Zato-1, A.B.A, Bedman?, Lucy)", tags: ["pistola", "aleatorios", "puppet", "celos", "error", "netrunner"] }
+          { label: "Directo, rebelde, intenso y seguro de sí mismo", tags: ["strike-throw", "dandy", "parry", "carrera", "mist"] },
+          { label: "Sereno, elegante, metódico y con gran temple", tags: ["shock", "samurái", "stain", "hielo", "billar"] },
+          { label: "Alegre, dinámico, carismático y lleno de energía", tags: ["delfín", "yo-yo", "rekka", "stamina", "velocidad", "disco"] },
+          { label: "Misterioso, excéntrico, creativo y totalmente impredecible", tags: ["pistola", "aleatorios", "puppet", "celos", "error", "netrunner"] }
         ]
       },
       ...SHARED_PERSONALITY_AND_PLAYSTYLE_TAIL
     ]
   },
 
-  // 7. TEST ESPECÍFICO: SUPER SMASH BROS. ULTIMATE
+  // 7. TEST SUPER SMASH BROS. ULTIMATE (PREGUNTAS GENÉRICAS ADAPTADAS A SMASH)
   ssbu: {
     title: "Test de Super Smash Bros. Ultimate (10 Preguntas)",
-    subtitle: "Encuentra tu Main ideal entre los 86 luchadores de Smash Ultimate (Base + Fighters Pass Vol. 1 y 2).",
+    subtitle: "Descubre qué luchador de Smash Ultimate encaja mejor con tu forma de jugar y tu personalidad.",
     targetGameId: "ssbu",
     questions: [
       {
         num: 1,
-        category: "Super Smash Bros. Ultimate — Estilo en el Escenario",
-        question: "1. En Smash Ultimate, ¿cómo prefieres dominar el escenario y subir el porcentaje (%) rival?",
+        category: "Cómo Quieres Jugar — Dominio del Escenario",
+        question: "1. ¿Cómo te sientes más cómodo peleando en un escenario con plataformas?",
         options: [
-          { label: "Con una espada de buen alcance (Swordie) espaciando Back Air y Fair seguros en escudo", tags: ["swordie", "espada", "bair", "distancia"] },
-          { label: "A máxima velocidad (Rushdown / Fast Faller) encadenando combos verticales y malabares", tags: ["rushdown", "fast faller", "escalera", "velocidad"] },
-          { label: "Controlando el escenario con proyectiles, trampas, bloques o ítems (Zoner / Trapper)", tags: ["zoner", "trapper", "bloques", "proyectiles", "bomba"] },
-          { label: "Con el poder de un peso pesado (Heavy / Grappler) que mata de 3 golpes a 70%", tags: ["heavy", "super heavy", "grappler", "armor"] }
+          { label: "Usando un arma o espada con buen alcance para golpear sin que me toquen", tags: ["swordie", "espada", "bair", "distancia"] },
+          { label: "Corriendo y saltando a toda velocidad para encadenar muchos golpes seguidos", tags: ["rushdown", "fast faller", "escalera", "velocidad"] },
+          { label: "Controlando el mapa desde lejos con disparos, proyectiles o trampas", tags: ["zoner", "trapper", "bloques", "proyectiles", "bomba"] },
+          { label: "Siendo un luchador grande y resistente que aguanta mucho y pega durísimo", tags: ["heavy", "super heavy", "grappler", "armor"] }
         ]
       },
       {
         num: 2,
-        category: "Super Smash Bros. Ultimate — Cómo Cerrar el Stock (KO)",
-        question: "2. Cuando el rival ya está por encima de 100%, ¿cómo te gusta quitarle la vida (Stock)?",
+        category: "Cómo Quieres Jugar — Cómo Conseguir el KO",
+        question: "2. ¿De qué forma te gusta más sacar al rival fuera de la pantalla?",
         options: [
-          { label: "Saltando fuera del escenario a perseguirlo con un Edgeguard profundo o Spike (Dair)", tags: ["edgeguard", "combate aéreo", "saltos", "bair"] },
-          { label: "Encerrándolo en el borde del escenario (Ledgetrap) con trampas, proyectiles o escudos", tags: ["ledgetrap", "trapper", "zoner", "bombas"] },
-          { label: "Con una confirmación rápida desde un golpe ligero o un Up-B / Up-Smash desde el escudo (OOS)", tags: ["oos", "up-smash", "climhazzard", "confirm"] },
-          { label: "Con una mecánica especial de Comeback o un golpe devastador (Arsene, KO Punch, EWGF, Limit)", tags: ["arsene", "touch of death", "limit", "waft", "aura"] }
+          { label: "Saliendo a perseguirlo por el aire fuera del escenario para rematarlo", tags: ["edgeguard", "combate aéreo", "saltos", "bair"] },
+          { label: "Esperándolo en el borde del escenario con una trampa lista cuando intente subir", tags: ["ledgetrap", "trapper", "zoner", "bombas"] },
+          { label: "Defendiéndome con el escudo y respondiendo al instante cuando me golpee", tags: ["oos", "up-smash", "climhazzard", "confirm"] },
+          { label: "Con un golpe especial cargado o una transformación cuando el combate está igualado", tags: ["arsene", "touch of death", "limit", "waft", "aura"] }
         ]
       },
       {
         num: 3,
-        category: "Super Smash Bros. Ultimate — Mecánicas Únicas",
-        question: "3. ¿Qué tipo de personaje de Smash Ultimate te atrae más dominar?",
+        category: "Cómo Quieres Jugar — Tipo de Mecánica",
+        question: "3. ¿Qué tipo de control prefieres cuando juegas a Smash?",
         options: [
-          { label: "Personaje de fundamentos puros y honestos (Mario, Lucina, Wolf, Cloud, Pit, Fox)", tags: ["all-rounder", "fundamentos", "swordie", "honesto"] },
-          { label: "Personaje con comandos de juego de lucha tradicional (Kazuya, Terry, Ryu, Ken)", tags: ["comandos", "inputs", "touch of death"] },
-          { label: "Creador de jugadas de 200 IQ con recursos o objetos (Steve, Pac-Man, Snake, Peach, Shulk)", tags: ["bloques", "trapper", "float", "monado", "granadas"] },
-          { label: "Personaje con cambio de forma o compañero (Pyra/Mythra, Pokémon Trainer, Joker, Rosalina)", tags: ["mythra", "squirtle", "arsene", "puppet"] }
+          { label: "Un personaje equilibrado e intuitivo que responda bien en cualquier situación", tags: ["all-rounder", "fundamentos", "swordie", "honesto"] },
+          { label: "Un luchador de combate cuerpo a cuerpo con combinaciones de gran daño", tags: ["comandos", "inputs", "touch of death"] },
+          { label: "Un personaje estratégico que cree objetos, bloques o controle el terreno", tags: ["bloques", "trapper", "float", "monado", "granadas"] },
+          { label: "Un personaje que pueda cambiar de estilo o transformar sus habilidades en partida", tags: ["mythra", "squirtle", "arsene", "puppet"] }
         ]
       },
       {
         num: 4,
-        category: "Personalidad en Smash — Tu Espíritu Nintendo / Crossover",
-        question: "4. ¿Con qué tipo de icono de los videojuegos conectas más por tu personalidad?",
+        category: "Personalidad — Tu Estilo de Personaje",
+        question: "4. ¿Qué estilo de protagonista encaja mejor con tu personalidad?",
         options: [
-          { label: "Héroes y espadachines legendarios (Link, Cloud, Sephiroth, Sora, Roy, Byleth, Joker)", tags: ["swordie", "espada", "arsene", "magia"] },
-          { label: "Velocistas y luchadores de acción rápida (Fox, Falco, Sonic, Pikachu, Captain Falcon, Sheik)", tags: ["velocidad", "fast faller", "brawler", "mobility"] },
-          { label: "Reyes y colosos intimidantes (Bowser, Ganondorf, Donkey Kong, King K. Rool, Ridley, Kazuya)", tags: ["super heavy", "heavy", "grappler", "touch of death"] },
-          { label: "Estrategas creativos y tiradores (Steve, Samus, Snake, R.O.B., Pac-Man, Mega Man)", tags: ["bloques", "zoner", "trapper", "gyro"] }
+          { label: "Aventurero valiente, héroe de fantasía o espadachín ágil", tags: ["swordie", "espada", "arsene", "magia"] },
+          { label: "Competidor veloz, audaz y amante de la adrenalina", tags: ["velocidad", "fast faller", "brawler", "mobility"] },
+          { label: "Jefe final imponente, poderoso y difícil de derribar", tags: ["super heavy", "heavy", "grappler", "touch of death"] },
+          { label: "Ingenioso, táctico y amante de las jugadas inteligentes", tags: ["bloques", "zoner", "trapper", "gyro"] }
         ]
       },
       ...SHARED_PERSONALITY_AND_PLAYSTYLE_TAIL
