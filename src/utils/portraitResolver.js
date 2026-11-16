@@ -310,12 +310,25 @@ async function resolveCharacterPortraitUrl(gameId, charName) {
     charName.replace(/\s+\(.*?\)/g, "").trim()
   ];
 
-  // 1. SUPER SMASH BROS. ULTIMATE
+  // 1. SUPER SMASH BROS. ULTIMATE (Renders oficiales originales de Smash Bros. Ultimate)
   if (gameId === "ssbu") {
-    const slug =
-      SSBU_SLUGS[charName] ||
-      charName.toLowerCase().replace(/[^a-z0-9]+/g, "_");
-    resolvedUrl = `https://www.smashbros.com/assets_v2/img/fighter/thumb_a/${slug}.png`;
+    const ssbuOverrides = {
+      "Isabelle": "https://www.smashbros.com/assets_v2/img/fighter/isabelle/main.png",
+      "Incineroar": "https://www.smashbros.com/assets_v2/img/fighter/incineroar/main.png",
+      "Piranha Plant": "https://www.smashbros.com/assets_v2/img/fighter/piranha_plant/main.png",
+      "Pyra / Mythra": "https://www.smashbros.com/assets_v2/img/fighter/pyra/main.png",
+      "Mii Brawler": "https://ssb.wiki.gallery/images/e/e4/Mii_Brawler_SSBU.png",
+      "Mii Swordfighter": "https://ssb.wiki.gallery/images/f/fa/Mii_Swordfighter_SSBU.png",
+      "Mii Gunner": "https://ssb.wiki.gallery/images/e/e5/Mii_Gunner_SSBU.png"
+    };
+    if (ssbuOverrides[charName]) {
+      resolvedUrl = ssbuOverrides[charName];
+    } else {
+      const slug =
+        SSBU_SLUGS[charName] ||
+        charName.toLowerCase().replace(/[^a-z0-9]+/g, "_");
+      resolvedUrl = `https://www.smashbros.com/assets_v2/img/fighter/thumb_a/${slug}.png`;
+    }
   }
 
   // 2. STREET FIGHTER 6 (Street Fighter Fandom — Imágenes oficiales In-Game de SF6)

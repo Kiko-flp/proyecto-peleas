@@ -110,9 +110,24 @@ const DBFZ_DUSTLOOP_NAMES = {
   "Goku (Super Saiyan 4 - DAIMA)": "Goku_(SS4,_DAIMA)"
 };
 
+const SSBU_PORTRAIT_OVERRIDES = {
+  "Isabelle": "https://www.smashbros.com/assets_v2/img/fighter/isabelle/main.png",
+  "Incineroar": "https://www.smashbros.com/assets_v2/img/fighter/incineroar/main.png",
+  "Piranha Plant": "https://www.smashbros.com/assets_v2/img/fighter/piranha_plant/main.png",
+  "Pyra / Mythra": "https://www.smashbros.com/assets_v2/img/fighter/pyra/main.png",
+  "Mii Brawler": "https://ssb.wiki.gallery/images/e/e4/Mii_Brawler_SSBU.png",
+  "Mii Swordfighter": "https://ssb.wiki.gallery/images/f/fa/Mii_Swordfighter_SSBU.png",
+  "Mii Gunner": "https://ssb.wiki.gallery/images/e/e5/Mii_Gunner_SSBU.png"
+};
+
 function getDirectPortraitUrl(gameId, charName, colorHex = "f59e0b", isDLC = false) {
-  if (gameId === "ssbu" && SSBU_SLUGS[charName]) {
-    return `https://www.smashbros.com/assets_v2/img/fighter/thumb_a/${SSBU_SLUGS[charName]}.png`;
+  if (gameId === "ssbu") {
+    if (SSBU_PORTRAIT_OVERRIDES[charName]) {
+      return SSBU_PORTRAIT_OVERRIDES[charName];
+    }
+    if (SSBU_SLUGS[charName]) {
+      return `https://www.smashbros.com/assets_v2/img/fighter/thumb_a/${SSBU_SLUGS[charName]}.png`;
+    }
   }
   if (gameId === "sf6") {
     const scName = (SF6_SUPERCOMBO_NAMES[charName] || charName).replace(/\s+/g, "_");
@@ -136,6 +151,9 @@ function getDirectPortraitUrl(gameId, charName, colorHex = "f59e0b", isDLC = fal
 }
 
 function getFallbackIconUrl(gameId, charName, colorHex = "f59e0b", isDLC = false) {
+  if (gameId === "ssbu" && SSBU_SLUGS[charName]) {
+    return `https://www.smashbros.com/assets_v2/img/fighter/${SSBU_SLUGS[charName]}/main.png`;
+  }
   const slug = encodeURIComponent(charName);
   const bg = isDLC ? "2e1065" : "0f172a";
   const border = isDLC ? "a855f7" : colorHex.replace("#", "");

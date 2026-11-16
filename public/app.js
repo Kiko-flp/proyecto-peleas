@@ -46,6 +46,13 @@ window.handlePortraitLoad = function (imgEl) {
 // Si una URL directa de CDN falla, busca inmediatamente el retrato en la Wiki desde el navegador y usa fallback
 window.handlePortraitError = async function (imgEl, gameId, charId, charName, fallbackUrl) {
   if (!imgEl) return;
+  if (gameId === "ssbu") {
+    if (fallbackUrl && imgEl.src !== fallbackUrl && !imgEl.dataset.usedFallback) {
+      imgEl.dataset.usedFallback = "1";
+      imgEl.src = fallbackUrl;
+    }
+    return;
+  }
   const key = `${gameId}:${charId}`;
   if (!pendingWikiSearch.has(key)) {
     pendingWikiSearch.add(key);
@@ -206,7 +213,9 @@ async function searchSingleCharacterPortrait(gameId, charName) {
 }
 
 async function hydrateBrowserPortraits(game) {
-  if (!game || !FANDOM_WIKIS[game.id]) return;
+  // SSBU ya utiliza el CDN oficial de smashbros.com y renders SSBU exactos;
+  // evitar sobrescribirlos con sprites de juegos originales desde ssbwiki/Wikipedia.
+  if (!game || game.id === "ssbu" || !FANDOM_WIKIS[game.id]) return;
   const api = FANDOM_WIKIS[game.id];
 
   // Hidratar proactivamente los personajes que aún no estén en caché
