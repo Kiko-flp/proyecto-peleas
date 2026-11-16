@@ -262,6 +262,26 @@ class TelegramBotManager {
           text: `🔒 *Clayface Modo Privado*\n🆔 Tu Chat ID personal es: \`${fromId}\``,
           parse_mode: "Markdown"
         });
+      } else if (text.startsWith("/backup")) {
+        const snapshot = {
+          updatedAt: new Date().toISOString(),
+          customNewsCount: store.getCustomNews().length,
+          communityResourcesCount: store.getCommunityResources().length,
+          missingRoadmapCount: store.getMissingContentRoadmap().length,
+          customNews: store.getCustomNews(),
+          communityResources: store.getCommunityResources(),
+          missingContentRoadmap: store.getMissingContentRoadmap()
+        };
+        await this.callTelegram("sendMessage", {
+          chat_id: chatId,
+          text:
+            `☁️ *COPIA DE SEGURIDAD INSTANTÁNEA (CLOUD SNAPSHOT)*\n\n` +
+            `• Noticias propias: ${snapshot.customNewsCount}\n` +
+            `• Fuentes registradas: ${snapshot.communityResourcesCount}\n` +
+            `• Puntos en Hoja de Ruta: ${snapshot.missingRoadmapCount}\n\n` +
+            `\`\`\`json\n${JSON.stringify(snapshot, null, 2).slice(0, 3200)}\n\`\`\``,
+          parse_mode: "Markdown"
+        });
       } else if (text.startsWith("/ficha")) {
         // /ficha <juego> <personaje> -> Devuelve Frame Data, Combos, Ventajas y Counters
         const parts = text.split(/\s+/);

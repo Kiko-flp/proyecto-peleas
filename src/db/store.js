@@ -61,6 +61,21 @@ class DataStore {
     } catch (_) {
       // En memoria si no se puede escribir en disco
     }
+
+    // Sincronización automática en la nube si se configura CLOUD_SYNC_URL (Supabase / Firebase / Webhook)
+    const cloudUrl = process.env.CLOUD_SYNC_URL;
+    if (cloudUrl) {
+      fetch(cloudUrl, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customNews: this.state.customNews || [],
+          communityResources: this.state.communityResources || [],
+          missingContentRoadmap: this.state.missingContentRoadmap || [],
+          ownerChatId: this.state.ownerChatId || ""
+        })
+      }).catch(() => {});
+    }
   }
 
   addLog(eventText) {

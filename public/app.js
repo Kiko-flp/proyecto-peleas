@@ -386,9 +386,34 @@ function openCommunityPage() {
   document.getElementById("homeView").classList.add("hidden");
   document.getElementById("gameDetailView").classList.add("hidden");
   document.getElementById("newsView").classList.add("hidden");
+  document.getElementById("toolsView")?.classList.add("hidden");
   document.getElementById("communityView").classList.remove("hidden");
   window.scrollTo({ top: 0, behavior: "smooth" });
   renderCommunitySection();
+}
+
+function openToolsPage(initialTab = "tool-quiz") {
+  state.selectedGameId = null;
+  document.getElementById("homeView").classList.add("hidden");
+  document.getElementById("gameDetailView").classList.add("hidden");
+  document.getElementById("newsView").classList.add("hidden");
+  document.getElementById("communityView").classList.add("hidden");
+  document.getElementById("toolsView")?.classList.remove("hidden");
+
+  document.querySelectorAll("[data-tooltab]").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.tooltab === initialTab);
+  });
+  document.querySelectorAll(".tool-subview").forEach((el) => {
+    el.classList.toggle("hidden", el.id !== initialTab);
+  });
+
+  if (typeof window.initPersonalityQuiz === "function") {
+    window.initPersonalityQuiz();
+  }
+  if (typeof window.initPunishCalculator === "function") {
+    window.initPunishCalculator();
+  }
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 // =========================================================================
@@ -492,6 +517,7 @@ function openNewsPage() {
   document.getElementById("homeView").classList.add("hidden");
   document.getElementById("gameDetailView").classList.add("hidden");
   document.getElementById("communityView").classList.add("hidden");
+  document.getElementById("toolsView")?.classList.add("hidden");
   document.getElementById("newsView").classList.remove("hidden");
   window.scrollTo({ top: 0, behavior: "smooth" });
   renderNewsSections();
@@ -706,6 +732,7 @@ function openGameHub(gameId, initialSubpage = "page-basic") {
   document.getElementById("homeView").classList.add("hidden");
   document.getElementById("newsView").classList.add("hidden");
   document.getElementById("communityView").classList.add("hidden");
+  document.getElementById("toolsView")?.classList.add("hidden");
   document.getElementById("gameDetailView").classList.remove("hidden");
 
   renderGameDetailView(gameId);
@@ -915,6 +942,10 @@ function renderGuideSplit(containerId, guideObj, badgeLabel, sources) {
       </div>
     </div>
   `;
+
+  if (typeof window.decorateTextWithGlossaryTooltips === "function") {
+    window.decorateTextWithGlossaryTooltips(el);
+  }
 }
 
 // =========================================================================
@@ -966,13 +997,17 @@ function openCharacterModal(gameId, charId) {
                 <div class="ufd-bar ufd-bar-active">${fc.active}</div>
                 <div class="ufd-bar ufd-bar-recovery">${fc.recovery}</div>
                 <div class="ufd-bar ufd-bar-onblock">${fc.onBlock}</div>
-                <div class="ufd-hitbox-box">
+                <div
+                  class="ufd-hitbox-box"
+                  title="Haz clic para abrir el Inspector de Hitbox Frame a Frame"
+                  onclick="window.openHitboxInspector('${encodeURIComponent(JSON.stringify(fc))}')"
+                >
                   <img
                     src="${fc.hitboxGifUrl || `/api/hitbox-anim?move=${encodeURIComponent(fc.moveName)}`}"
                     alt="Hitbox de ${fc.moveName}"
                     loading="lazy"
                   />
-                  <div class="ufd-hitbox-caption">Hitbox Activa (Rosa) • Hurtbox (Azul)</div>
+                  <div class="ufd-hitbox-caption">🔍 Clic para Inspeccionar Hitbox Frame a Frame</div>
                 </div>
                 <div class="ufd-card-notes">${fc.notes}</div>
                 <div class="ufd-card-footer">${fc.totalFrames}</div>
@@ -1088,6 +1123,8 @@ function openCharacterModal(gameId, charId) {
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowfullscreen
             ></iframe>
+            <!-- SUPERPOSICIÓN FLOTANTE DE AUTO-PAUSA EXPLICATIVA EN ESPAÑOL -->
+            <div id="charVideoPauseOverlay" class="video-pause-overlay hidden"></div>
           </div>
           <p style="font-size:0.86rem;color:#e2e8f0;margin-top:6px;">
             <strong>Resumen:</strong> ${ch.overview}
@@ -1197,14 +1234,26 @@ function openCharacterModal(gameId, charId) {
 
   backdrop.classList.remove("hidden");
 
-  // Permitir saltar al segundo exacto de cada pausa explicativa en el reproductor
-  body.querySelectorAll("[data-seeksec]").forEach((pauseEl) => {
+  if (typeof window.decorateTextWithGlossaryTooltips === "function") {
+    window.decorateTextWithGlossaryTooltips(body);
+  }
+
+  // Permitir saltar al segundo exacto de cada pausa explicativa mostrando el Overlay táctico en español
+  body.querySelectorAll("[data-seeksec]").forEach((pauseEl, idx) => {
     pauseEl.addEventListener("click", () => {
-      const sec = Number(pauseEl.dataset.seeksec || 0);
-      const iframe = document.getElementById("charModalVideoIframe");
-      if (iframe) {
-        const baseUrl = ch.videoUrl.split("?")[0];
-        iframe.src = `${baseUrl}?start=${sec}&autoplay=1&cc_load_policy=1&cc_lang_pref=es&hl=es`;
+      const pObj = (comp.pauses || [])[idx] || {
+        timestamp: "00:45",
+        seconds: Number(pauseEl.dataset.seeksec || 0),
+        title: "Pausa Táctica Explicativa",
+        explanation: "Análisis detallado del frame trap y confirmación."
+      };
+      if (typeof window.triggerVideoTacticalPauseOverlay === "function") {
+        window.triggerVideoTacticalPauseOverlay(
+          "charModalVideoIframe",
+          "charVideoPauseOverlay",
+          ch.videoUrl,
+          pObj
+        );
       }
     });
   });
@@ -1298,12 +1347,25 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("gameDetailView").classList.add("hidden");
     document.getElementById("newsView").classList.add("hidden");
     document.getElementById("communityView").classList.add("hidden");
+    document.getElementById("toolsView")?.classList.add("hidden");
     document.getElementById("homeView").classList.remove("hidden");
   };
   document.getElementById("btnHomeBrand").addEventListener("click", goHome);
   document.getElementById("btnBackToCatalog").addEventListener("click", goHome);
   document.getElementById("btnBackFromNews").addEventListener("click", goHome);
   document.getElementById("btnBackFromCommunity").addEventListener("click", goHome);
+  document.getElementById("btnBackFromTools")?.addEventListener("click", goHome);
+
+  // Abrir Herramientas Interactivas (Test de 10 preguntas, Calculadora de Castigos y Glosario)
+  document.getElementById("btnOpenToolsView")?.addEventListener("click", () => openToolsPage("tool-quiz"));
+  document.getElementById("btnPromoOpenQuiz")?.addEventListener("click", () => openToolsPage("tool-quiz"));
+  document.getElementById("btnPromoOpenPunish")?.addEventListener("click", () => openToolsPage("tool-punish"));
+
+  document.querySelectorAll("[data-tooltab]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      openToolsPage(btn.dataset.tooltab);
+    });
+  });
 
   // Abrir vista de Noticias y Competitivo
   document.getElementById("btnOpenNewsView").addEventListener("click", openNewsPage);
