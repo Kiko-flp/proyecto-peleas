@@ -6,6 +6,7 @@
  */
 
 const store = require("../db/store");
+const youtubeManager = require("../youtube/youtubeManager");
 
 class TelegramBotManager {
   constructor() {
@@ -321,6 +322,49 @@ class TelegramBotManager {
           text: `✅ *Canal público de YouTube actualizado en la web:*\n🔗 ${updated.publicUrl}\n🏷 ${updated.handle}`,
           parse_mode: "Markdown"
         });
+      } else if (text.startsWith("/yt_guion")) {
+        const parts = text.split(/\s+/);
+        const gameId = parts[1] || "mk1";
+        const charName = parts.slice(2).join(" ");
+        const seo = youtubeManager.generateVideoSeoPackage(gameId, charName || null);
+        if (!seo) {
+          await this.callTelegram("sendMessage", {
+            chat_id: chatId,
+            text: "⚠️ Uso: `/yt_guion mk1 Scorpion` o `/yt_guion sf6 Ryu`",
+            parse_mode: "Markdown"
+          });
+          return;
+        }
+        await this.callTelegram("sendMessage", {
+          chat_id: chatId,
+          text:
+            `🎬 *PAQUETE SEO Y GUION PARA YOUTUBE*\n\n` +
+            `*Título:* \`${seo.title}\`\n\n` +
+            `*Descripción con Timestamps y Combos:*\n\`\`\`\n${seo.description}\n\`\`\`\n` +
+            `*Tags:* \`${seo.tags.join(", ")}\``,
+          parse_mode: "Markdown"
+        });
+      } else if (text.startsWith("/yt_asignar")) {
+        const parts = text.split(/\s+/);
+        const gameId = parts[1];
+        const target = parts[2];
+        const videoUrl = parts[3];
+        if (!gameId || !target || !videoUrl) {
+          await this.callTelegram("sendMessage", {
+            chat_id: chatId,
+            text: "⚠️ Uso: `/yt_asignar mk1 Scorpion https://youtu.be/XXXX`",
+            parse_mode: "Markdown"
+          });
+          return;
+        }
+        const assigned = youtubeManager.assignVideoToTarget(gameId, target, videoUrl);
+        await this.callTelegram("sendMessage", {
+          chat_id: chatId,
+          text: assigned
+            ? `✅ *Vídeo vinculado en la web:* ${assigned.type} — *${assigned.target}*`
+            : "❌ No se encontró el juego o personaje.",
+          parse_mode: "Markdown"
+        });
       }
     }
 
@@ -349,6 +393,8 @@ class TelegramBotManager {
         await this.sendGamesManagement(chatId);
       } else if (data === "menu_stats") {
         await this.sendStats(chatId);
+      } else if (data === "menu_youtube") {
+        await this.sendYoutubeManagerMenu(chatId);
       } else if (data.startsWith("sub_approve:")) {
         const subId = data.split(":")[1];
         const res = store.moderateSubmission(subId, "approve");
@@ -409,8 +455,32 @@ class TelegramBotManager {
           [
             { text: "🎮 Juegos y Parches", callback_data: "menu_games" },
             { text: "📊 Estadísticas", callback_data: "menu_stats" }
+          ],
+          [
+            { text: "🎬 Gestor Automático YouTube", callback_data: "menu_youtube" }
           ]
         ]
+      }
+    });
+  }
+
+  async sendYoutubeManagerMenu(chatId) {
+    const yt = store.state.youtubeChannel || {};
+    const text =
+      `🎬 *GESTOR DEL CANAL DE YOUTUBE — ${yt.handle || "@FGCVaultES"}*\n\n` +
+      `🔗 *Canal público:* ${yt.publicUrl || "https://www.youtube.com/@FGCVaultES"}\n` +
+      `📂 *Listas configuradas:* ${(yt.playlists || []).length}\n\n` +
+      `*Comandos automáticos disponibles:*\n` +
+      `• \`/yt_guion <juego> <personaje>\` — Genera título, descripción con timestamps, combos, counters y tags listos para subir.\n` +
+      `• \`/yt_asignar <juego> <personaje> <url>\` — Conecta un vídeo subido directamente a la ficha del personaje en la web.\n` +
+      `• \`/youtube <url> <@handle>\` — Cambia el enlace principal del canal.`;
+
+    await this.callTelegram("sendMessage", {
+      chat_id: chatId,
+      text,
+      parse_mode: "Markdown",
+      reply_markup: {
+        inline_keyboard: [[{ text: "⬅️ Volver al Menú Privado", callback_data: "menu_main" }]]
       }
     });
   }
