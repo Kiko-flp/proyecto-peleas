@@ -22,6 +22,8 @@ class DataStore {
         // Sincronizar siempre el catálogo completo de sagas, imágenes de portada y los 259 personajes
         this.state = {
           ...JSON.parse(JSON.stringify(SEED_DATA)),
+          communityResources: saved.communityResources || SEED_DATA.communityResources,
+          missingContentRoadmap: saved.missingContentRoadmap || SEED_DATA.missingContentRoadmap,
           ownerChatId: saved.ownerChatId || "",
           authRequests: saved.authRequests || [],
           verifiedUsers: saved.verifiedUsers || SEED_DATA.verifiedUsers,
@@ -91,6 +93,45 @@ class DataStore {
   getSubmissions(status = null) {
     if (!status) return this.state.submissions;
     return this.state.submissions.filter((s) => s.status === status);
+  }
+
+  getCommunityResources() {
+    return this.state.communityResources || [];
+  }
+
+  getMissingContentRoadmap() {
+    return this.state.missingContentRoadmap || [];
+  }
+
+  addCommunityResource(payload) {
+    const newItem = {
+      id: "res-" + Date.now(),
+      category: (payload.category || "Wiki / Canal de YouTube").trim(),
+      targetGame: (payload.targetGame || "General FGC").trim(),
+      title: (payload.title || "Recurso de la comunidad").trim(),
+      url: (payload.url || "#").trim(),
+      description: (payload.description || "").trim(),
+      missingNotes: (payload.missingNotes || "Sin especificar").trim(),
+      author: (payload.author || "Comunidad").trim(),
+      status: "approved",
+      createdAt: new Date().toLocaleDateString("es-ES")
+    };
+    this.state.communityResources.unshift(newItem);
+
+    // Si además indicó algo que falta, lo añadimos a la tabla de valoración de lo que falta
+    if (payload.missingNotes && payload.missingNotes.trim().length > 5) {
+      this.state.missingContentRoadmap.unshift({
+        id: "miss-" + Date.now(),
+        area: payload.category || "Aporte de Usuario",
+        target: newItem.targetGame,
+        priority: "Pendiente de Valorar",
+        whatIsMissing: payload.missingNotes.trim(),
+        purposeForEvaluation: `Propuesto por ${newItem.author} junto con el recurso "${newItem.title}"`
+      });
+    }
+
+    this.save();
+    return newItem;
   }
 
   createSubmission(payload) {

@@ -1,7 +1,7 @@
 {
   "name": "fgc-vault-enciclopedia-lucha",
-  "version": "1.0.0",
-  "description": "Enciclopedia y guías verificadas de juegos de lucha (Mortal Kombat, Street Fighter, Tekken, DBFZ, Guilty Gear, Smash Bros) con Bot de Telegram para verificación y moderación.",
+  "version": "1.1.0",
+  "description": "Enciclopedia competitiva de juegos de lucha (Mortal Kombat, Street Fighter, Tekken, DBFZ, Guilty Gear, Super Smash Bros) con guías en vídeo y texto, traductor de notación y noticias de esports.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

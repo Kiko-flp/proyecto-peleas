@@ -175,6 +175,27 @@ class TelegramBotManager {
     });
   }
 
+  async notifyNewCommunityResource(item) {
+    if (!this.isConfigured() || !this.adminChatId) return;
+    const ownerChat = this.adminChatId.split(",")[0].trim();
+
+    const text =
+      `🌐 *NUEVO RECURSO / QUÉ FALTA ENVIADO EN LA WEB*\n\n` +
+      `🏷 *Tipo:* ${item.category}\n` +
+      `🎮 *Juego / Destino:* ${item.targetGame}\n` +
+      `📌 *Título:* *${item.title}*\n` +
+      `🔗 *URL:* ${item.url}\n` +
+      `📝 *Descripción:* ${item.description}\n` +
+      `📋 *Qué falta / Para valorar:* ${item.missingNotes}\n` +
+      `✍️ *Enviado por:* ${item.author}`;
+
+    await this.callTelegram("sendMessage", {
+      chat_id: ownerChat,
+      text,
+      parse_mode: "Markdown"
+    });
+  }
+
   async notifyNewSubmission(sub) {
     if (!this.isConfigured() || !this.adminChatId) return;
     const ownerChat = this.adminChatId.split(",")[0].trim();

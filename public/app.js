@@ -1,22 +1,20 @@
 /**
- * FGC Vault — Frontend Application Logic (v7)
- * - Sección de Noticias de Juegos de Lucha y Competitivo (EVO, Capcom Cup, TWT, Arc World Tour, EventHubs).
- * - Retratos de personajes centrados en la CARA (encuadre automático + pilimit=50 + búsqueda individual de respaldo).
- * - 3 páginas independientes por juego manteniendo el menú (1. Guía Básica | 2. Guía Avanzada | 3. Plantel).
- * - Seguridad real del panel privado mediante código OTP enviado a @Clayfacefightbot.
+ * FGC Vault — Frontend Application Logic (v8)
+ * - Sin botones de Bot de Telegram ni elementos internos en la interfaz pública.
+ * - Nueva sección "Wikis, Canales y Qué Falta" para que los usuarios añadan wikis/canales de YouTube
+ *   y consulten o amplíen el resumen de lo que falta y a qué corresponde para su valoración.
+ * - Sección de Noticias de Juegos de Lucha y Competitivo.
+ * - Retratos de personajes centrados en la cara y 3 páginas independientes por juego manteniendo el menú.
  */
 
 const state = {
   youtubeChannel: null,
   news: [],
+  communityResources: [],
+  missingContentRoadmap: [],
   selectedNewsCategory: "all",
   sagas: [],
   games: [],
-  submissions: [],
-  verifiedUsers: [],
-  authRequests: [],
-  botLogs: [],
-  botStatus: {},
   selectedSagaId: "all",
   selectedGameId: null,
   selectedSubpage: "page-basic",
@@ -24,8 +22,7 @@ const state = {
   selectedDlcPackFilter: "all",
   inGameSearchQuery: "",
   notationMode: "technical",
-  searchQuery: "",
-  adminKey: localStorage.getItem("fgc_private_session_token") || ""
+  searchQuery: ""
 };
 
 const clientPortraitCache = new Map();
@@ -154,7 +151,6 @@ async function hydrateBrowserPortraits(game) {
         }
       });
 
-      // Para cualquier personaje del lote que tuviera sufijo especial en la wiki, buscar individualmente
       for (const ch of chunk) {
         if (!resolvedInChunk.has(ch.id) && !clientPortraitCache.has(ch.id)) {
           searchSingleCharacterPortrait(game.id, ch.name).then((foundUrl) => {
@@ -277,22 +273,16 @@ function switchGameSubpage(subpageId) {
 // =========================================================================
 async function loadBootstrap() {
   try {
-    const res = await fetch("/api/bootstrap", {
-      headers: { "x-admin-key": state.adminKey }
-    });
+    const res = await fetch("/api/bootstrap");
     const data = await res.json();
     state.youtubeChannel = data.youtubeChannel || null;
     state.news = data.news || [];
+    state.communityResources = data.communityResources || [];
+    state.missingContentRoadmap = data.missingContentRoadmap || [];
     state.sagas = data.sagas || [];
     state.games = data.games || [];
-    state.submissions = data.submissions || [];
-    state.verifiedUsers = data.verifiedUsers || [];
-    state.authRequests = data.authRequests || [];
-    state.botLogs = data.botLogs || [];
-    state.botStatus = data.botStatus || {};
     renderAll();
 
-    // Actualizar noticias con el feed en directo en segundo plano
     fetch("/api/news")
       .then((r) => r.json())
       .then((nData) => {
@@ -312,10 +302,9 @@ function renderAll() {
   renderSagaTabs();
   renderGamesGrid();
   renderNewsSections();
+  renderCommunitySection();
   renderQuickSearch();
-  renderTelegramBadgeAndDrawer();
   renderYoutubeModal();
-  populateFormSelects();
 
   if (state.selectedGameId) {
     renderGameDetailView(state.selectedGameId);
@@ -323,6 +312,79 @@ function renderAll() {
   if (state.selectedCharacter) {
     openCharacterModal(state.selectedCharacter.gameId, state.selectedCharacter.charId);
   }
+}
+
+// =========================================================================
+// SECCIÓN DE COMUNIDAD: WIKIS, CANALES DE YOUTUBE Y RESUMEN DE LO QUE FALTA
+// =========================================================================
+function renderCommunitySection() {
+  const roadmapEl = document.getElementById("missingContentRoadmapList");
+  if (roadmapEl) {
+    roadmapEl.innerHTML = state.missingContentRoadmap
+      .map(
+        (item) => `
+        <div class="guide-section-item" style="margin-top:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+            <strong style="color:#fbbf24;font-family:var(--font-display);font-size:0.98rem;">
+              ${item.area} — <span style="color:#f8fafc;">${item.target}</span>
+            </strong>
+            <span class="dlc-pack-badge">Prioridad: ${item.priority}</span>
+          </div>
+          <p style="font-size:0.86rem;color:#e2e8f0;margin-bottom:6px;">
+            <strong>Qué falta:</strong> ${item.whatIsMissing}
+          </p>
+          <p style="font-size:0.8rem;color:#94a3b8;">
+            <strong>Para valorar:</strong> ${item.purposeForEvaluation}
+          </p>
+        </div>
+      `
+      )
+      .join("");
+  }
+
+  const countPill = document.getElementById("communityResourcesCountPill");
+  if (countPill) {
+    countPill.textContent = `${state.communityResources.length} fuentes registradas`;
+  }
+
+  const gridEl = document.getElementById("communityResourcesGrid");
+  if (gridEl) {
+    gridEl.innerHTML = state.communityResources
+      .map(
+        (res) => `
+        <article class="news-card">
+          <div class="news-card-body">
+            <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+              <span class="news-cat-badge">${res.category}</span>
+              <span class="news-saga-badge">${res.targetGame}</span>
+            </div>
+            <h3>${res.title}</h3>
+            <p style="margin-bottom:8px;">${res.description}</p>
+            <div style="font-size:0.78rem;color:#cbd5e1;background:rgba(9,13,22,0.55);padding:8px 10px;border-radius:8px;border:1px solid #293548;">
+              <strong>Qué aporta / Qué falta cubrir:</strong> ${res.missingNotes}
+            </div>
+          </div>
+          <div class="news-card-footer">
+            <span style="color:#94a3b8;">Aportado por: ${res.author}</span>
+            <a href="${res.url}" target="_blank" rel="noopener" class="news-source-link">
+              Abrir enlace ➔
+            </a>
+          </div>
+        </article>
+      `
+      )
+      .join("");
+  }
+}
+
+function openCommunityPage() {
+  state.selectedGameId = null;
+  document.getElementById("homeView").classList.add("hidden");
+  document.getElementById("gameDetailView").classList.add("hidden");
+  document.getElementById("newsView").classList.add("hidden");
+  document.getElementById("communityView").classList.remove("hidden");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  renderCommunitySection();
 }
 
 // =========================================================================
@@ -378,6 +440,7 @@ function openNewsPage() {
   state.selectedGameId = null;
   document.getElementById("homeView").classList.add("hidden");
   document.getElementById("gameDetailView").classList.add("hidden");
+  document.getElementById("communityView").classList.add("hidden");
   document.getElementById("newsView").classList.remove("hidden");
   window.scrollTo({ top: 0, behavior: "smooth" });
   renderNewsSections();
@@ -591,6 +654,7 @@ function openGameHub(gameId, initialSubpage = "page-basic") {
 
   document.getElementById("homeView").classList.add("hidden");
   document.getElementById("newsView").classList.add("hidden");
+  document.getElementById("communityView").classList.add("hidden");
   document.getElementById("gameDetailView").classList.remove("hidden");
 
   renderGameDetailView(gameId);
@@ -623,13 +687,17 @@ function renderGameDetailView(gameId) {
       </p>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      <button class="btn btn-outline" id="btnQuickAddCharHere">Añadir Guía a ${game.title}</button>
+      <button class="btn btn-outline" id="btnSuggestResourceForGame">Aportar Wiki / Canal para ${game.title}</button>
     </div>
   `;
 
-  document.getElementById("btnQuickAddCharHere").addEventListener("click", () => {
-    document.getElementById("subGameSelect").value = game.id;
-    document.getElementById("submitModalBackdrop").classList.remove("hidden");
+  document.getElementById("btnSuggestResourceForGame").addEventListener("click", () => {
+    openCommunityPage();
+    const targetInput = document.getElementById("commTargetGameInput");
+    if (targetInput) {
+      targetInput.value = game.title;
+      targetInput.focus();
+    }
   });
 
   document.getElementById("gameNotationBanner").innerHTML = `
@@ -680,7 +748,6 @@ function renderGameDetailView(gameId) {
   renderGuideSplit("basicGuideContainer", game.basicGuide, "Guía Básica de Conceptos", game.officialSources);
   renderGuideSplit("advancedGuideContainer", game.advancedGuide, "Guía Avanzada Competitiva", game.officialSources);
 
-  // Resolver todos los retratos de personajes con pilimit=50 y búsqueda de respaldo
   hydrateBrowserPortraits(game);
 }
 
@@ -1001,188 +1068,6 @@ function renderYoutubeModal() {
 }
 
 // =========================================================================
-// PANEL PRIVADO DE TELEGRAM (SIN EXPONER NINGUNA CLAVE EN PANTALLA)
-// =========================================================================
-function renderTelegramBadgeAndDrawer() {
-  const pendingSubs = state.submissions.filter((s) => s.status === "pending");
-  const pendingAuths = state.authRequests.filter((a) => a.status === "pending");
-  const totalPending = pendingSubs.length + pendingAuths.length;
-  const isUnlocked = Boolean(state.botStatus && state.botStatus.isOwnerUnlocked);
-
-  document.getElementById("pendingBadgeCount").textContent = totalPending;
-
-  const badgeEl = document.getElementById("tgConnectionBadge");
-  if (state.botStatus && state.botStatus.isLiveTelegram) {
-    badgeEl.textContent = `Bot Privado en vivo (${state.botStatus.botUsername})`;
-  } else {
-    badgeEl.textContent = `Bot en Modo Privado Estricto`;
-  }
-
-  const lockBox = document.getElementById("tgPrivateLockBox");
-  const lockTitle = document.getElementById("tgLockStatusTitle");
-  const lockSub = document.getElementById("tgLockStatusSub");
-  const unlockFormRow = document.getElementById("tgUnlockFormRow");
-
-  if (isUnlocked) {
-    lockBox.style.borderColor = "#10b981";
-    lockBox.style.background = "rgba(16, 185, 129, 0.1)";
-    lockTitle.style.color = "#34d399";
-    lockTitle.textContent = "Sesión de Propietario Verificada";
-    lockSub.textContent = "Tienes acceso completo a las aprobaciones, parches y verificaciones.";
-    unlockFormRow.innerHTML = `<button class="tg-inline-btn reject" id="btnLockPrivateBot">Cerrar Sesión de Administrador</button>`;
-    document.getElementById("btnLockPrivateBot").onclick = () => {
-      state.adminKey = "";
-      localStorage.removeItem("fgc_private_session_token");
-      location.reload();
-    };
-  } else {
-    lockBox.style.borderColor = "#f59e0b";
-    lockBox.style.background = "rgba(245, 158, 11, 0.08)";
-    lockTitle.style.color = "#fbbf24";
-    lockTitle.textContent = "Panel de Administración Protegido";
-    lockSub.textContent =
-      "Solicita un código temporal de un solo uso en tu Telegram privado (@Clayfacefightbot) o introduce tu clave secreta.";
-  }
-
-  const subListEl = document.getElementById("tgPendingSubmissionsList");
-  if (!isUnlocked) {
-    subListEl.innerHTML = `
-      <div class="tg-message-bubble">
-        <strong>Contenido protegido (${pendingSubs.length} propuestas en cola).</strong><br/>
-        Puedes aprobarlas directamente desde tu app de Telegram en <code>@Clayfacefightbot</code> o verificando tu sesión arriba.
-      </div>
-    `;
-  } else if (pendingSubs.length === 0) {
-    subListEl.innerHTML = `<div class="tg-message-bubble">No hay guías pendientes. Todo el contenido está verificado.</div>`;
-  } else {
-    subListEl.innerHTML = pendingSubs
-      .map((s) => {
-        const dlcInfo = s.isDLC ? `DLC (${s.dlcPack})` : `Juego Base`;
-        return `
-          <div class="tg-message-bubble">
-            <div class="tg-msg-title">${s.gameTitle} — ${s.characterName} (${dlcInfo})</div>
-            <div style="font-size:0.8rem;color:#cbd5e1;margin-bottom:6px;">
-              Enviado por <strong>${s.author}</strong> (${s.createdAt})
-            </div>
-            <div style="font-family:var(--font-mono);font-size:0.78rem;background:#0e1621;padding:6px 8px;border-radius:6px;margin-bottom:6px;">
-              ${s.comboNotation}
-            </div>
-            <div style="font-size:0.8rem;color:#94a3b8;">${s.notes}</div>
-            <div class="tg-inline-grid">
-              <button class="tg-inline-btn approve" data-modid="${s.id}" data-modact="approve">
-                Aprobar y Publicar
-              </button>
-              <button class="tg-inline-btn reject" data-modid="${s.id}" data-modact="reject">
-                Rechazar
-              </button>
-            </div>
-          </div>
-        `;
-      })
-      .join("");
-
-    subListEl.querySelectorAll("[data-modid]").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        const submissionId = btn.dataset.modid;
-        const action = btn.dataset.modact;
-        await fetch("/api/bot/moderate", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-admin-key": state.adminKey
-          },
-          body: JSON.stringify({ submissionId, action })
-        });
-        await loadBootstrap();
-      });
-    });
-  }
-
-  const authListEl = document.getElementById("tgPendingAuthsList");
-  if (!isUnlocked) {
-    authListEl.innerHTML = `<p style="font-size:0.82rem;color:#fbbf24;">Verifica tu sesión de propietario para gestionar solicitudes 2FA desde la web.</p>`;
-  } else if (pendingAuths.length === 0) {
-    authListEl.innerHTML = `<p style="font-size:0.82rem;color:#94a3b8;">No hay solicitudes de verificación pendientes.</p>`;
-  } else {
-    authListEl.innerHTML = pendingAuths
-      .map(
-        (req) => `
-        <div class="tg-message-bubble" style="margin-top:8px;">
-          <div class="tg-msg-title">Solicitud de ${req.username} (${req.telegramHandle})</div>
-          <div style="font-size:0.82rem;">Rol: <strong>${req.role}</strong> • Código 2FA: <code>${req.code}</code></div>
-          <div class="tg-inline-grid">
-            <button class="tg-inline-btn approve" data-authcode="${req.code}" data-authdec="approve">
-              Verificar Cuenta (${req.code})
-            </button>
-            <button class="tg-inline-btn reject" data-authcode="${req.code}" data-authdec="reject">
-              Denegar
-            </button>
-          </div>
-        </div>
-      `
-      )
-      .join("");
-
-    authListEl.querySelectorAll("[data-authcode]").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        await fetch("/api/auth/verify-code", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-admin-key": state.adminKey
-          },
-          body: JSON.stringify({
-            code: btn.dataset.authcode,
-            decision: btn.dataset.authdec
-          })
-        });
-        await loadBootstrap();
-      });
-    });
-  }
-
-  const verifiedEl = document.getElementById("tgVerifiedUsersList");
-  verifiedEl.innerHTML = state.verifiedUsers
-    .map(
-      (u) => `
-      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #243447;font-size:0.83rem;">
-        <span><strong>${u.username}</strong> (${u.telegramHandle})</span>
-        <span style="color:#38bdf8;">${u.role}</span>
-      </div>
-    `
-    )
-    .join("");
-
-  const logsEl = document.getElementById("tgLiveLogsList");
-  logsEl.innerHTML = state.botLogs
-    .map(
-      (l) => `
-      <div class="tg-log-line">
-        <span style="color:#38bdf8;">[${l.time}]</span> ${l.event}
-      </div>
-    `
-    )
-    .join("");
-}
-
-function populateFormSelects() {
-  const subSelect = document.getElementById("subGameSelect");
-  const patchSelect = document.getElementById("tgPatchGameSelect");
-  const currentSubVal = subSelect.value;
-  const currentPatchVal = patchSelect.value;
-
-  const opts = state.games
-    .map((g) => `<option value="${g.id}">${g.title}</option>`)
-    .join("");
-
-  subSelect.innerHTML = opts;
-  patchSelect.innerHTML = opts;
-
-  if (currentSubVal) subSelect.value = currentSubVal;
-  if (currentPatchVal) patchSelect.value = currentPatchVal;
-}
-
-// =========================================================================
 // EVENT LISTENERS GLOBALES
 // =========================================================================
 document.addEventListener("DOMContentLoaded", () => {
@@ -1192,17 +1077,54 @@ document.addEventListener("DOMContentLoaded", () => {
     state.selectedGameId = null;
     document.getElementById("gameDetailView").classList.add("hidden");
     document.getElementById("newsView").classList.add("hidden");
+    document.getElementById("communityView").classList.add("hidden");
     document.getElementById("homeView").classList.remove("hidden");
   };
   document.getElementById("btnHomeBrand").addEventListener("click", goHome);
   document.getElementById("btnBackToCatalog").addEventListener("click", goHome);
   document.getElementById("btnBackFromNews").addEventListener("click", goHome);
+  document.getElementById("btnBackFromCommunity").addEventListener("click", goHome);
 
   // Abrir vista de Noticias y Competitivo
   document.getElementById("btnOpenNewsView").addEventListener("click", openNewsPage);
   const seeAllNewsBtn = document.getElementById("btnSeeAllNews");
   if (seeAllNewsBtn) {
     seeAllNewsBtn.addEventListener("click", openNewsPage);
+  }
+
+  // Abrir vista de Wikis, Canales de YouTube y Qué Falta
+  document.getElementById("btnOpenCommunityView").addEventListener("click", openCommunityPage);
+
+  // Enviar nuevo recurso de la comunidad (Wiki / Canal de YouTube / Qué falta)
+  const commForm = document.getElementById("communityResourceForm");
+  if (commForm) {
+    commForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const payload = {
+        category: document.getElementById("commCategorySelect").value,
+        targetGame: document.getElementById("commTargetGameInput").value,
+        title: document.getElementById("commTitleInput").value,
+        url: document.getElementById("commUrlInput").value,
+        description: document.getElementById("commDescInput").value,
+        missingNotes: document.getElementById("commMissingInput").value,
+        author: document.getElementById("commAuthorInput").value
+      };
+
+      const res = await fetch("/api/community-resources", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        state.communityResources = data.communityResources || state.communityResources;
+        state.missingContentRoadmap = data.missingContentRoadmap || state.missingContentRoadmap;
+        commForm.reset();
+        renderCommunitySection();
+        alert("Tu aporte y resumen han sido registrados para su valoración.");
+      }
+    });
   }
 
   // Filtros de categorías de Noticias
@@ -1258,140 +1180,5 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   document.getElementById("btnCloseYoutubeModal").addEventListener("click", () => {
     ytModal.classList.add("hidden");
-  });
-
-  const submitModal = document.getElementById("submitModalBackdrop");
-  document.getElementById("btnOpenSubmitModal").addEventListener("click", () => {
-    submitModal.classList.remove("hidden");
-  });
-  document.getElementById("btnCloseSubmitModal").addEventListener("click", () => {
-    submitModal.classList.add("hidden");
-  });
-
-  const dlcCheckbox = document.getElementById("subIsDLC");
-  const dlcPackInput = document.getElementById("subDlcPack");
-  dlcCheckbox.addEventListener("change", () => {
-    dlcPackInput.classList.toggle("hidden", !dlcCheckbox.checked);
-    if (dlcCheckbox.checked) dlcPackInput.focus();
-  });
-
-  document.getElementById("submitGuideForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const payload = {
-      gameId: document.getElementById("subGameSelect").value,
-      characterName: document.getElementById("subCharName").value,
-      archetype: document.getElementById("subArchetype").value,
-      difficulty: document.getElementById("subDifficulty").value,
-      isDLC: dlcCheckbox.checked,
-      dlcPack: dlcPackInput.value,
-      comboNotation: document.getElementById("subCombo").value,
-      notes: document.getElementById("subNotes").value,
-      videoUrl: document.getElementById("subVideoUrl").value,
-      author: document.getElementById("subAuthor").value
-    };
-
-    await fetch("/api/submissions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-
-    e.target.reset();
-    dlcPackInput.classList.add("hidden");
-    submitModal.classList.add("hidden");
-    await loadBootstrap();
-    document.getElementById("telegramDrawerBackdrop").classList.remove("hidden");
-  });
-
-  const tgDrawer = document.getElementById("telegramDrawerBackdrop");
-  document.getElementById("btnOpenTelegramPanel").addEventListener("click", () => {
-    tgDrawer.classList.remove("hidden");
-  });
-  document.getElementById("btnCloseTelegramDrawer").addEventListener("click", () => {
-    tgDrawer.classList.add("hidden");
-  });
-
-  document.querySelectorAll(".tg-tab").forEach((tab) => {
-    tab.addEventListener("click", () => {
-      document.querySelectorAll(".tg-tab").forEach((t) => t.classList.remove("active"));
-      document.querySelectorAll(".tg-tab-content").forEach((c) => c.classList.add("hidden"));
-      tab.classList.add("active");
-      document.getElementById(tab.dataset.tgtab).classList.remove("hidden");
-    });
-  });
-
-  const otpBtn = document.getElementById("btnRequestTelegramOtp");
-  if (otpBtn) {
-    otpBtn.addEventListener("click", async () => {
-      otpBtn.disabled = true;
-      otpBtn.textContent = "Enviando a Telegram...";
-      try {
-        const res = await fetch("/api/bot/request-otp", { method: "POST" });
-        const data = await res.json();
-        alert(data.message || data.error);
-      } catch (_) {
-        alert("Error al contactar con el servidor.");
-      } finally {
-        otpBtn.disabled = false;
-        otpBtn.textContent = "Enviar código a mi Telegram";
-      }
-    });
-  }
-
-  const unlockBtn = document.getElementById("btnUnlockPrivateBot");
-  if (unlockBtn) {
-    unlockBtn.addEventListener("click", async () => {
-      const keyVal = document.getElementById("tgOwnerKeyInput").value.trim();
-      if (!keyVal) return;
-      const res = await fetch("/api/bot/unlock", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ adminKey: keyVal })
-      });
-      const data = await res.json();
-      if (res.ok && data.unlocked) {
-        state.adminKey = data.sessionToken || keyVal;
-        localStorage.setItem("fgc_private_session_token", state.adminKey);
-        await loadBootstrap();
-      } else {
-        alert(data.error || "Código inválido. Acceso denegado.");
-      }
-    });
-  }
-
-  document.getElementById("btnApplyPatchUpdate").addEventListener("click", async () => {
-    const gameId = document.getElementById("tgPatchGameSelect").value;
-    const currentPatch = document.getElementById("tgPatchTextInput").value.trim();
-    if (!currentPatch) return;
-    const res = await fetch("/api/bot/update-patch", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-admin-key": state.adminKey
-      },
-      body: JSON.stringify({ gameId, currentPatch })
-    });
-    if (!res.ok) {
-      alert("Verifica primero tu sesión de propietario con Telegram.");
-      return;
-    }
-    document.getElementById("tgPatchTextInput").value = "";
-    await loadBootstrap();
-  });
-
-  document.getElementById("requestAuthForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const username = document.getElementById("authUsernameInput").value;
-    const telegramHandle = document.getElementById("authTelegramInput").value;
-    const role = document.getElementById("authRoleSelect").value;
-
-    await fetch("/api/auth/request-verification", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, telegramHandle, role })
-    });
-
-    e.target.reset();
-    await loadBootstrap();
   });
 });

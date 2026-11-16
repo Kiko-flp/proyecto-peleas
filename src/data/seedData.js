@@ -133,6 +133,120 @@ function hydrateRoster(gameId, sagaNotation, wikiBaseUrl, defaultVideo, colorHex
 }
 
 const SEED_DATA = {
+  // Directorio de Wikis, Canales de YouTube y Recursos aportados/verificados
+  communityResources: [
+    {
+      id: "res-1",
+      category: "Wiki / Frame Data",
+      targetGame: "Street Fighter 6",
+      title: "SuperCombo Wiki — Street Fighter 6",
+      url: "https://wiki.supercombo.gg/w/Street_Fighter_6",
+      description: "Wiki principal competitiva con Frame Data detallada, hitboxes y estrategias de todos los personajes de SF6.",
+      missingNotes: "Cubre el plantel completo hasta Year 3.",
+      author: "Comunidad FGC",
+      status: "approved"
+    },
+    {
+      id: "res-2",
+      category: "Wiki / Frame Data",
+      targetGame: "Guilty Gear -Strive- & DBFZ",
+      title: "Dustloop Wiki Oficial",
+      url: "https://www.dustloop.com/",
+      description: "Enciclopedia técnica de referencia para todos los juegos de Arc System Works.",
+      missingNotes: "Referencia principal para rutas de Roman Cancel y Limit Break.",
+      author: "Comunidad FGC",
+      status: "approved"
+    },
+    {
+      id: "res-3",
+      category: "Wiki / Frame Data",
+      targetGame: "Tekken 8",
+      title: "Wavu Wiki — Tekken 8",
+      url: "https://wavu.wiki/t/Main_Page",
+      description: "Documentación técnica de movimientos, castigos por frames, seguimiento lateral y rutas de Tornado.",
+      missingNotes: "Referencia técnica de Tekken 8.",
+      author: "Comunidad FGC",
+      status: "approved"
+    },
+    {
+      id: "res-4",
+      category: "Canal de YouTube",
+      targetGame: "Mortal Kombat 1",
+      title: "PNDK&M (Ketchup & Mustard)",
+      url: "https://www.youtube.com/@PNDKM",
+      description: "Canal especializado en guías competitivas, historia de Mortal Kombat y análisis de Kameos.",
+      missingNotes: "Ideal para vídeos individuales de personajes de MK1.",
+      author: "Comunidad FGC",
+      status: "approved"
+    },
+    {
+      id: "res-5",
+      category: "Canal de YouTube",
+      targetGame: "Tekken 8",
+      title: "PhiDX — Guías Competitivas Tekken 8",
+      url: "https://www.youtube.com/@PhiDX",
+      description: "Tutoriales paso a paso de movimiento 3D, defensas contra personajes y análisis de torneos.",
+      missingNotes: "Cubre fundamentos y guías avanzadas de Tekken 8.",
+      author: "Comunidad FGC",
+      status: "approved"
+    },
+    {
+      id: "res-6",
+      category: "Wiki / Frame Data",
+      targetGame: "Super Smash Bros. Ultimate",
+      title: "Ultimate Frame Data",
+      url: "https://ultimateframedata.com/",
+      description: "Hitboxes animadas frame a frame y tabla de opciones Out of Shield (OOS) para los 86 personajes.",
+      missingNotes: "Completa para todas las versiones hasta v13.0.3.",
+      author: "Comunidad FGC",
+      status: "approved"
+    }
+  ],
+
+  // Resumen estructurado de lo que falta y a qué juego/sección corresponde para valorarlo
+  missingContentRoadmap: [
+    {
+      id: "miss-1",
+      area: "Entregas Clásicas e Históricas",
+      target: "Mortal Kombat / Street Fighter / Tekken / Guilty Gear / Smash",
+      priority: "Alta",
+      whatIsMissing: "Añadir entregas anteriores clave de cada saga: Mortal Kombat 11 Ultimate, Mortal Kombat XL, USFIV, Street Fighter III: 3rd Strike, Tekken 7, GG Xrd REV 2 y Super Smash Bros. Melee.",
+      purposeForEvaluation: "Cumplir el objetivo de cubrir todos los juegos de lucha históricos además de la entrega actual de cada franquicia."
+    },
+    {
+      id: "miss-2",
+      area: "Vídeos Específicos por Personaje",
+      target: "Los 6 juegos actuales (271 personajes)",
+      priority: "Alta",
+      whatIsMissing: "Asignar un vídeo tutorial individual específico de YouTube a cada personaje secundario y de los últimos pases DLC (en lugar del vídeo general del juego).",
+      purposeForEvaluation: "Que cada uno de los 271 luchadores tenga su propio vídeo dedicado además de su guía en texto."
+    },
+    {
+      id: "miss-3",
+      area: "Sub-plantel de Kameo Fighters",
+      target: "Mortal Kombat 1 (Sistema de Kameos)",
+      priority: "Media",
+      whatIsMissing: "Crear un apartado propio con los iconos y guías de los 20+ Kameos (Khameleon, Ferra, Sareena, Sektor, Cyrax, Mavado, Janet Cage, Tremor, etc.).",
+      purposeForEvaluation: "En MK1 los Kameos definen la mitad del plan de juego y qué ataques quedan seguros en bloqueo."
+    },
+    {
+      id: "miss-4",
+      area: "Guías Anti-Personaje (Matchups y Castigos)",
+      target: "Fichas individuales de personajes (Tekken 8, SF6 y MK1)",
+      priority: "Media",
+      whatIsMissing: "Añadir un bloque de 'Cómo ganarle / Castigos clave' en cada personaje indicando hacia qué lado hacer Sidestep o en qué golpe hacer Flawless Block / Interrupt.",
+      purposeForEvaluation: "Ayudar a los jugadores que entran buscando cómo defenderse contra un personaje concreto que les cuesta en ranked."
+    },
+    {
+      id: "miss-5",
+      area: "Nuevas Sagas de Lucha",
+      target: "Catálogo Principal de Juegos",
+      priority: "Media",
+      whatIsMissing: "Incorporar sagas adicionales de peso competitivo: The King of Fighters XV, Fatal Fury: City of the Wolves, Granblue Fantasy Versus: Rising, Under Night In-Birth II y 2XKO.",
+      purposeForEvaluation: "Valorar qué saga añadir primero según el interés de los usuarios y del circuito EVO."
+    }
+  ],
+
   // Configuración del Canal Oficial de YouTube del proyecto
   youtubeChannel: {
     name: "FGC Vault Español — Guías & Frame Data",

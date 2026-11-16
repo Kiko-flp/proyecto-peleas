@@ -169,27 +169,32 @@ app.get("/api/bootstrap", (req, res) => {
   res.json({
     youtubeChannel: store.state.youtubeChannel,
     news: CURATED_FGC_NEWS,
+    communityResources: store.getCommunityResources(),
+    missingContentRoadmap: store.getMissingContentRoadmap(),
     sagas: store.getSagas(),
-    games: store.getGames(),
-    submissions: store.getSubmissions(),
-    verifiedUsers: store.state.verifiedUsers,
-    authRequests: isOwnerUnlocked ? store.state.authRequests : [],
-    botLogs: isOwnerUnlocked
-      ? store.state.botLogs
-      : [
-          {
-            id: "locked",
-            time: "Privado",
-            event: "Registro privado oculto. Verifica tu sesión con Telegram para ver los registros."
-          }
-        ],
-    botStatus: {
-      isLiveTelegram: telegramBot.isConfigured(),
-      hasLinkedOwner: Boolean(telegramBot.adminChatId),
-      privateMode: true,
-      isOwnerUnlocked,
-      botUsername: telegramBot.botUsername || "@Clayfacefightbot"
-    }
+    games: store.getGames()
+  });
+});
+
+app.post("/api/community-resources", async (req, res) => {
+  const { category, targetGame, title, url, description, missingNotes, author } = req.body;
+  if (!title || !targetGame) {
+    return res.status(400).json({ error: "Indica al menos el nombre del recurso y el juego/saga al que corresponde." });
+  }
+  const created = store.addCommunityResource({
+    category,
+    targetGame,
+    title,
+    url,
+    description,
+    missingNotes,
+    author
+  });
+  await telegramBot.notifyNewCommunityResource(created);
+  res.status(201).json({
+    resource: created,
+    communityResources: store.getCommunityResources(),
+    missingContentRoadmap: store.getMissingContentRoadmap()
   });
 });
 
