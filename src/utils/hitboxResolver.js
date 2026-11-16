@@ -1,12 +1,19 @@
 /**
  * Resolutor de Hitboxes y Animaciones Reales del Juego desde Wikis Oficiales:
  * - Super Smash Bros. Ultimate: https://ultimateframedata.com/ (GIFs animados reales de hitboxes)
+ * - Street Fighter 6: https://wiki.supercombo.gg/images/ (Imágenes oficiales *_hitbox.png reales de SF6)
  * - Guilty Gear -Strive- & Dragon Ball FighterZ: https://www.dustloop.com/ (Hitbox PNGs y frames reales)
  * - Tekken 8: https://wavu.wiki/ (Clips MP4/WebP reales del modo entrenamiento)
- * - Street Fighter 6 & Mortal Kombat 1: Renders e imágenes oficiales de combate para la animación Training Mode
  */
 
+const crypto = require("crypto");
 const hitboxCache = new Map();
+
+function getSuperComboHashedUrl(fileName) {
+  const firstUpper = fileName.charAt(0).toUpperCase() + fileName.slice(1);
+  const hash = crypto.createHash("md5").update(firstUpper).digest("hex");
+  return `https://wiki.supercombo.gg/images/${hash.slice(0, 1)}/${hash.slice(0, 2)}/${encodeURIComponent(firstUpper)}`;
+}
 
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
@@ -425,6 +432,87 @@ async function resolveWavuHitboxes(charName) {
   }
 }
 
+const SF6_CHAR_PREFIX = {
+  "Ken Masters": "Ken",
+  "Juri Han": "Juri",
+  "E. Honda": "EHonda",
+  "A.K.I.": "AKI",
+  "M. Bison": "MBison",
+  "Dee Jay": "DeeJay",
+  "Terry Bogard": "Terry",
+  "Mai Shiranui": "Mai",
+  "C. Viper": "CViper"
+};
+
+async function checkImageExists(url) {
+  try {
+    const r = await fetch(url, {
+      method: "HEAD",
+      headers: { "User-Agent": USER_AGENT }
+    });
+    return r.ok;
+  } catch (_) {
+    return false;
+  }
+}
+
+async function resolveSf6Hitboxes(charName) {
+  const sfSlug = (SF6_CHAR_PREFIX[charName] || charName).replace(/\s+/g, "");
+  const moveTokensMap = {
+    "Standing Light Punch": ["5lp"],
+    "Standing Light Kick": ["5lk"],
+    "Standing Medium Punch": ["5mp"],
+    "Standing Medium Kick": ["5mk"],
+    "Standing Heavy Punch": ["5hp"],
+    "Standing Heavy Kick": ["5hk"],
+    "Crouching Light Punch": ["2lp"],
+    "Crouching Light Kick": ["2lk"],
+    "Crouching Medium Punch": ["2mp"],
+    "Crouching Medium Kick": ["2mk"],
+    "Crouching Heavy Punch": ["2hp"],
+    "Crouching Heavy Kick (Sweep)": ["2hk"],
+    "Jumping Light / Cross-up": ["jlk", "jmk", "jlp"],
+    "Jumping Heavy Attack": ["jhp", "jhk"],
+    "Command Overhead": ["6mp", "6mk", "6hp"],
+    "Target Combo": ["5mp5lk5hk", "5mp5hp"],
+    "Special 1 (Projectile / Neutral)": ["236p", "236k", "214p"],
+    "Special 2 (Anti-Air / DP)": ["623p", "623k", "22p"],
+    "Special 3 (Advance / Tatsu)": ["214k", "214p", "236k"],
+    "Drive Impact": ["di", "5hphk"],
+    "Normal Throw / Back Throw": ["5lplk", "throw"],
+    "Super Art Level 3 (SA3)": ["sa3", "236236p", "236236k"]
+  };
+
+  const result = {};
+  await Promise.all(
+    Object.entries(moveTokensMap).map(async ([moveName, tokens]) => {
+      for (const tok of tokens) {
+        const hbUrl = getSuperComboHashedUrl(`SF6_${sfSlug}_${tok}_hitbox.png`);
+        if (await checkImageExists(hbUrl)) {
+          result[moveName] = {
+            url: hbUrl,
+            type: "image",
+            hasNativeHitbox: true,
+            source: "SuperCombo Wiki"
+          };
+          return;
+        }
+        const mvUrl = getSuperComboHashedUrl(`SF6_${sfSlug}_${tok}.png`);
+        if (await checkImageExists(mvUrl)) {
+          result[moveName] = {
+            url: mvUrl,
+            type: "image",
+            hasNativeHitbox: false,
+            source: "SuperCombo Wiki"
+          };
+          return;
+        }
+      }
+    })
+  );
+  return result;
+}
+
 async function resolveCharacterHitboxes(gameId, charName) {
   const key = `${gameId}:${charName}`;
   if (hitboxCache.has(key)) {
@@ -434,6 +522,8 @@ async function resolveCharacterHitboxes(gameId, charName) {
   let data = {};
   if (gameId === "ssbu") {
     data = await resolveSsbuHitboxes(charName);
+  } else if (gameId === "sf6") {
+    data = await resolveSf6Hitboxes(charName);
   } else if (gameId === "gg-strive" || gameId === "dbfz") {
     data = await resolveDustloopHitboxes(gameId, charName);
   } else if (gameId === "tekken8") {

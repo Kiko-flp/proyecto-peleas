@@ -114,6 +114,10 @@ function getDirectPortraitUrl(gameId, charName, colorHex = "f59e0b", isDLC = fal
   if (gameId === "ssbu" && SSBU_SLUGS[charName]) {
     return `https://www.smashbros.com/assets_v2/img/fighter/thumb_a/${SSBU_SLUGS[charName]}.png`;
   }
+  if (gameId === "sf6") {
+    const scName = (SF6_SUPERCOMBO_NAMES[charName] || charName).replace(/\s+/g, "_");
+    return getMediaWikiHashedUrl("https://wiki.supercombo.gg/images", `SF6_${scName}_Icon.png`);
+  }
   if (gameId === "gg-strive") {
     const ggName = (GGST_DUSTLOOP_NAMES[charName] || charName).replace(/\s+/g, "_");
     return getMediaWikiHashedUrl("https://www.dustloop.com/wiki/images", `GGST_${ggName}_Icon.png`);

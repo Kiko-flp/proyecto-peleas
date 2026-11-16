@@ -1323,146 +1323,44 @@ function renderGuideSplit(containerId, guideObj, badgeLabel, sources) {
 }
 
 // =========================================================================
-// GENERADOR DE ESCENARIO DE HITBOX CON EL PERSONAJE REAL DEL JUEGO + CAJAS
-// Muestra al luchador real con sus cajas de Hurtbox (Verde), Pushbox (Amarilla)
-// y Hitbox activa (Roja/Morada) según el tipo y altura del ataque.
+// VISUALIZADOR LIMPIO DE FRAME METER (RESPALDO MIENTRAS CARGA LA HITBOX REAL)
+// Muestra la línea temporal proporcional de Startup / Activa / Recovery del ataque.
 // =========================================================================
 function buildCharacterHitboxStageHTML(game, ch, fc) {
-  const cachedSrc = clientPortraitCache.get(ch.id) || ch.iconUrl;
-  const fallbackSrc = (ch.fallbackIconUrl || ch.iconUrl).replace(/'/g, "\\'");
-  const safeName = ch.name.replace(/'/g, "\\'");
-  const rawDesc = `${fc.moveName || ""} ${fc.input || ""} ${fc.category || ""} ${fc.hitboxGifUrl || ""}`.toLowerCase();
+  const sMatch = String(fc.startup || "").match(/(\d+)/);
+  const aMatch = String(fc.active || "").match(/(\d+)[–-](\d+)/);
+  const rMatch = String(fc.recovery || "").match(/(\d+)/);
+  const tMatch = String(fc.totalFrames || "").match(/(\d+)/);
 
-  const actMatch = String(fc.active || "").match(/(\d+(?:–|-)\d+|\d+)/);
-  const actWindow = actMatch ? actMatch[1] : "Activa";
+  const startupN = sMatch ? parseInt(sMatch[1], 10) : 6;
+  const activeStart = aMatch ? parseInt(aMatch[1], 10) : startupN;
+  const activeEnd = aMatch ? parseInt(aMatch[2], 10) : startupN + 2;
+  const activeN = Math.max(1, activeEnd - activeStart + 1);
+  const recoveryN = rMatch ? parseInt(rMatch[1], 10) : 16;
+  const totalN = tMatch ? parseInt(tMatch[1], 10) : startupN + activeN + recoveryN;
 
-  // Determinar la geometría de las cajas de Hitbox y Hurtbox extendida según el ataque
-  let hitBoxesHTML = "";
-  let extendedHurtHTML = `<div class="hb-box-hurt" style="bottom:52px;left:74px;width:44px;height:20px;"></div>`;
-
-  if (
-    rawDesc.includes("low") ||
-    rawDesc.includes("sweep") ||
-    rawDesc.includes("dtilt") ||
-    rawDesc.includes("d-tilt") ||
-    rawDesc.includes("dsmash") ||
-    rawDesc.includes("2mk") ||
-    rawDesc.includes("2lk") ||
-    rawDesc.includes("2hk") ||
-    rawDesc.includes("2k") ||
-    rawDesc.includes("2d") ||
-    rawDesc.includes("2m") ||
-    rawDesc.includes("d+3") ||
-    rawDesc.includes("d+4") ||
-    rawDesc.includes("b+4")
-  ) {
-    // Ataque Bajo (Low / Sweep): Cajas de Hitbox a ras de suelo
-    extendedHurtHTML = `<div class="hb-box-hurt" style="bottom:16px;left:70px;width:54px;height:18px;"></div>`;
-    hitBoxesHTML = `
-      <div class="hb-box-hit" style="bottom:14px;left:88px;width:68px;height:24px;">HITBOX LOW</div>
-      <div class="hb-box-hit" style="bottom:18px;left:134px;width:42px;height:20px;"></div>
-    `;
-  } else if (
-    rawDesc.includes("anti-air") ||
-    rawDesc.includes("up ") ||
-    rawDesc.includes("u-tilt") ||
-    rawDesc.includes("u-smash") ||
-    rawDesc.includes("uair") ||
-    rawDesc.includes("623") ||
-    rawDesc.includes("2hp") ||
-    rawDesc.includes("2h") ||
-    rawDesc.includes("6p") ||
-    rawDesc.includes("d+2") ||
-    rawDesc.includes("df+2") ||
-    rawDesc.includes("uf+4")
-  ) {
-    // Antiaéreo / Launcher Vertical: Cajas de Hitbox elevadas cubriendo salto rival
-    extendedHurtHTML = `<div class="hb-box-hurt" style="bottom:68px;left:66px;width:32px;height:42px;"></div>`;
-    hitBoxesHTML = `
-      <div class="hb-box-hit" style="bottom:68px;left:84px;width:52px;height:48px;">HITBOX AA</div>
-      <div class="hb-box-hit" style="bottom:48px;left:72px;width:44px;height:32px;"></div>
-    `;
-  } else if (
-    rawDesc.includes("proj") ||
-    rawDesc.includes("236") ||
-    rawDesc.includes("bf+1") ||
-    rawDesc.includes("neutral b") ||
-    rawDesc.includes("5s")
-  ) {
-    // Proyectil / Ataque Especial a Distancia: Caja de Hitbox viajando hacia adelante
-    hitBoxesHTML = `
-      <div class="hb-box-hit hb-box-proj" style="bottom:44px;left:108px;width:58px;height:36px;">PROYECTIL</div>
-    `;
-  } else if (
-    rawDesc.includes("throw") ||
-    rawDesc.includes("grab") ||
-    rawDesc.includes("lp+lk") ||
-    rawDesc.includes("1+3") ||
-    rawDesc.includes("uf+1+2") ||
-    rawDesc.includes("dragon rush")
-  ) {
-    // Agarre / Throw Box: Caja morada imbloqueable a corta distancia
-    hitBoxesHTML = `
-      <div class="hb-box-hit hb-box-throw" style="bottom:42px;left:76px;width:52px;height:48px;">THROW BOX</div>
-    `;
-  } else if (
-    rawDesc.includes("super") ||
-    rawDesc.includes("smash") ||
-    rawDesc.includes("fatal") ||
-    rawDesc.includes("rage art") ||
-    rawDesc.includes("heat") ||
-    rawDesc.includes("overdrive") ||
-    rawDesc.includes("drive impact")
-  ) {
-    // Super / Smash / Drive Impact: Multicaja masiva de impacto
-    extendedHurtHTML = `<div class="hb-box-hurt" style="bottom:40px;left:72px;width:52px;height:38px;"></div>`;
-    hitBoxesHTML = `
-      <div class="hb-box-hit" style="bottom:32px;left:84px;width:76px;height:58px;">HITBOX</div>
-      <div class="hb-box-hit" style="bottom:42px;left:132px;width:52px;height:44px;"></div>
-    `;
-  } else {
-    // Golpe Normal Medio/Alto Estándar (Jab, Mid Poke, Kick, Aerial)
-    hitBoxesHTML = `
-      <div class="hb-box-hit" style="bottom:48px;left:86px;width:62px;height:30px;">HITBOX</div>
-      <div class="hb-box-hit" style="bottom:52px;left:128px;width:38px;height:24px;"></div>
-    `;
-  }
+  const pStart = Math.max(8, Math.round((Math.max(1, activeStart - 1) / totalN) * 100));
+  const pAct = Math.max(8, Math.round((activeN / totalN) * 100));
+  const pRec = Math.max(10, 100 - pStart - pAct);
 
   const translatedInput = translateNotation(fc.input, game.sagaId, state.notationMode);
 
   return `
-    <div class="hb-char-stage">
-      <div class="hb-stage-hud">
-        <span>${ch.name} • ${translatedInput} (${actWindow}f)</span>
-        <span class="hb-legend-dots">
-          <span class="hb-dot-hurt">■ Hurtbox</span>
-          <span class="hb-dot-hit">■ Hitbox</span>
-        </span>
+    <div style="width:100%;padding:12px 10px;background:#1a1c20;border:1px solid rgba(255,255,255,0.08);border-radius:6px;display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;font-family:var(--font-mono);font-size:0.65rem;color:#c4c4c4;">
+        <span>${translatedInput}</span>
+        <span style="color:#fda4af;">Activa: F${activeStart}–${activeEnd}</span>
       </div>
-
-      <!-- Personaje real del juego -->
-      <div class="hb-char-actor-wrap">
-        <img
-          class="hb-char-actor"
-          data-charimg="${ch.id}"
-          src="${cachedSrc}"
-          alt="${ch.name}"
-          referrerpolicy="no-referrer"
-          loading="lazy"
-          onload="window.handlePortraitLoad(this)"
-          onerror="window.handlePortraitError(this, '${game.id}', '${ch.id}', '${safeName}', '${fallbackSrc}')"
-        />
+      <div style="display:flex;height:18px;width:100%;border-radius:4px;overflow:hidden;border:1px solid rgba(255,255,255,0.12);background:#000;">
+        <div style="width:${pStart}%;background:#15803d;" title="Startup: ${Math.max(0, activeStart - 1)}f"></div>
+        <div style="width:${pAct}%;background:#e11d48;" title="Hitbox Activa: ${activeN}f"></div>
+        <div style="width:${pRec}%;background:#6d28d9;" title="Recovery: ${recoveryN}f"></div>
       </div>
-
-      <!-- Cajas de Hurtbox (Verde) y Pushbox (Amarilla) sobre el cuerpo del personaje -->
-      <div class="hb-box-hurt" style="bottom:16px;left:22px;width:58px;height:86px;" title="Hurtbox Principal de ${ch.name}"></div>
-      <div class="hb-box-push" style="bottom:20px;left:32px;width:38px;height:66px;" title="Pushbox de Colisión"></div>
-      ${extendedHurtHTML}
-
-      <!-- Cajas de Hitbox Activas (Rojo / Morado) del ataque -->
-      ${hitBoxesHTML}
-
-      <div class="hb-stage-floor"></div>
+      <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:0.6rem;color:#9b9b9b;">
+        <span>Start ${startupN}f</span>
+        <span>Act ${activeN}f</span>
+        <span>Rec ${recoveryN}f</span>
+      </div>
     </div>
   `;
 }
