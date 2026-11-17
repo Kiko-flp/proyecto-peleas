@@ -73,9 +73,9 @@ const SF6_CDN_SLUGS = {
 const MK1_CDN_SLUGS = {
   "Scorpion": "scorpion", "Sub-Zero": "sub-zero", "Liu Kang": "liu-kang", "Raiden": "raiden",
   "Kung Lao": "kung-lao", "Kitana": "kitana", "Mileena": "mileena", "Johnny Cage": "johnny-cage",
-  "Kenshi": "kenshi", "Smoke": "smoke", "Rain": "rain", "Li Mei": "li-mei",
+  "Kenshi": "kenshi-takahashi", "Smoke": "smoke", "Rain": "rain", "Li Mei": "li-mei",
   "Tanya": "tanya", "Baraka": "baraka", "Geras": "geras", "Reptile": "reptile",
-  "Ashrah": "ashrah", "Havik": "havik", "General Shao": "general-shao", "Sindel": "sindel",
+  "Ashrah": "ashrah", "Havik": "havik", "General Shao": "shao-kahn", "Sindel": "sindel",
   "Nitara": "nitara", "Reiko": "reiko", "Shang Tsung": "shang-tsung", "Omni-Man": "omni-man",
   "Quan Chi": "quan-chi", "Peacemaker": "peacemaker", "Ermac": "ermac", "Homelander": "homelander",
   "Takeda Takahashi": "takeda", "Cyrax": "cyrax", "Sektor": "sektor", "Noob Saibot": "noob-saibot",
@@ -85,30 +85,38 @@ const MK1_CDN_SLUGS = {
 const SF6_SUPERCOMBO_NAMES = {
   "Ken Masters": "Ken",
   "Juri Han": "Juri",
+  "Dee Jay": "DeeJay",
   "Terry Bogard": "Terry",
   "Mai Shiranui": "Mai"
 };
 
+const SF6_PORTRAIT_OVERRIDES = {
+  "E. Honda": "https://static.wikia.nocookie.net/streetfighter/images/7/73/EHonda_SF6_Render.png/revision/latest/scale-to-width-down/267?cb=20220915164811",
+  "M. Bison": "https://static.wikia.nocookie.net/streetfighter/images/c/c3/M_Bison_SF6.png/revision/latest/scale-to-width-down/218?cb=20240608085336",
+  "C. Viper": "https://static.wikia.nocookie.net/streetfighter/images/6/6a/Cvipers6render.png/revision/latest/scale-to-width-down/203?cb=20250924143952"
+};
+
 const GGST_DUSTLOOP_NAMES = {
-  "Queen Dizzy": "Dizzy",
-  "Asuka R#": "Asuka_R%E2%99%AF"
+  "Bedman?": "Bedman",
+  "Queen Dizzy": "Queen_Dizzy",
+  "Asuka R#": "Asuka_R"
 };
 
 const DBFZ_DUSTLOOP_NAMES = {
-  "Goku (Super Saiyan)": "Goku",
-  "Vegeta (Super Saiyan)": "Vegeta",
-  "Goku (SSGSS / Blue)": "SSGSS_Goku",
-  "Vegeta (SSGSS / Blue)": "SSGSS_Vegeta",
+  "Goku (Super Saiyan)": "SS_Goku",
+  "Vegeta (Super Saiyan)": "SS_Vegeta",
+  "Goku (SSGSS / Blue)": "SSB_Goku",
+  "Vegeta (SSGSS / Blue)": "SSB_Vegeta",
   "Gohan (Teen)": "Teen_Gohan",
   "Gohan (Adult)": "Adult_Gohan",
   "Android 21 (Majin)": "Android_21",
   "Broly (Z)": "Broly",
   "Zamasu (Fused)": "Fused_Zamasu",
-  "Vegito (SSGSS)": "Vegito",
-  "Goku (Base)": "Base_Goku",
-  "Vegeta (Base)": "Base_Vegeta",
+  "Vegito (SSGSS)": "SSB_Vegito",
+  "Goku (Base)": "Goku",
+  "Vegeta (Base)": "Vegeta",
   "Goku (GT)": "GT_Goku",
-  "Gogeta (SSGSS)": "Gogeta",
+  "Gogeta (SSGSS)": "SSB_Gogeta",
   "Broly (DBS)": "DBS_Broly",
   "Goku (Ultra Instinct)": "UI_Goku",
   "Gogeta (SS4)": "SS4_Gogeta",
@@ -136,6 +144,9 @@ function getDirectPortraitUrl(gameId, charName, colorHex = "f59e0b", isDLC = fal
     }
   }
   if (gameId === "sf6") {
+    if (SF6_PORTRAIT_OVERRIDES[charName]) {
+      return SF6_PORTRAIT_OVERRIDES[charName];
+    }
     const scName = (SF6_SUPERCOMBO_NAMES[charName] || charName).replace(/\s+/g, "_");
     return getMediaWikiHashedUrl("https://wiki.supercombo.gg/images", `SF6_${scName}_Icon.png`);
   }

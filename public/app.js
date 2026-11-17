@@ -107,7 +107,7 @@ const CLIENT_EXACT_WIKI_TITLES = {
   "Alex": "Alex",
   "Ingrid": "Ingrid",
   // Tekken 8
-  "Jack-8": "Jack-8",
+  "Jack-8": "Jack",
   "Armor King": "Armor King II",
   "Kunimitsu": "Kunimitsu II",
   "Roger Jr.": "Roger Jr.",
