@@ -4,6 +4,8 @@
 
 El objetivo del proyecto es unificar en un solo lugar la información que habitualmente se encuentra dispersa en múltiples wikis, hojas de cálculo y canales especializados de la *Fighting Game Community (FGC)*, presentando todo el contenido en un formato claro tanto en **vídeo** como en **texto**.
 
+[Aquí esta el enlace a la web](https://fgc-vault.onrender.com/)
+
 ---
 
 ## Resumen de lo Realizado
