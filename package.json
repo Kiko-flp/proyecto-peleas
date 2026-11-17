@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "bot": "node bot.js",
+    "test": "node tests/run-tests.js",
     "dev": "node --watch server.js"
   },
   "engines": {

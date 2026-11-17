@@ -185,6 +185,63 @@ class YouTubeChannelManager {
 
     return { ok: true, created };
   }
+
+  /**
+   * Obtiene los últimos vídeos reales del canal mediante YouTube Data API v3 (si hay API Key)
+   * o mediante el feed público Atom oficial de YouTube (sin necesidad de credenciales).
+   */
+  async fetchLatestChannelVideos() {
+    const channelId = (process.env.YOUTUBE_CHANNEL_ID || "").trim();
+    const videos = [];
+
+    if (this.apiKey && channelId) {
+      try {
+        const u = `https://www.googleapis.com/youtube/v3/search?key=${encodeURIComponent(
+          this.apiKey
+        )}&channelId=${encodeURIComponent(channelId)}&part=snippet,id&order=date&maxResults=8&type=video`;
+        const res = await fetch(u);
+        if (res.ok) {
+          const data = await res.json();
+          (data.items || []).forEach((it) => {
+            if (it?.id?.videoId) {
+              videos.push({
+                id: it.id.videoId,
+                title: it.snippet?.title || "Guía FGC",
+                publishedAt: (it.snippet?.publishedAt || "").slice(0, 10),
+                embedUrl: `https://www.youtube.com/embed/${it.id.videoId}?cc_load_policy=1&cc_lang_pref=es&hl=es`
+              });
+            }
+          });
+        }
+      } catch (_) {}
+    }
+
+    if (videos.length === 0 && channelId) {
+      try {
+        const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(channelId)}`;
+        const res = await fetch(feedUrl);
+        if (res.ok) {
+          const xml = await res.text();
+          const entries = xml.split("<entry>").slice(1, 9);
+          entries.forEach((e) => {
+            const vidMatch = e.match(/<yt:videoId>([^<]+)<\/yt:videoId>/);
+            const titleMatch = e.match(/<title>([^<]+)<\/title>/);
+            const pubMatch = e.match(/<published>([^<]+)<\/published>/);
+            if (vidMatch && vidMatch[1]) {
+              videos.push({
+                id: vidMatch[1],
+                title: titleMatch ? titleMatch[1] : "Guía FGC",
+                publishedAt: pubMatch ? pubMatch[1].slice(0, 10) : "",
+                embedUrl: `https://www.youtube.com/embed/${vidMatch[1]}?cc_load_policy=1&cc_lang_pref=es&hl=es`
+              });
+            }
+          });
+        }
+      } catch (_) {}
+    }
+
+    return videos;
+  }
 }
 
 module.exports = new YouTubeChannelManager();

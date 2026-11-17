@@ -628,6 +628,12 @@ function openToolsPage(initialTab = "tool-quiz", quizMode = "general") {
   if (typeof window.initPunishCalculator === "function") {
     window.initPunishCalculator();
   }
+  if (typeof window.initMatchupComparator === "function") {
+    window.initMatchupComparator();
+  }
+  if (typeof window.initTrainingProfile === "function") {
+    window.initTrainingProfile();
+  }
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -1403,6 +1409,42 @@ async function hydrateCharacterVideo(game, ch, modalBody) {
   }
 }
 
+window.findHitboxEntryForCard = function (hbMap, fc) {
+  if (!hbMap || !fc) return null;
+  if (hbMap[fc.moveName]) return hbMap[fc.moveName];
+
+  const norm = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const mNorm = norm(fc.moveName);
+  const inNorm = norm(fc.input);
+
+  // Alias comunes (SSBU UFD / SF6 / GGST / Tekken)
+  const aliases = [inNorm, mNorm].filter(Boolean);
+  if (mNorm.includes("forwardtilt")) aliases.push("ftilt");
+  if (mNorm.includes("uptilt")) aliases.push("utilt");
+  if (mNorm.includes("downtilt")) aliases.push("dtilt");
+  if (mNorm.includes("forwardsmash")) aliases.push("fsmash");
+  if (mNorm.includes("upsmash")) aliases.push("usmash");
+  if (mNorm.includes("downsmash")) aliases.push("dsmash");
+  if (mNorm.includes("neutralair")) aliases.push("nair");
+  if (mNorm.includes("forwardair")) aliases.push("fair");
+  if (mNorm.includes("backair")) aliases.push("bair");
+  if (mNorm.includes("upair")) aliases.push("uair");
+  if (mNorm.includes("downair")) aliases.push("dair");
+  if (mNorm.includes("neutralb") || mNorm.includes("neutralspecial")) aliases.push("neutralb", "nspecial");
+  if (mNorm.includes("sideb") || mNorm.includes("sidespecial")) aliases.push("sideb", "sspecial");
+  if (mNorm.includes("upb") || mNorm.includes("upspecial")) aliases.push("upb", "uspecial");
+  if (mNorm.includes("downb") || mNorm.includes("downspecial")) aliases.push("downb", "dspecial");
+
+  for (const [k, v] of Object.entries(hbMap)) {
+    if (!v || !v.url) continue;
+    const kClean = norm(k.replace(/^__file:/, "").replace(/\.[^.]+$/, ""));
+    if (aliases.some((a) => a && (kClean === a || kClean.endsWith(a) || kClean.endsWith(`${a}hitbox`)))) {
+      return v;
+    }
+  }
+  return null;
+};
+
 async function hydrateCharacterRealHitboxes(game, ch, modalBody) {
   if (!game || !ch || !modalBody) return;
   const cacheKey = `${game.id}:${ch.id}`;
@@ -1427,7 +1469,8 @@ async function hydrateCharacterRealHitboxes(game, ch, modalBody) {
 
   modalBody.querySelectorAll("[data-hbmove]").forEach((boxEl) => {
     const moveName = boxEl.dataset.hbmove;
-    const entry = hbMap[moveName];
+    const fcObj = (ch.frameDataCards || []).find((c) => c.moveName === moveName);
+    const entry = window.findHitboxEntryForCard(hbMap, fcObj || { moveName });
     if (!entry || !entry.url) return;
 
     const mediaUrl =
@@ -1435,8 +1478,6 @@ async function hydrateCharacterRealHitboxes(game, ch, modalBody) {
       (entry.url.startsWith("/") ? entry.url : `/api/hitbox-media?url=${encodeURIComponent(entry.url)}`);
     const mediaWrap = boxEl.querySelector(".ufd-real-hitbox-wrap");
     if (!mediaWrap) return;
-
-    const fcObj = (ch.frameDataCards || []).find((c) => c.moveName === moveName);
 
     if (entry.type === "video") {
       mediaWrap.innerHTML = `
@@ -1663,7 +1704,12 @@ function openCharacterModal(gameId, charId) {
         </h2>
       </div>
     </div>
-    <button class="btn-close-modal" id="btnCloseCharModal">✕</button>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="btn btn-outline ${typeof window.isFavoriteMain === "function" && window.isFavoriteMain(game.id, ch.id) ? "is-fav-active" : ""}" id="btnToggleMainProfile" style="font-size:0.75rem;padding:7px 12px;">
+        ${typeof window.isFavoriteMain === "function" && window.isFavoriteMain(game.id, ch.id) ? "★ Mi Main" : "☆ Marcar Main"}
+      </button>
+      <button class="btn-close-modal" id="btnCloseCharModal">✕</button>
+    </div>
   `;
 
   const comp = ch.spanishCompilation || {
@@ -1772,22 +1818,39 @@ function openCharacterModal(gameId, charId) {
             </tbody>
           </table>
 
-          <h4 style="margin-bottom:10px;font-family:var(--font-display);">2. Combos Básicos y Óptimos (Bread & Butter)</h4>
-          ${(ch.combos || [])
-            .map(
-              (cb) => `
-              <div class="combo-box">
-                <div class="combo-box-header">
-                  <strong>${cb.type}</strong>
-                  <span style="color:#34d399;font-weight:700;">${cb.damage}</span>
-                </div>
-                <div class="combo-string">
-                  ${translateNotation(cb.notation, game.sagaId, state.notationMode)}
-                </div>
-              </div>
-            `
-            )
-            .join("")}
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+            <h4 style="margin:0;font-family:var(--font-display);">2. Combos y Rutas Interactivas</h4>
+            <div class="combo-filter-pills" id="comboFilterPills">
+              <button class="btn-chip active" data-cfilter="all">Todos</button>
+              <button class="btn-chip" data-cfilter="Fácil">Fáciles</button>
+              <button class="btn-chip" data-cfilter="Sin Barra">Sin Barra</button>
+              <button class="btn-chip" data-cfilter="Con Recursos">Con Recursos</button>
+            </div>
+          </div>
+          <div id="charCombosListWrap">
+            ${(ch.combos || [])
+              .map((cb, cbIdx) => {
+                const diffTag = cb.difficulty || "Media";
+                const resTag = cb.resource || (String(cb.type || "").toLowerCase().includes("barra") || String(cb.type || "").toLowerCase().includes("heat") || String(cb.type || "").toLowerCase().includes("rrc") ? "Con Recursos" : "Sin Barra");
+                const translatedCombo = translateNotation(cb.notation, game.sagaId, state.notationMode);
+                return `
+                  <div class="combo-box" data-cdiff="${diffTag}" data-cres="${resTag}">
+                    <div class="combo-box-header">
+                      <div>
+                        <strong>${cb.type}</strong>
+                        <span class="diff-badge" style="margin-left:6px;font-size:0.64rem;">${diffTag}</span>
+                      </div>
+                      <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="color:#34d399;font-weight:700;">${cb.damage}</span>
+                        <button class="btn btn-outline btn-copy-combo" data-copytext="${String(translatedCombo).replace(/"/g, "&quot;")}" style="padding:3px 8px;font-size:0.68rem;">📋 Copiar</button>
+                      </div>
+                    </div>
+                    <div class="combo-string">${translatedCombo}</div>
+                  </div>
+                `;
+              })
+              .join("")}
+          </div>
         </div>
       </div>
     </div>
@@ -1823,6 +1886,38 @@ function openCharacterModal(gameId, charId) {
         );
       }
     });
+  });
+
+  const mainBtn = document.getElementById("btnToggleMainProfile");
+  if (mainBtn && typeof window.toggleFavoriteMain === "function") {
+    mainBtn.onclick = () => {
+      const nowFav = window.toggleFavoriteMain(game.id, ch.id, ch.name, game.title);
+      mainBtn.textContent = nowFav ? "★ Mi Main" : "☆ Marcar Main";
+      mainBtn.classList.toggle("is-fav-active", nowFav);
+    };
+  }
+
+  body.querySelectorAll("[data-cfilter]").forEach((pill) => {
+    pill.onclick = () => {
+      body.querySelectorAll("[data-cfilter]").forEach((p) => p.classList.remove("active"));
+      pill.classList.add("active");
+      const f = pill.dataset.cfilter;
+      body.querySelectorAll("#charCombosListWrap .combo-box").forEach((box) => {
+        const show = f === "all" || box.dataset.cdiff === f || box.dataset.cres === f;
+        box.style.display = show ? "block" : "none";
+      });
+    };
+  });
+
+  body.querySelectorAll(".btn-copy-combo").forEach((cBtn) => {
+    cBtn.onclick = () => {
+      const txt = cBtn.dataset.copytext || "";
+      navigator.clipboard?.writeText(txt).then(() => {
+        const old = cBtn.textContent;
+        cBtn.textContent = "✓ Copiado";
+        setTimeout(() => { cBtn.textContent = old; }, 1400);
+      }).catch(() => {});
+    };
   });
 
   document.getElementById("btnCloseCharModal").onclick = () => {

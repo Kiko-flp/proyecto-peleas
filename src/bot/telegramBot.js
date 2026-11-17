@@ -1192,7 +1192,8 @@ class TelegramBotManager {
       `• 🤖 *Bot:* ${this.botFirstName} (${this.botUsername})\n` +
       `• ⚙️ *Modo activo:* \`${this.mode}\`\n` +
       `• ⏱️ *Tiempo encendido:* ${uptimeMin} min\n` +
-      `• ☁️ *Cloud Sync:* ${process.env.CLOUD_SYNC_URL ? "Activo" : "Local (`runtime_db.json`)"}\n\n` +
+      `• ☁️ *Persistencia:* ${store.getCloudStatus()}\n` +
+      `• 🚀 *CDN Animaciones:* ${process.env.ANIM_CDN_BASE_URL ? "CDN Externo" : "Local (/animaciones-personajes)"}\n\n` +
       `*Últimos registros de administración:*\n${logLines}`;
 
     await this.callTelegram("sendMessage", {

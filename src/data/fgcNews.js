@@ -469,8 +469,78 @@ async function getFgcNews() {
   return cachedLiveNews;
 }
 
+let cachedLiveEvents = null;
+let lastEventsFetch = 0;
+
+async function getFgcEvents() {
+  const now = Date.now();
+  if (cachedLiveEvents && now - lastEventsFetch < 30 * 60 * 1000) {
+    return cachedLiveEvents;
+  }
+
+  const startggKey = (process.env.STARTGG_API_KEY || "").trim();
+  const liveEvents = [];
+
+  if (startggKey) {
+    try {
+      const query = `
+        query UpcomingFgcTournaments {
+          tournaments(query: { perPage: 6, sortBy: "startAt asc", filter: { upcoming: true, videogameIds: [43868, 49783, 1386, 33945] } }) {
+            nodes {
+              id
+              name
+              slug
+              city
+              countryCode
+              startAt
+              endAt
+              numAttendees
+            }
+          }
+        }
+      `;
+      const res = await fetch("https://api.start.gg/gql/alpha", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${startggKey}`
+        },
+        body: JSON.stringify({ query })
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const nodes = json?.data?.tournaments?.nodes || [];
+        nodes.forEach((t) => {
+          const sDate = new Date((t.startAt || 0) * 1000).toISOString().slice(0, 10);
+          const eDate = new Date(((t.endAt || t.startAt) || 0) * 1000).toISOString().slice(0, 10);
+          liveEvents.push({
+            id: `startgg-${t.id}`,
+            title: t.name,
+            saga: "Start.gg Circuito Oficial",
+            location: [t.city, t.countryCode].filter(Boolean).join(", ") || "Online / Internacional",
+            startDate: sDate,
+            endDate: eDate,
+            startLabel: formatSpanishShortDate(sDate),
+            endLabel: formatSpanishShortDate(eDate),
+            status: "Abierto en Start.gg",
+            games: `Torneo FGC (${t.numAttendees || 0} inscritos)`,
+            sourceUrl: `https://www.start.gg/${t.slug}`,
+            imageUrl: "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1364780/header.jpg",
+            summary: `Torneo oficial sincronizado en directo desde Start.gg con ${t.numAttendees || 0} competidores registrados.`
+          });
+        });
+      }
+    } catch (_) {}
+  }
+
+  cachedLiveEvents = [...liveEvents, ...FGC_EVENTS];
+  lastEventsFetch = Date.now();
+  return cachedLiveEvents;
+}
+
 module.exports = {
   FGC_EVENTS,
   CURATED_FGC_NEWS,
-  getFgcNews
+  getFgcNews,
+  getFgcEvents
 };

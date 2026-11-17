@@ -548,7 +548,10 @@ window.openHitboxInspector = async function (fcEncoded) {
       );
       if (res.ok) {
         const data = await res.json();
-        const entry = data?.hitboxes?.[fc.moveName];
+        const entry =
+          (typeof window.findHitboxEntryForCard === "function"
+            ? window.findHitboxEntryForCard(data?.hitboxes, fc)
+            : data?.hitboxes?.[fc.moveName]);
         if (
           entry &&
           entry.url &&
@@ -1851,3 +1854,275 @@ document.addEventListener("DOMContentLoaded", () => {
     glossarySearch.addEventListener("input", (e) => renderGlossary(e.target.value));
   }
 });
+
+// =========================================================================
+// E. COMPARADOR MATCHUP EN TIEMPO REAL (TÚ VS. RIVAL)
+// =========================================================================
+window.initMatchupComparator = function () {
+  const gameSel = document.getElementById("compareGameSelect");
+  const mySel = document.getElementById("compareMyCharSelect");
+  const oppSel = document.getElementById("compareOppCharSelect");
+  const outEl = document.getElementById("compareResultsContainer");
+  if (!gameSel || !mySel || !oppSel || !outEl || typeof state === "undefined" || !state.games.length) return;
+
+  if (!gameSel.options.length) {
+    gameSel.innerHTML = state.games.map((g) => `<option value="${g.id}">${g.title}</option>`).join("");
+  }
+
+  const populate = () => {
+    const game = state.games.find((g) => g.id === gameSel.value) || state.games[0];
+    const opts = game.characters.map((c) => `<option value="${c.id}">${c.name}</option>`).join("");
+    mySel.innerHTML = opts;
+    oppSel.innerHTML = opts;
+    if (oppSel.options.length > 1) oppSel.selectedIndex = 1;
+    renderComparison();
+  };
+
+  const renderComparison = () => {
+    const game = state.games.find((g) => g.id === gameSel.value) || state.games[0];
+    const myChar = game.characters.find((c) => c.id === mySel.value) || game.characters[0];
+    const oppChar = game.characters.find((c) => c.id === oppSel.value) || game.characters[1] || game.characters[0];
+    if (!myChar || !oppChar) return;
+
+    const myMoves = (myChar.frameDataCards || []).map((m) => ({
+      ...m,
+      startupNum: extractStartupNumber(m.startup),
+      onBlockNum: extractOnBlockNumber(m.onBlock)
+    }));
+    const oppMoves = (oppChar.frameDataCards || []).map((m) => ({
+      ...m,
+      startupNum: extractStartupNumber(m.startup),
+      onBlockNum: extractOnBlockNumber(m.onBlock)
+    }));
+
+    const myFastest = [...myMoves].sort((a, b) => a.startupNum - b.startupNum)[0];
+    const oppFastest = [...oppMoves].sort((a, b) => a.startupNum - b.startupNum)[0];
+    const oppUnsafe = oppMoves.filter((m) => m.onBlockNum !== null && m.onBlockNum <= -4);
+
+    const rowsHTML = oppUnsafe
+      .slice(0, 12)
+      .map((om) => {
+        const deficit = Math.abs(om.onBlockNum);
+        const punishers = myMoves
+          .filter((mm) => mm.startupNum > 0 && mm.startupNum <= deficit)
+          .sort((a, b) => b.startupNum - a.startupNum)
+          .slice(0, 3);
+        const oppCmd = typeof translateNotation === "function" ? translateNotation(om.input, game.sagaId, state.notationMode) : om.input;
+        const punishStr = punishers.length
+          ? punishers
+              .map((p) => {
+                const cmd = typeof translateNotation === "function" ? translateNotation(p.input, game.sagaId, state.notationMode) : p.input;
+                return `<span class="code-input-pill" style="margin:2px;">${cmd} (${p.startupNum}f)</span>`;
+              })
+              .join(" ")
+          : `<span style="color:#94a3b8;font-size:0.78rem;">Seguro (-${deficit}f &lt; tu botón más rápido)</span>`;
+        return `
+          <tr>
+            <td><strong>${om.moveName}</strong><br/><span class="code-input-pill">${oppCmd}</span></td>
+            <td style="color:#f87171;font-family:var(--font-mono);font-weight:700;">${om.onBlockNum}f</td>
+            <td>${punishStr}</td>
+          </tr>
+        `;
+      })
+      .join("");
+
+    outEl.innerHTML = `
+      <div class="guide-split-layout" style="margin-bottom:18px;">
+        <div class="guide-section-item" style="margin-top:0;border-left:3px solid #22c55e;">
+          <h4 style="margin-bottom:6px;">⚡ Tu Personaje: ${myChar.name}</h4>
+          <p style="font-size:0.84rem;margin-bottom:6px;"><strong>Arquetipo:</strong> ${myChar.archetype}</p>
+          <p style="font-size:0.84rem;"><strong>Poke más rápido:</strong> ${myFastest ? `${myFastest.moveName} (${myFastest.startupNum}f)` : "—"}</p>
+        </div>
+        <div class="guide-section-item" style="margin-top:0;border-left:3px solid #e11d48;">
+          <h4 style="margin-bottom:6px;">🎯 Rival: ${oppChar.name}</h4>
+          <p style="font-size:0.84rem;margin-bottom:6px;"><strong>Arquetipo:</strong> ${oppChar.archetype}</p>
+          <p style="font-size:0.84rem;"><strong>Poke más rápido:</strong> ${oppFastest ? `${oppFastest.moveName} (${oppFastest.startupNum}f)` : "—"}</p>
+        </div>
+      </div>
+
+      <h4 style="font-family:var(--font-display);margin-bottom:10px;">
+        Tabla Automática de Castigos (${myChar.name} castigando a ${oppChar.name})
+      </h4>
+      <table class="moves-table">
+        <thead>
+          <tr>
+            <th>Ataque del Rival</th>
+            <th>En Bloqueo</th>
+            <th>Con qué castiga ${myChar.name}</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rowsHTML || '<tr><td colspan="3" style="color:#94a3b8;">No hay movimientos castigables detectados en esta ficha.</td></tr>'}
+        </tbody>
+      </table>
+    `;
+  };
+
+  if (!gameSel.dataset.bound) {
+    gameSel.dataset.bound = "1";
+    gameSel.addEventListener("change", populate);
+    mySel.addEventListener("change", renderComparison);
+    oppSel.addEventListener("change", renderComparison);
+    populate();
+  } else {
+    renderComparison();
+  }
+};
+
+// =========================================================================
+// F. PERFIL LOCAL DE ENTRENAMIENTO (MIS MAINS, NOTAS Y CHECKLIST)
+// =========================================================================
+const PROFILE_STORAGE_KEY = "fgc_vault_training_profile_v1";
+
+function loadTrainingProfileData() {
+  try {
+    const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (_) {}
+  return {
+    mains: [],
+    notesByChar: {},
+    drillsByChar: {}
+  };
+}
+
+function saveTrainingProfileData(data) {
+  try {
+    localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(data));
+  } catch (_) {}
+}
+
+window.isFavoriteMain = function (gameId, charId) {
+  const data = loadTrainingProfileData();
+  return data.mains.some((m) => m.gameId === gameId && m.charId === charId);
+};
+
+window.toggleFavoriteMain = function (gameId, charId, charName, gameTitle) {
+  const data = loadTrainingProfileData();
+  const existsIdx = data.mains.findIndex((m) => m.gameId === gameId && m.charId === charId);
+  let nowFav = false;
+  if (existsIdx >= 0) {
+    data.mains.splice(existsIdx, 1);
+    nowFav = false;
+  } else {
+    data.mains.unshift({ gameId, charId, charName, gameTitle });
+    if (!data.drillsByChar[`${gameId}:${charId}`]) {
+      data.drillsByChar[`${gameId}:${charId}`] = [
+        { text: "Confirmar combo BnB sin gastar barra (5 veces seguidas por lado)", done: false },
+        { text: "Reaccionar consistentemente al antiaéreo principal", done: false },
+        { text: "Castigar sweeps (-12f / -14f) al bloquear en Training Mode", done: false }
+      ];
+    }
+    nowFav = true;
+  }
+  saveTrainingProfileData(data);
+  if (typeof window.initTrainingProfile === "function") window.initTrainingProfile();
+  return nowFav;
+};
+
+window.initTrainingProfile = function () {
+  const container = document.getElementById("trainingProfileContainer");
+  if (!container) return;
+  const data = loadTrainingProfileData();
+
+  if (data.mains.length === 0) {
+    container.innerHTML = `
+      <div class="guide-section-item" style="margin-top:0;text-align:center;padding:28px;">
+        <h4 style="margin-bottom:8px;">Aún no tienes ningún Main guardado</h4>
+        <p style="font-size:0.88rem;color:#9b9b9b;">
+          Abre la ficha de cualquier personaje dentro de cualquier juego y pulsa <strong>☆ Marcar Main</strong> arriba a la derecha para guardarlo aquí con tus notas y ejercicios de entrenamiento.
+        </p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = data.mains
+    .map((m) => {
+      const k = `${m.gameId}:${m.charId}`;
+      const note = data.notesByChar[k] || "";
+      const drills = data.drillsByChar[k] || [];
+      return `
+        <div class="guide-section-item profile-main-card" style="margin-top:0;margin-bottom:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+            <div>
+              <span class="diff-badge">${m.gameTitle}</span>
+              <h4 style="margin:6px 0 0;font-size:1.15rem;">★ ${m.charName}</h4>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-primary" data-profopen="${m.gameId}|${m.charId}" style="padding:7px 12px;font-size:0.75rem;">Abrir Frame Data</button>
+              <button class="btn btn-outline" data-profdel="${m.gameId}|${m.charId}" style="padding:7px 12px;font-size:0.75rem;">Quitar</button>
+            </div>
+          </div>
+
+          <label style="display:block;font-size:0.76rem;color:#fbbf24;margin-bottom:6px;">Notas personales de Matchups / Setups:</label>
+          <textarea class="profile-note-input" data-profnote="${k}" rows="2" placeholder="Apunta aquí castigos clave, setups o debilidades del rival...">${note}</textarea>
+
+          <div style="margin-top:12px;">
+            <strong style="font-size:0.78rem;color:#e5e5e5;display:block;margin-bottom:6px;">Checklist de Training Mode:</strong>
+            ${drills
+              .map(
+                (d, idx) => `
+                <label class="drill-check-row">
+                  <input type="checkbox" data-drilltoggle="${k}|${idx}" ${d.done ? "checked" : ""} />
+                  <span style="${d.done ? "text-decoration:line-through;color:#737373;" : ""}">${d.text}</span>
+                </label>
+              `
+              )
+              .join("")}
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <input type="text" class="in-game-search" style="flex:1;" id="addDrillInput_${k}" placeholder="Añadir nuevo ejercicio de práctica..." />
+              <button class="btn btn-outline" data-adddrill="${k}" style="padding:6px 12px;font-size:0.74rem;">+ Añadir</button>
+            </div>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+
+  container.querySelectorAll("[data-profopen]").forEach((b) => {
+    b.onclick = () => {
+      const [gId, cId] = b.dataset.profopen.split("|");
+      document.getElementById("toolsView")?.classList.add("hidden");
+      openGameHub(gId, "page-roster");
+      openCharacterModal(gId, cId);
+    };
+  });
+  container.querySelectorAll("[data-profdel]").forEach((b) => {
+    b.onclick = () => {
+      const [gId, cId] = b.dataset.profdel.split("|");
+      window.toggleFavoriteMain(gId, cId, "", "");
+    };
+  });
+  container.querySelectorAll("[data-profnote]").forEach((ta) => {
+    ta.addEventListener("input", () => {
+      const d = loadTrainingProfileData();
+      d.notesByChar[ta.dataset.profnote] = ta.value;
+      saveTrainingProfileData(d);
+    });
+  });
+  container.querySelectorAll("[data-drilltoggle]").forEach((cb) => {
+    cb.addEventListener("change", () => {
+      const [k, idx] = cb.dataset.drilltoggle.split("|");
+      const d = loadTrainingProfileData();
+      if (d.drillsByChar[k] && d.drillsByChar[k][Number(idx)]) {
+        d.drillsByChar[k][Number(idx)].done = cb.checked;
+        saveTrainingProfileData(d);
+        window.initTrainingProfile();
+      }
+    });
+  });
+  container.querySelectorAll("[data-adddrill]").forEach((btn) => {
+    btn.onclick = () => {
+      const k = btn.dataset.adddrill;
+      const inp = document.getElementById(`addDrillInput_${k}`);
+      const val = (inp?.value || "").trim();
+      if (!val) return;
+      const d = loadTrainingProfileData();
+      if (!d.drillsByChar[k]) d.drillsByChar[k] = [];
+      d.drillsByChar[k].push({ text: val, done: false });
+      saveTrainingProfileData(d);
+      window.initTrainingProfile();
+    };
+  });
+};

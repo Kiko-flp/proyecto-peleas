@@ -5,9 +5,10 @@ const fs = require("fs");
 const path = require("path");
 const store = require("./src/db/store");
 const telegramBot = require("./src/bot/telegramBot");
+const youtubeManager = require("./src/youtube/youtubeManager");
 const { resolveCharacterPortraitUrl } = require("./src/utils/portraitResolver");
 const { resolveCharacterHitboxes } = require("./src/utils/hitboxResolver");
-const { FGC_EVENTS, CURATED_FGC_NEWS, getFgcNews } = require("./src/data/fgcNews");
+const { FGC_EVENTS, CURATED_FGC_NEWS, getFgcNews, getFgcEvents } = require("./src/data/fgcNews");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -396,9 +397,21 @@ app.get("/api/bootstrap", (req, res) => {
 });
 
 app.get("/api/news", async (req, res) => {
-  const allNews = await getFgcNews();
+  const [allNews, allEvents] = await Promise.all([getFgcNews(), getFgcEvents()]);
   const customNews = store.getCustomNews();
-  res.json({ news: [...customNews, ...allNews], events: [...store.getCustomEvents(), ...FGC_EVENTS] });
+  res.json({
+    news: [...customNews, ...allNews],
+    events: [...store.getCustomEvents(), ...allEvents]
+  });
+});
+
+app.get("/api/youtube-channel", async (req, res) => {
+  const latestVideos = await youtubeManager.fetchLatestChannelVideos();
+  res.json({
+    youtubeChannel: store.state.youtubeChannel,
+    latestVideos,
+    apiConnected: youtubeManager.isApiConnected()
+  });
 });
 
 app.post("/api/community-resources", async (req, res) => {

@@ -8,6 +8,12 @@
  */
 
 const crypto = require("crypto");
+let REAL_FRAME_DATA = {};
+try {
+  REAL_FRAME_DATA = require("./realFrameData.json");
+} catch (_) {
+  REAL_FRAME_DATA = {};
+}
 
 function getMediaWikiHashedUrl(baseImagesUrl, fileName) {
   const normalized = fileName.replace(/\s+/g, "_");
@@ -173,6 +179,23 @@ function makeHitboxUrl(type, moveName, startup, active) {
 }
 
 function buildFrameDataCards(gameId, charName, archetype) {
+  const realEntry = REAL_FRAME_DATA?.[gameId]?.[charName];
+  if (realEntry && Array.isArray(realEntry.moves) && realEntry.moves.length > 0) {
+    return realEntry.moves.map((m) => ({
+      moveName: m.moveName || m.input || "Ataque",
+      input: m.input || m.moveName || "",
+      category: m.category || "Movimientos",
+      startup: m.startup || "—",
+      active: m.active || "—",
+      recovery: m.recovery || "—",
+      totalFrames: m.totalFrames || "—",
+      onBlock: m.onBlock || "0 On Block",
+      damage: m.damage || "—",
+      isRealWikiData: true,
+      notes: m.notes || ""
+    }));
+  }
+
   const h = hashNum(`${gameId}:${charName}`);
 
   // 1. SUPER SMASH BROS. ULTIMATE — MOVELIST COMPLETO (23 ATAQUES)
@@ -437,19 +460,52 @@ function buildSpanishVideoCompilation(gameId, charObj) {
 
 // =========================================================================
 // GENERADOR DE MATCHUPS: VENTAJA (FAVORABLES) Y COUNTERS (DESFAVORABLES) CON EL PORQUÉ
+// Basado en arquetipos reales y velocidad/alcance del repertorio.
 // =========================================================================
+function classifyArchetypeRole(archetypeStr) {
+  const a = String(archetypeStr || "").toLowerCase();
+  if (a.includes("zoner") || a.includes("alcance") || a.includes("espaciado") || a.includes("tramp") || a.includes("setplay")) return "zoner";
+  if (a.includes("grappler") || a.includes("agarre") || a.includes("powerhouse") || a.includes("armadura")) return "grappler";
+  if (a.includes("rushdown") || a.includes("mix-up") || a.includes("presión") || a.includes("movilidad")) return "rushdown";
+  if (a.includes("parry") || a.includes("counter") || a.includes("evasión") || a.includes("defensivo") || a.includes("contraataque")) return "defensive";
+  return "allrounder";
+}
+
 function buildCharacterMatchups(gameId, charObj, allRawInGame, colorHex) {
   const others = allRawInGame.filter((o) => o.name !== charObj.name);
   if (others.length < 4) return { favorable: [], counters: [] };
 
   const h = hashNum(`${gameId}:${charObj.name}`);
+  const myRole = classifyArchetypeRole(charObj.archetype);
   const arch = (charObj.archetype || "").toLowerCase();
 
-  // Seleccionar 2 rivales favorables y 2 counters del mismo juego según arquetipo
-  const fav1 = others[h % others.length];
-  const fav2 = others[(h + 5) % others.length];
-  const cnt1 = others[(h + 11) % others.length];
-  const cnt2 = others[(h + 17) % others.length];
+  // Triángulo competitivo real FGC: Zoners > Grapplers > Defensive/Allrounders > Rushdown > Zoners
+  const favRolesMap = {
+    zoner: ["grappler", "defensive", "allrounder"],
+    rushdown: ["zoner", "allrounder"],
+    grappler: ["defensive", "allrounder", "rushdown"],
+    defensive: ["rushdown", "allrounder"],
+    allrounder: ["grappler", "defensive"]
+  };
+  const cntRolesMap = {
+    zoner: ["rushdown", "defensive"],
+    rushdown: ["defensive", "grappler"],
+    grappler: ["zoner", "allrounder"],
+    defensive: ["zoner", "grappler"],
+    allrounder: ["zoner", "rushdown"]
+  };
+
+  const preferredFavs = others.filter((o) => favRolesMap[myRole].includes(classifyArchetypeRole(o.archetype)));
+  const favPool = preferredFavs.length >= 2 ? preferredFavs : others;
+  const fav1 = favPool[h % favPool.length];
+  const fav2 = favPool[(h + Math.max(1, Math.floor(favPool.length / 2))) % favPool.length];
+
+  const usedIds = new Set([fav1.name, fav2.name]);
+  const preferredCnts = others.filter((o) => !usedIds.has(o.name) && cntRolesMap[myRole].includes(classifyArchetypeRole(o.archetype)));
+  const fallbackCnts = others.filter((o) => !usedIds.has(o.name));
+  const cntPool = preferredCnts.length >= 2 ? preferredCnts : fallbackCnts;
+  const cnt1 = cntPool[(h + 3) % cntPool.length];
+  const cnt2 = cntPool[(h + Math.max(2, Math.floor(cntPool.length / 2))) % cntPool.length];
 
   const getFavReason = (opp) => {
     const oppArch = (opp.archetype || "").toLowerCase();
@@ -508,7 +564,7 @@ function buildRosterEntry(gameId, sagaNotation, wikiBaseUrl, defaultVideo, color
   const isDLC = Boolean(raw.dlcPack);
 
   const keyMoves = raw.keyMoves || getDefaultKeyMoves(gameId, raw.name);
-  const combos = raw.combos || getDefaultCombos(gameId);
+  const combos = raw.combos || getDefaultCombos(gameId, raw.name);
   const frameDataCards = raw.frameDataCards || buildFrameDataCards(gameId, raw.name, raw.archetype);
   const matchups = raw.matchups || buildCharacterMatchups(gameId, raw, allRawInGame, colorHex);
   const spanishCompilation = buildSpanishVideoCompilation(gameId, raw);
@@ -610,39 +666,44 @@ function getDefaultKeyMoves(gameId, name) {
   }
 }
 
-function getDefaultCombos(gameId) {
+function getDefaultCombos(gameId, charName = "") {
+  const realEntry = REAL_FRAME_DATA?.[gameId]?.[charName];
+  if (realEntry && Array.isArray(realEntry.combos) && realEntry.combos.length > 0) {
+    return realEntry.combos;
+  }
+
   switch (gameId) {
     case "mk1":
       return [
-        { type: "Midscreen (Sin Barra)", notation: "f+3,2 > j.1,2 ~ db+2 > dash > 2,1 ~ bf+1", damage: "335 dmg" },
-        { type: "Confirmación 1 Barra + Kameo", notation: "1,2 ~ EX bf+1 > Kameo > f+3,2 > j.1,2,2 ~ bf+2", damage: "405 dmg" },
-        { type: "Esquina (Corner BnB)", notation: "b+3,2 ~ db+2 > 4 ~ bf+1 > 1,2 ~ db+4", damage: "385 dmg" }
+        { type: "Midscreen (Sin Barra)", difficulty: "Fácil", resource: "Sin Barra", notation: "f+3,2 > j.1,2 ~ db+2 > dash > 2,1 ~ bf+1", damage: "335 dmg" },
+        { type: "Confirmación 1 Barra + Kameo", difficulty: "Media", resource: "Con Recursos", notation: "1,2 ~ EX bf+1 > Kameo > f+3,2 > j.1,2,2 ~ bf+2", damage: "405 dmg" },
+        { type: "Esquina (Corner BnB)", difficulty: "Difícil", resource: "Sin Barra", notation: "b+3,2 ~ db+2 > 4 ~ bf+1 > 1,2 ~ db+4", damage: "385 dmg" }
       ];
     case "sf6":
       return [
-        { type: "Midscreen Básico", notation: "2LP > 2LP ~ 236LP / 623LP", damage: "1580 dmg" },
-        { type: "Drive Rush Confirm (3 Barras)", notation: "2MK ~ DRC > 5MP > 2HP ~ 214MP > 623HP", damage: "2540 dmg" },
-        { type: "Esquina Punish Counter + Nivel 3", notation: "5HP ~ 236PP > 2MP ~ 214HP ~ SA3 (236236P)", damage: "5350 dmg" }
+        { type: "Midscreen Básico", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 2LP ~ 236LP / 623LP", damage: "1580 dmg" },
+        { type: "Drive Rush Confirm (3 Barras)", difficulty: "Media", resource: "Con Recursos", notation: "2MK ~ DRC > 5MP > 2HP ~ 214MP > 623HP", damage: "2540 dmg" },
+        { type: "Esquina Punish Counter + Nivel 3", difficulty: "Difícil", resource: "Con Recursos", notation: "5HP ~ 236PP > 2MP ~ 214HP ~ SA3 (236236P)", damage: "5350 dmg" }
       ];
     case "tekken8":
       return [
-        { type: "Combo Estándar (i15 Launcher)", notation: "df+2 > df+1 > b+2,1 > df+4,3 (Tornado) > dash > ff+2,1", damage: "69 dmg" },
-        { type: "Combo con Heat Burst", notation: "uf+4 > df+1 > b+1,2 (Tornado) > Heat Burst > dash > f+2,3,1", damage: "76 dmg" }
+        { type: "Combo Estándar (i15 Launcher)", difficulty: "Fácil", resource: "Sin Barra", notation: "df+2 > df+1 > b+2,1 > df+4,3 (Tornado) > dash > ff+2,1", damage: "69 dmg" },
+        { type: "Combo con Heat Burst", difficulty: "Media", resource: "Con Recursos", notation: "uf+4 > df+1 > b+1,2 (Tornado) > Heat Burst > dash > f+2,3,1", damage: "76 dmg" }
       ];
     case "dbfz":
       return [
-        { type: "Midscreen Ruta Universal", notation: "2M > 5M > jc > j.MLL > j.2H > SD > j.MLL > j.2H > jc > j.LLL", damage: "4150 dmg" },
-        { type: "Esquina Óptimo", notation: "2M > 5M > 236M > 2M > 5H > SD > j.MLL > j.2H > jc > j.LLL ~ Super Lv1", damage: "5280 dmg" }
+        { type: "Midscreen Ruta Universal", difficulty: "Fácil", resource: "Sin Barra", notation: "2M > 5M > jc > j.MLL > j.2H > SD > j.MLL > j.2H > jc > j.LLL", damage: "4150 dmg" },
+        { type: "Esquina Óptimo", difficulty: "Media", resource: "Con Recursos", notation: "2M > 5M > 236M > 2M > 5H > SD > j.MLL > j.2H > jc > j.LLL ~ Super Lv1", damage: "5280 dmg" }
       ];
     case "gg-strive":
       return [
-        { type: "Midscreen Gatling BnB", notation: "c.S > 2S > 5HS ~ 236S / 214K", damage: "168 dmg" },
-        { type: "Confirmación RRC Wall Break", notation: "2K > 2D ~ 236S > RRC > dash > c.S > 2HS ~ 214HS > 6HS (Wall Break)", damage: "242 dmg" }
+        { type: "Midscreen Gatling BnB", difficulty: "Fácil", resource: "Sin Barra", notation: "c.S > 2S > 5HS ~ 236S / 214K", damage: "168 dmg" },
+        { type: "Confirmación RRC Wall Break", difficulty: "Difícil", resource: "Con Recursos", notation: "2K > 2D ~ 236S > RRC > dash > c.S > 2HS ~ 214HS > 6HS (Wall Break)", damage: "242 dmg" }
       ];
     case "ssbu":
       return [
-        { type: "0% - 35% Bread & Butter", notation: "Down Throw / Utilt > Short Hop Fair > Fast Fall > Dash Attack", damage: "33%" },
-        { type: "Kill Confirm (95% - 120%)", notation: "Landing Nair / Dtilt > RAR Back Air / Up-Smash", damage: "26% (KO)" }
+        { type: "0% - 35% Bread & Butter", difficulty: "Fácil", resource: "Sin Barra", notation: "Down Throw / Utilt > Short Hop Fair > Fast Fall > Dash Attack", damage: "33%" },
+        { type: "Kill Confirm (95% - 120%)", difficulty: "Media", resource: "Sin Barra", notation: "Landing Nair / Dtilt > RAR Back Air / Up-Smash", damage: "26% (KO)" }
       ];
     default:
       return [];

@@ -4,11 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta name="theme-color" content="#c05530" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
   <title>FGC Vault — Enciclopedia y Guías de Juegos de Lucha</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=JetBrains+Mono:wght@500;700&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=25" />
+  <link rel="stylesheet" href="/styles.css?v=27" />
 </head>
 <body>
   <!-- BARRA DE NAVEGACIÓN MINIMALISTA DE DISEÑO EDITORIAL -->
@@ -338,6 +341,12 @@
           <button class="game-tab" data-tooltab="tool-glossary">
             3. Glosario FGC
           </button>
+          <button class="game-tab" data-tooltab="tool-compare">
+            4. Comparador Matchup (Tú vs. Rival)
+          </button>
+          <button class="game-tab" data-tooltab="tool-profile">
+            5. Mis Mains y Práctica
+          </button>
         </div>
       </div>
 
@@ -395,6 +404,46 @@
             <input type="search" id="glossarySearchInput" class="in-game-search" placeholder="Buscar término (ej. Shimmy, Oki, OOS)..." />
           </div>
           <div class="news-grid" id="glossaryCardsGrid"></div>
+        </div>
+      </div>
+
+      <div id="tool-compare" class="tool-subview hidden">
+        <div class="roster-block">
+          <div class="roster-block-header">
+            <div>
+              <h3>Comparador Matchup en Tiempo Real (Tú vs. Rival)</h3>
+              <p>Cruza la frame data completa de tu personaje frente al rival para ver con qué ataques castigar cada golpe suyo.</p>
+            </div>
+          </div>
+          <div class="news-filter-bar" style="margin-bottom:20px;">
+            <div class="filter-inputs-row" style="width:100%;">
+              <div class="date-filter-group" style="flex:1;min-width:190px;">
+                <label for="compareGameSelect">1. Juego</label>
+                <select id="compareGameSelect"></select>
+              </div>
+              <div class="date-filter-group" style="flex:1;min-width:190px;">
+                <label for="compareMyCharSelect">2. Tu Personaje (Main)</label>
+                <select id="compareMyCharSelect"></select>
+              </div>
+              <div class="date-filter-group" style="flex:1;min-width:190px;">
+                <label for="compareOppCharSelect">3. Personaje Rival</label>
+                <select id="compareOppCharSelect"></select>
+              </div>
+            </div>
+          </div>
+          <div id="compareResultsContainer"></div>
+        </div>
+      </div>
+
+      <div id="tool-profile" class="tool-subview hidden">
+        <div class="roster-block">
+          <div class="roster-block-header">
+            <div>
+              <h3>Mis Mains, Notas y Checklist de Entrenamiento</h3>
+              <p>Guarda tus personajes principales en este dispositivo, apunta setups contra rivales y marca tus ejercicios de Training Mode.</p>
+            </div>
+          </div>
+          <div id="trainingProfileContainer"></div>
         </div>
       </div>
     </section>
@@ -586,7 +635,14 @@
     </div>
   </div>
 
-  <script src="/features.js?v=25"></script>
-  <script src="/app.js?v=25"></script>
+  <script src="/features.js?v=27"></script>
+  <script src="/app.js?v=27"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/sw.js").catch(() => {});
+      });
+    }
+  </script>
 </body>
 </html>

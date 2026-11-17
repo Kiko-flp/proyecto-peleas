@@ -1,0 +1,22 @@
+{
+  "name": "FGC Vault — Enciclopedia & Frame Data",
+  "short_name": "FGC Vault",
+  "description": "Enciclopedia competitiva de juegos de lucha con Frame Data real, hitboxes y comparador de castigos.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#c05530",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/api/char-icon?name=FGC&game=sf6&bg=131414&border=c05530",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/api/char-icon?name=FGC&game=tekken8&bg=131414&border=c05530",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

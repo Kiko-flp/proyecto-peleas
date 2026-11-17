@@ -1984,3 +1984,71 @@ body {
   border-radius: 3px;
   z-index: 6;
 }
+
+/* =========================================================================
+   COMBOS FILTRABLES, PERFIL TRAINING MODE Y OPTIMIZACIÓN MÓVIL / PWA
+   ========================================================================= */
+.combo-filter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.btn-chip {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #d4d4d8;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.btn-chip.active,
+.btn-chip:hover {
+  background: rgba(192, 85, 48, 0.25);
+  border-color: #c05530;
+  color: #ffffff;
+}
+
+.is-fav-active {
+  border-color: #fbbf24 !important;
+  color: #fbbf24 !important;
+  background: rgba(251, 191, 36, 0.14) !important;
+}
+
+.profile-note-input {
+  width: 100%;
+  background: #0d0f12;
+  color: #f4f4f5;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  padding: 10px;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  resize: vertical;
+}
+
+.drill-check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  margin-bottom: 5px;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+#hbFrameSlider {
+  height: 28px;
+  touch-action: none;
+}
+
+#hbFrameSlider::-webkit-slider-thumb {
+  width: 22px;
+  height: 22px;
+}

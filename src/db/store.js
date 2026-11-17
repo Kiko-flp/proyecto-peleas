@@ -8,7 +8,90 @@ const DB_PATH = path.join(DATA_DIR, "runtime_db.json");
 class DataStore {
   constructor() {
     this.state = null;
+    this.cloudConnected = false;
+    this.lastCloudSync = null;
     this.init();
+    this.ready = this.hydrateFromCloud();
+  }
+
+  getCloudPayload() {
+    return {
+      youtubeChannel: this.state.youtubeChannel,
+      customNews: this.state.customNews || [],
+      customEvents: this.state.customEvents || [],
+      patchOverrides: this.state.patchOverrides || {},
+      charLockOverrides: this.state.charLockOverrides || {},
+      customCharacters: this.state.customCharacters || [],
+      communityResources: this.state.communityResources || [],
+      missingContentRoadmap: this.state.missingContentRoadmap || [],
+      submissions: this.state.submissions || [],
+      verifiedUsers: this.state.verifiedUsers || [],
+      authRequests: this.state.authRequests || [],
+      ownerChatId: this.state.ownerChatId || ""
+    };
+  }
+
+  mergeCloudSnapshot(saved) {
+    if (!saved || typeof saved !== "object") return;
+    if (saved.youtubeChannel) this.state.youtubeChannel = saved.youtubeChannel;
+    if (Array.isArray(saved.customNews)) this.state.customNews = saved.customNews;
+    if (Array.isArray(saved.customEvents)) this.state.customEvents = saved.customEvents;
+    if (saved.patchOverrides) this.state.patchOverrides = saved.patchOverrides;
+    if (saved.charLockOverrides) this.state.charLockOverrides = saved.charLockOverrides;
+    if (Array.isArray(saved.customCharacters)) this.state.customCharacters = saved.customCharacters;
+    if (Array.isArray(saved.communityResources)) this.state.communityResources = saved.communityResources;
+    if (Array.isArray(saved.missingContentRoadmap)) this.state.missingContentRoadmap = saved.missingContentRoadmap;
+    if (Array.isArray(saved.submissions)) this.state.submissions = saved.submissions;
+    if (Array.isArray(saved.verifiedUsers)) this.state.verifiedUsers = saved.verifiedUsers;
+    if (Array.isArray(saved.authRequests)) this.state.authRequests = saved.authRequests;
+    if (saved.ownerChatId) this.state.ownerChatId = saved.ownerChatId;
+    this.applySavedOverrides();
+  }
+
+  async hydrateFromCloud() {
+    const supaUrl = (process.env.SUPABASE_URL || "").trim().replace(/\/+$/, "");
+    const supaKey = (process.env.SUPABASE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
+    const cloudUrl = (process.env.CLOUD_SYNC_URL || "").trim();
+
+    try {
+      if (supaUrl && supaKey) {
+        const res = await fetch(`${supaUrl}/rest/v1/fgc_vault_state?id=eq.main&select=payload`, {
+          headers: {
+            apikey: supaKey,
+            Authorization: `Bearer ${supaKey}`
+          }
+        });
+        if (res.ok) {
+          const rows = await res.json();
+          if (Array.isArray(rows) && rows[0] && rows[0].payload) {
+            this.mergeCloudSnapshot(rows[0].payload);
+            this.cloudConnected = true;
+            this.lastCloudSync = new Date().toISOString();
+            return true;
+          }
+        }
+      } else if (cloudUrl) {
+        const res = await fetch(cloudUrl);
+        if (res.ok) {
+          const data = await res.json();
+          this.mergeCloudSnapshot(data?.record || data);
+          this.cloudConnected = true;
+          this.lastCloudSync = new Date().toISOString();
+          return true;
+        }
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  getCloudStatus() {
+    if (process.env.SUPABASE_URL && (process.env.SUPABASE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY)) {
+      return `Supabase REST (${this.cloudConnected ? "Sincronizado" : "Listo"})`;
+    }
+    if (process.env.CLOUD_SYNC_URL) {
+      return `Cloud Webhook (${this.cloudConnected ? "Sincronizado" : "Configurado"})`;
+    }
+    return "Local (data/runtime_db.json)";
   }
 
   init() {
@@ -74,19 +157,43 @@ class DataStore {
       // En memoria si no se puede escribir en disco
     }
 
-    // Sincronización automática en la nube si se configura CLOUD_SYNC_URL (Supabase / Firebase / Webhook)
-    const cloudUrl = process.env.CLOUD_SYNC_URL;
-    if (cloudUrl) {
+    // Sincronización bidireccional en la nube (Supabase REST o CLOUD_SYNC_URL)
+    const supaUrl = (process.env.SUPABASE_URL || "").trim().replace(/\/+$/, "");
+    const supaKey = (process.env.SUPABASE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
+    const cloudUrl = (process.env.CLOUD_SYNC_URL || "").trim();
+    const snapshot = this.getCloudPayload();
+
+    if (supaUrl && supaKey) {
+      fetch(`${supaUrl}/rest/v1/fgc_vault_state`, {
+        method: "POST",
+        headers: {
+          apikey: supaKey,
+          Authorization: `Bearer ${supaKey}`,
+          "Content-Type": "application/json",
+          Prefer: "resolution=merge-duplicates"
+        },
+        body: JSON.stringify({ id: "main", payload: snapshot, updated_at: new Date().toISOString() })
+      })
+        .then((r) => {
+          if (r.ok) {
+            this.cloudConnected = true;
+            this.lastCloudSync = new Date().toISOString();
+          }
+        })
+        .catch(() => {});
+    } else if (cloudUrl) {
       fetch(cloudUrl, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customNews: this.state.customNews || [],
-          communityResources: this.state.communityResources || [],
-          missingContentRoadmap: this.state.missingContentRoadmap || [],
-          ownerChatId: this.state.ownerChatId || ""
+        body: JSON.stringify(snapshot)
+      })
+        .then((r) => {
+          if (r.ok) {
+            this.cloudConnected = true;
+            this.lastCloudSync = new Date().toISOString();
+          }
         })
-      }).catch(() => {});
+        .catch(() => {});
     }
   }
 

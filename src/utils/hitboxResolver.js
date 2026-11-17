@@ -11,6 +11,15 @@ const fs = require("fs");
 const path = require("path");
 const hitboxCache = new Map();
 const ANIM_DIR = path.join(__dirname, "..", "..", "animaciones-personajes");
+const ANIM_CDN_BASE_URL = (process.env.ANIM_CDN_BASE_URL || "").trim().replace(/\/+$/, "");
+
+function resolveAssetUrl(relPath) {
+  if (ANIM_CDN_BASE_URL) {
+    const cleanRel = String(relPath || "").replace(/^\/?animaciones-personajes\//, "").replace(/^\/+/, "");
+    return `${ANIM_CDN_BASE_URL}/${cleanRel}`;
+  }
+  return relPath;
+}
 
 function loadLocalManifest() {
   try {
@@ -25,7 +34,7 @@ function loadLocalManifest() {
 
 let localManifestCache = null;
 function getLocalCharHitboxes(gameId, charName) {
-  if (!localManifestCache) {
+  if (!localManifestCache || Object.keys(localManifestCache).length === 0) {
     localManifestCache = loadLocalManifest();
   }
   const key = `${gameId}|${charName}`;
@@ -37,12 +46,33 @@ function getLocalCharHitboxes(gameId, charName) {
     if (!info || !info.url) continue;
     const rel = String(info.url).replace(/^\/+/, "");
     const absPath = path.join(__dirname, "..", "..", rel);
-    if (fs.existsSync(absPath)) {
+    if (ANIM_CDN_BASE_URL || fs.existsSync(absPath)) {
       verified[moveName] = {
         ...info,
-        localUrl: info.url
+        localUrl: resolveAssetUrl(info.url)
       };
     }
+  }
+
+  // Índice adicional por tokens de archivo descargados en la carpeta del personaje
+  const charSlug = String(charName || "").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+  const charDir = path.join(ANIM_DIR, gameId, charSlug);
+  if (fs.existsSync(charDir)) {
+    try {
+      const files = fs.readdirSync(charDir);
+      files.forEach((f) => {
+        const lower = f.toLowerCase();
+        const url = resolveAssetUrl(`/animaciones-personajes/${gameId}/${charSlug}/${f}`);
+        const type = /\.(mp4|webm)$/i.test(f) ? "video" : "image";
+        verified[`__file:${lower}`] = {
+          url,
+          localUrl: url,
+          type,
+          hasNativeHitbox: lower.includes("hitbox") || gameId === "ssbu",
+          source: gameId === "ssbu" ? "Ultimate Frame Data" : gameId === "sf6" ? "SuperCombo Wiki" : gameId === "tekken8" ? "Wavu Wiki" : "Dustloop Wiki"
+        };
+      });
+    } catch (_) {}
   }
   return verified;
 }
