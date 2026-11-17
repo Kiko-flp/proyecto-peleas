@@ -25,6 +25,8 @@ const state = {
   selectedSubpage: "page-basic",
   selectedCharacter: null,
   selectedDlcPackFilter: "all",
+  dbfzPosFilter: "all",
+  mk1KameoFilter: "all",
   inGameSearchQuery: "",
   notationMode: "technical",
   searchQuery: ""
@@ -595,7 +597,7 @@ function openCommunityPage() {
   renderCommunitySection();
 }
 
-function openToolsPage(initialTab = "tool-quiz", quizMode = "general") {
+function openToolsPage(initialTab = "tool-quiz", quizMode = "general", synergyOpts = {}) {
   state.selectedGameId = null;
   setActiveTopNav("btnOpenToolsView");
   document.getElementById("homeView").classList.add("hidden");
@@ -624,8 +626,18 @@ function openToolsPage(initialTab = "tool-quiz", quizMode = "general") {
   if (typeof window.initTrainingProfile === "function") {
     window.initTrainingProfile();
   }
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  if (typeof window.initSynergyAndTeamLab === "function") {
+    window.initSynergyAndTeamLab(synergyOpts);
+  }
+  if (synergyOpts?.scrollAnchorId) {
+    setTimeout(() => {
+      document.getElementById(synergyOpts.scrollAnchorId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 60);
+  } else {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 }
+window.openToolsPage = openToolsPage;
 
 // =========================================================================
 // SECCIÓN DE NOTICIAS DE JUEGOS DE LUCHA Y COMPETITIVO
@@ -1013,6 +1025,11 @@ function renderGamesGrid() {
               <div class="roster-split-pills">
                 <span class="pill-base">${baseChars.length} Base</span>
                 <span class="pill-dlc">+${dlcChars.length} DLC (${uniquePacks.length} Packs)</span>
+                ${
+                  Array.isArray(game.kameos) && game.kameos.length
+                    ? `<span class="pill-base" style="border-color:rgba(245,158,11,0.45);color:#fbbf24;">+${game.kameos.length} Kameos</span>`
+                    : ""
+                }
               </div>
             </div>
           </div>
@@ -1038,6 +1055,8 @@ function renderGamesGrid() {
 function openGameHub(gameId, initialSubpage = "page-basic") {
   state.selectedGameId = gameId;
   state.selectedDlcPackFilter = "all";
+  state.dbfzPosFilter = "all";
+  state.mk1KameoFilter = "all";
   state.inGameSearchQuery = "";
   const inGameInput = document.getElementById("inGameCharSearch");
   if (inGameInput) inGameInput.value = "";
@@ -1154,18 +1173,65 @@ function getControllerLegend(sagaId, mode) {
   `;
 
   const q = state.inGameSearchQuery.trim().toLowerCase();
+  const dbfzWrap = document.getElementById("dbfzPosFilterWrap");
+  const posFilter = game.id === "dbfz" ? state.dbfzPosFilter || "all" : "all";
+
+  if (dbfzWrap) {
+    if (game.id === "dbfz") {
+      dbfzWrap.classList.remove("hidden");
+      const countByPos = (posName) =>
+        game.characters.filter((c) => c.dbfzPosition?.primaryPos === posName).length;
+      dbfzWrap.innerHTML = `
+        <div class="roster-block" style="padding:14px 18px;margin-bottom:0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+          <div>
+            <strong style="font-size:0.86rem;color:#fbbf24;">Filtrar Plantel por Posición Competitiva DBFZ (3v3):</strong>
+            <span style="font-size:0.78rem;color:#94a3b8;display:block;">Muestra su rol ideal y asistencias recomendadas (A/B/C) o abre el constructor de equipo.</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <div class="combo-filter-pills" id="dbfzPosPills">
+              <button class="btn-chip ${posFilter === "all" ? "active" : ""}" data-dbfzpos="all">Todos (${game.characters.length})</button>
+              <button class="btn-chip ${posFilter === "Point" ? "active" : ""}" data-dbfzpos="Point">Point (${countByPos("Point")})</button>
+              <button class="btn-chip ${posFilter === "Mid" ? "active" : ""}" data-dbfzpos="Mid">Mid (${countByPos("Mid")})</button>
+              <button class="btn-chip ${posFilter === "Anchor" ? "active" : ""}" data-dbfzpos="Anchor">Anchor (${countByPos("Anchor")})</button>
+            </div>
+            <button class="btn btn-primary" id="btnJumpDbfzBuilder" style="padding:6px 12px;font-size:0.72rem;">🛠 Constructor Equipo 3v3</button>
+          </div>
+        </div>
+      `;
+      dbfzWrap.querySelectorAll("[data-dbfzpos]").forEach((btn) => {
+        btn.onclick = () => {
+          state.dbfzPosFilter = btn.dataset.dbfzpos;
+          renderGameDetailView(game.id);
+        };
+      });
+      document.getElementById("btnJumpDbfzBuilder")?.addEventListener("click", () => {
+        openToolsPage("tool-synergy", "general", { scrollAnchorId: "synergyDbfzAnchor" });
+      });
+    } else {
+      dbfzWrap.classList.add("hidden");
+      dbfzWrap.innerHTML = "";
+    }
+  }
+
+  const matchesDbfzPos = (c) =>
+    posFilter === "all" ||
+    c.dbfzPosition?.primaryPos === posFilter ||
+    (c.dbfzPosition?.viablePositions || []).includes(posFilter);
+
   const baseChars = game.characters.filter(
     (c) =>
       !c.isDLC &&
+      matchesDbfzPos(c) &&
       (!q || c.name.toLowerCase().includes(q) || c.archetype.toLowerCase().includes(q))
   );
   const allDlcChars = game.characters.filter((c) => c.isDLC);
   const filteredDlcChars = allDlcChars.filter(
     (c) =>
-      !q ||
-      c.name.toLowerCase().includes(q) ||
-      c.archetype.toLowerCase().includes(q) ||
-      (c.dlcPack && c.dlcPack.toLowerCase().includes(q))
+      matchesDbfzPos(c) &&
+      (!q ||
+        c.name.toLowerCase().includes(q) ||
+        c.archetype.toLowerCase().includes(q) ||
+        (c.dlcPack && c.dlcPack.toLowerCase().includes(q)))
   );
 
   document.getElementById("baseRosterCountPill").textContent = `${baseChars.length} personajes Base`;
@@ -1191,11 +1257,135 @@ function getControllerLegend(sagaId, mode) {
   attachCharacterCardEvents(baseGrid, game.id);
 
   renderDlcGrid(game, filteredDlcChars);
+  renderGameSpecificRosterExtras(game, q);
 
   renderGuideSplit("basicGuideContainer", game.basicGuide, "Guía Básica de Conceptos", game.officialSources);
   renderGuideSplit("advancedGuideContainer", game.advancedGuide, "Guía Avanzada Competitiva", game.officialSources);
 
   hydrateBrowserPortraits(game);
+}
+
+function renderGameSpecificRosterExtras(game, q = "") {
+  const extrasEl = document.getElementById("gameSpecificRosterExtras");
+  if (!extrasEl) return;
+
+  if (game.id === "mk1" && Array.isArray(game.kameos) && game.kameos.length) {
+    const kf = state.mk1KameoFilter || "all";
+    const visibleKameos = game.kameos.filter((k) => {
+      const packOk = kf === "all" || (kf === "base" && !k.isDLC) || (kf === "dlc" && k.isDLC);
+      const qOk =
+        !q ||
+        k.name.toLowerCase().includes(q) ||
+        k.callType.toLowerCase().includes(q) ||
+        (k.bestPartners || []).some((p) => p.toLowerCase().includes(q));
+      return packOk && qOk;
+    });
+
+    extrasEl.innerHTML = `
+      <div class="roster-block" id="kameoSectionAnchor" style="border-color:rgba(245,158,11,0.38);">
+        <div class="roster-block-header">
+          <div>
+            <h3>Sub-plantel Oficial de Kameo Fighters (${game.kameos.length} Kameos)</h3>
+            <p>Asistentes de Mortal Kombat 1: pulsa cualquier Kameo para ver sus ataques Summon/Ambush, bonificación de vida y sus mejores parejas.</p>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <div class="combo-filter-pills">
+              <button class="btn-chip ${kf === "all" ? "active" : ""}" data-kameofilter="all">Todos (${game.kameos.length})</button>
+              <button class="btn-chip ${kf === "base" ? "active" : ""}" data-kameofilter="base">Base (${game.kameos.filter((x) => !x.isDLC).length})</button>
+              <button class="btn-chip ${kf === "dlc" ? "active" : ""}" data-kameofilter="dlc">DLC / Expansión (${game.kameos.filter((x) => x.isDLC).length})</button>
+            </div>
+            <button class="btn btn-primary" id="btnOpenMk1SynergyLab" style="padding:7px 14px;font-size:0.74rem;">
+              ⚡ Sinergias Main + Comparador entre Kameos
+            </button>
+          </div>
+        </div>
+        <div class="portrait-select-grid">
+          ${visibleKameos
+            .map(
+              (k) => `
+              <div class="portrait-tile kameo-tile ${k.isDLC ? "is-dlc" : ""}" data-kameoid="${k.id}" title="${k.name} — ${k.callType} (${k.hpBonus})">
+                <div class="portrait-img-box">
+                  <img src="${k.iconUrl}" alt="${k.name}" referrerpolicy="no-referrer" loading="lazy" />
+                </div>
+                <div class="portrait-name">${k.name}</div>
+                <div class="kameo-sub-badge">${k.hpBonus} • ${k.isDLC ? k.pack : "Base"}</div>
+              </div>
+            `
+            )
+            .join("")}
+        </div>
+      </div>
+    `;
+
+    extrasEl.querySelectorAll("[data-kameofilter]").forEach((btn) => {
+      btn.onclick = () => {
+        state.mk1KameoFilter = btn.dataset.kameofilter;
+        renderGameSpecificRosterExtras(game, state.inGameSearchQuery.trim().toLowerCase());
+      };
+    });
+    extrasEl.querySelectorAll("[data-kameoid]").forEach((card) => {
+      card.onclick = () => openKameoModal(card.dataset.kameoid);
+    });
+    document.getElementById("btnOpenMk1SynergyLab")?.addEventListener("click", () => {
+      openToolsPage("tool-synergy", "general", { scrollAnchorId: "synergyMk1Anchor" });
+    });
+    return;
+  }
+
+  if (game.id === "dbfz" && Array.isArray(game.metaTeams) && game.metaTeams.length) {
+    const findIcon = (nm) => game.characters.find((c) => c.name === nm)?.iconUrl || "";
+    extrasEl.innerHTML = `
+      <div class="roster-block" id="dbfzTeamsAnchor" style="border-color:rgba(249,115,22,0.4);">
+        <div class="roster-block-header">
+          <div>
+            <h3>Posicionamiento 3v3 (Point / Mid / Anchor) y Equipos Meta DBFZ</h3>
+            <p>Aprende en qué orden colocar a tus 3 luchadores y carga al instante shells competitivos en el Constructor 3v3.</p>
+          </div>
+          <button class="btn btn-primary" id="btnOpenDbfzTeamLabFromRoster" style="padding:7px 14px;font-size:0.74rem;">
+            🛠 Abrir Constructor Interactivo 3v3
+          </button>
+        </div>
+        <div class="synergy-cards-grid">
+          ${game.metaTeams
+            .map((mt) => {
+              const slotMini = (label, cls, slot) => `
+                <div style="display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.45);padding:6px 8px;border-radius:6px;">
+                  <div class="portrait-img-box" style="width:36px;height:36px;flex-shrink:0;">
+                    <img src="${findIcon(slot.name)}" alt="${slot.name}" referrerpolicy="no-referrer" />
+                  </div>
+                  <div style="min-width:0;flex:1;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:4px;">
+                      <span class="dbfz-role-pill ${cls}">${label}</span>
+                      <span style="font-family:var(--font-mono);font-size:0.68rem;color:#fbbf24;">Assist ${slot.assist}</span>
+                    </div>
+                    <div style="font-size:0.78rem;color:#fff;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${slot.name}</div>
+                  </div>
+                </div>
+              `;
+              return `
+                <div class="synergy-card">
+                  <div style="font-weight:700;color:#fff;font-size:0.94rem;margin-bottom:4px;">${mt.title}</div>
+                  <div style="font-size:0.72rem;color:#fbbf24;margin-bottom:8px;">${mt.playstyle}</div>
+                  <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;">
+                    ${slotMini("Point", "dbfz-role-point", mt.point)}
+                    ${slotMini("Mid", "dbfz-role-mid", mt.mid)}
+                    ${slotMini("Anchor", "dbfz-role-anchor", mt.anchor)}
+                  </div>
+                  <p style="font-size:0.78rem;color:#cbd5e1;margin:0;">${mt.synergyNotes}</p>
+                </div>
+              `;
+            })
+            .join("")}
+        </div>
+      </div>
+    `;
+    document.getElementById("btnOpenDbfzTeamLabFromRoster")?.addEventListener("click", () => {
+      openToolsPage("tool-synergy", "general", { scrollAnchorId: "synergyDbfzAnchor" });
+    });
+    return;
+  }
+
+  extrasEl.innerHTML = "";
 }
 
 function renderDlcGrid(game, dlcChars) {
@@ -1267,6 +1457,14 @@ function buildCharacterCardHTML(game, ch) {
         }
       </div>
       <div class="portrait-name">${ch.name}</div>
+      ${
+        game.id === "dbfz" && ch.dbfzPosition
+          ? `<div class="portrait-dbfz-bar">
+              <span class="dbfz-role-pill dbfz-role-${ch.dbfzPosition.primaryPos.toLowerCase()}">${ch.dbfzPosition.primaryPos}</span>
+              <span class="kameo-sub-badge" style="margin-top:0;">A-${ch.dbfzPosition.bestAssist}</span>
+            </div>`
+          : ""
+      }
     </div>
   `;
 }
@@ -1848,6 +2046,87 @@ function openCharacterModal(gameId, charId) {
     <!-- TARJETAS DE FRAME DATA ESTILO ULTIMATEFRAMEDATA (STARTUP, ACTIVE, RECOVERY, ON BLOCK/SHIELD) -->
     ${fdBlocksHTML}
 
+    <!-- BLOQUE DE KAMEOS (MK1) O POSICIONAMIENTO 3v3 + ASISTENCIAS (DBFZ) -->
+    ${(() => {
+      if (game.id === "mk1" && ch.kameoSynergy && Array.isArray(game.kameos)) {
+        const tops = ch.kameoSynergy.topKameos || [];
+        return `
+          <div class="ufd-section-banner" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <span>Sinergias de Kameos Recomendadas para ${ch.name}</span>
+            <button type="button" class="btn btn-primary" id="btnCharOpenMk1Synergy" style="padding:5px 12px;font-size:0.72rem;">⚡ Comparar Kameos en Laboratorio ➔</button>
+          </div>
+          <div class="synergy-cards-grid">
+            ${tops
+              .map((tk) => {
+                const kObj = game.kameos.find((k) => k.name === tk.kameo);
+                return `
+                  <div class="synergy-card" style="cursor:${kObj ? "pointer" : "default"};" ${kObj ? `data-openkameomodal="${kObj.id}"` : ""}>
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+                      ${
+                        kObj
+                          ? `<div class="portrait-img-box" style="width:48px;height:48px;flex-shrink:0;"><img src="${kObj.iconUrl}" alt="${kObj.name}" referrerpolicy="no-referrer" /></div>`
+                          : ""
+                      }
+                      <div style="flex:1;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+                          <strong style="color:#fff;font-size:0.98rem;">${tk.kameo}</strong>
+                          <span class="synergy-tier-pill ${String(tk.score).includes("S") ? "tier-splus" : ""}">Tier ${tk.score}</span>
+                        </div>
+                        <div style="font-size:0.74rem;color:#fbbf24;">${tk.tag} ${kObj ? `• ${kObj.hpBonus}` : ""}</div>
+                      </div>
+                    </div>
+                    <p style="font-size:0.79rem;color:#cbd5e1;margin-bottom:8px;">${tk.reason}</p>
+                    <div class="combo-box" style="margin:0;padding:7px 9px;">
+                      <div class="combo-string" style="font-size:0.75rem;">${tk.route}</div>
+                    </div>
+                  </div>
+                `;
+              })
+              .join("")}
+          </div>
+        `;
+      }
+      if (game.id === "dbfz" && ch.dbfzPosition) {
+        const dp = ch.dbfzPosition;
+        const assists = dp.assists || {};
+        return `
+          <div class="ufd-section-banner" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <span>Posicionamiento 3v3 y Asistencias de ${ch.name}</span>
+            <button type="button" class="btn btn-primary" id="btnCharOpenDbfzTeam" style="padding:5px 12px;font-size:0.72rem;">🛠 Probar en Constructor 3v3 ➔</button>
+          </div>
+          <div class="guide-section-item" style="margin-top:8px;">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px;">
+              <span class="dbfz-role-pill dbfz-role-${dp.primaryPos.toLowerCase()}">Rol Principal: ${dp.primaryPos}</span>
+              <span class="pill-base">Viable en: ${(dp.viablePositions || []).join(" / ")}</span>
+              <span class="pill-base">Gestión de Ki: ${dp.meterNeed}</span>
+              <span class="pill-base">Limit Break: ${dp.limitBreakRating}</span>
+            </div>
+            <p style="font-size:0.84rem;color:#e2e8f0;margin-bottom:10px;">${dp.positioningReason}</p>
+            <div class="dbfz-assists-breakdown">
+              ${["A", "B", "C"]
+                .map((letter) => {
+                  const a = assists[letter] || {};
+                  const isRec = dp.bestAssist === letter;
+                  return `
+                    <div class="dbfz-assist-box ${isRec ? "is-recommended" : ""}">
+                      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+                        <strong style="color:${isRec ? "#fbbf24" : "#fff"};font-size:0.82rem;">Assist ${letter}${isRec ? " ★ Recomendada" : ""}</strong>
+                        <span style="font-family:var(--font-mono);font-size:0.7rem;color:#94a3b8;">${a.blockstun || ""}</span>
+                      </div>
+                      <div style="font-size:0.79rem;color:#f8fafc;font-weight:600;margin-top:4px;">${a.name || ""}</div>
+                      <div style="font-size:0.72rem;color:#38bdf8;">${a.type || ""}</div>
+                      <p style="font-size:0.75rem;color:#cbd5e1;margin:4px 0 0;">${a.notes || ""}</p>
+                    </div>
+                  `;
+                })
+                .join("")}
+            </div>
+          </div>
+        `;
+      }
+      return "";
+    })()}
+
     <!-- SECCIÓN DE MATCHUPS: VENTAJAS Y COUNTERS CON EL PORQUÉ -->
     ${matchupsHTML}
   `;
@@ -1917,7 +2196,124 @@ function openCharacterModal(gameId, charId) {
 
   hydrateCharacterRealHitboxes(game, ch, body);
   hydrateCharacterVideo(game, ch, body);
+
+  body.querySelectorAll("[data-openkameomodal]").forEach((el) => {
+    el.onclick = () => openKameoModal(el.dataset.openkameomodal);
+  });
+  document.getElementById("btnCharOpenMk1Synergy")?.addEventListener("click", () => {
+    backdrop.classList.add("hidden");
+    openToolsPage("tool-synergy", "general", { mkMainId: ch.id, scrollAnchorId: "synergyMk1Anchor" });
+  });
+  document.getElementById("btnCharOpenDbfzTeam")?.addEventListener("click", () => {
+    backdrop.classList.add("hidden");
+    openToolsPage("tool-synergy", "general", { dbfzCharId: ch.id, scrollAnchorId: "synergyDbfzAnchor" });
+  });
 }
+
+function openKameoModal(kameoId) {
+  const mk1 = state.games.find((g) => g.id === "mk1");
+  const k = mk1?.kameos?.find((x) => x.id === kameoId);
+  if (!mk1 || !k) return;
+
+  const backdrop = document.getElementById("characterModalBackdrop");
+  const header = document.getElementById("charModalHeader");
+  const body = document.getElementById("charModalBody");
+
+  header.innerHTML = `
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div class="portrait-img-box" style="width:68px;height:68px;border:2px solid #fbbf24;flex-shrink:0;">
+        <img src="${k.iconUrl}" alt="${k.name}" referrerpolicy="no-referrer" />
+      </div>
+      <div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:5px;">
+          <span class="diff-badge" style="color:#fbbf24;border-color:rgba(251,191,36,0.5);">Kameo Fighter (MK1)</span>
+          <span class="diff-badge">${k.callType}</span>
+          <span class="diff-badge">Vida: ${k.hpBonus}</span>
+          <span class="diff-badge">${k.isDLC ? k.pack : "Kameo Base"}</span>
+        </div>
+        <h2 style="font-family:var(--font-display);font-size:1.65rem;">
+          ${k.name} <span style="color:#94a3b8;font-size:1rem;">(Mortal Kombat 1)</span>
+        </h2>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button class="btn btn-primary" id="btnKameoOpenSynergyLab" style="font-size:0.74rem;padding:7px 12px;">⚡ Comparar / Probar Sinergia</button>
+      <button class="btn-close-modal" id="btnCloseCharModal">✕</button>
+    </div>
+  `;
+
+  body.innerHTML = `
+    <div class="guide-section-item" style="margin-top:0;margin-bottom:16px;">
+      <h4>Rol y Plan de Juego con ${k.name}</h4>
+      <p>${k.overview}</p>
+      <p style="margin-top:8px;"><strong>Cómo utilizarlo en combate:</strong> ${k.gameplan}</p>
+      <p style="margin-top:8px;color:#fbbf24;"><strong>Ideal para luchadores:</strong> ${k.bestWithMainTypes}</p>
+    </div>
+
+    <div class="text-panel-card" style="margin-bottom:16px;">
+      <h4 style="margin-top:0;font-family:var(--font-display);">Movimientos Oficiales del Kameo (Summon / Ambush)</h4>
+      <table class="moves-table">
+        <thead>
+          <tr>
+            <th>Input</th>
+            <th>Ataque</th>
+            <th>Tipo / Coste</th>
+            <th>Frames</th>
+            <th>Efecto Táctico</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${(k.moves || [])
+            .map(
+              (m) => `
+              <tr>
+                <td><span class="code-input-pill">${m.input}</span></td>
+                <td><strong>${m.name}</strong></td>
+                <td style="font-size:0.78rem;color:#fbbf24;">${m.type} (${m.cost})</td>
+                <td style="font-family:var(--font-mono);font-size:0.78rem;">${m.frames}</td>
+                <td>${m.notes}</td>
+              </tr>
+            `
+            )
+            .join("")}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="ufd-section-banner">Mejores Compañeros Principales para ${k.name} (Haz clic para abrir su ficha)</div>
+    <div class="portrait-select-grid" style="margin-top:12px;">
+      ${(k.bestPartners || [])
+        .map((pName) => {
+          const mChar = mk1.characters.find((c) => c.name === pName);
+          if (!mChar) return "";
+          const cachedSrc = clientPortraitCache.get(mChar.id) || mChar.iconUrl;
+          return `
+            <div class="portrait-tile" data-jump-mkmain="${mChar.id}" title="Abrir ficha de ${mChar.name}">
+              <div class="portrait-img-box">
+                <img src="${cachedSrc}" alt="${mChar.name}" referrerpolicy="no-referrer" />
+              </div>
+              <div class="portrait-name">${mChar.name}</div>
+            </div>
+          `;
+        })
+        .join("")}
+    </div>
+  `;
+
+  backdrop.classList.remove("hidden");
+  document.getElementById("btnCloseCharModal").onclick = () => {
+    backdrop.classList.add("hidden");
+    state.selectedCharacter = null;
+  };
+  document.getElementById("btnKameoOpenSynergyLab").onclick = () => {
+    backdrop.classList.add("hidden");
+    openToolsPage("tool-synergy", "general", { mkKameoId: k.id, scrollAnchorId: "synergyMk1Anchor" });
+  };
+  body.querySelectorAll("[data-jump-mkmain]").forEach((card) => {
+    card.onclick = () => openCharacterModal("mk1", card.dataset.jumpMkmain);
+  });
+}
+window.openKameoModal = openKameoModal;
 
 // =========================================================================
 // CANAL OFICIAL DE YOUTUBE (VISTA DEDICADA + PREVIEW EN PORTADA + PAUSAS INTERACTIVAS)

@@ -14,6 +14,12 @@ const {
   GGST_RAW,
   SSBU_RAW
 } = require("./fullRosters");
+const {
+  MK1_KAMEOS,
+  MK1_MAIN_SYNERGIES,
+  DBFZ_CHARACTER_POSITIONS,
+  DBFZ_META_TEAMS
+} = require("./kameosAndTeams");
 
 // Fichas detalladas personalizadas que se fusionan con el plantel completo de cada juego
 const DETAILED_OVERRIDES = {
@@ -125,7 +131,7 @@ const DETAILED_OVERRIDES = {
 function hydrateRoster(gameId, sagaNotation, wikiBaseUrl, defaultVideo, colorHex, rawList) {
   return rawList.map((item) => {
     const override = DETAILED_OVERRIDES[`${gameId}:${item.name}`] || {};
-    return buildRosterEntry(
+    const entry = buildRosterEntry(
       gameId,
       sagaNotation,
       wikiBaseUrl,
@@ -137,6 +143,14 @@ function hydrateRoster(gameId, sagaNotation, wikiBaseUrl, defaultVideo, colorHex
       },
       rawList
     );
+    if (gameId === "mk1" && MK1_MAIN_SYNERGIES[item.name]) {
+      entry.kameoSynergy = MK1_MAIN_SYNERGIES[item.name];
+    }
+    if (gameId === "dbfz" && DBFZ_CHARACTER_POSITIONS[item.name]) {
+      entry.dbfzPosition = DBFZ_CHARACTER_POSITIONS[item.name];
+      entry.recommendedSubSystem = `Posición: ${entry.dbfzPosition.primaryPos} • Assist Top: ${entry.dbfzPosition.bestAssist}`;
+    }
+    return entry;
   });
 }
 
@@ -231,11 +245,11 @@ const SEED_DATA = {
     },
     {
       id: "miss-3",
-      area: "Sub-plantel de Kameo Fighters",
-      target: "Mortal Kombat 1 (Sistema de Kameos)",
+      area: "Animaciones Frame a Frame de Combate (GIF/MP4)",
+      target: "Mortal Kombat 1 y Tekken 8 (Fichas Frame Data)",
       priority: "Media",
-      whatIsMissing: "Crear un apartado propio con los iconos y guías de los 20+ Kameos (Khameleon, Ferra, Sareena, Sektor, Cyrax, Mavado, Janet Cage, Tremor, etc.).",
-      purposeForEvaluation: "En MK1 los Kameos definen la mitad del plan de juego y qué ataques quedan seguros en bloqueo."
+      whatIsMissing: "Capturar y añadir clips MP4/GIF de cada movimiento de MK1 y Tekken 8 en animaciones-personajes/ (actualmente los wikis públicos no exponen sprites hitbox directos para esos dos títulos).",
+      purposeForEvaluation: "Complementar el Frame Meter interactivo que ya calcula Startup/Active/Recovery reales con el vídeo de cada ataque."
     },
     {
       id: "miss-4",
@@ -462,6 +476,7 @@ const SEED_DATA = {
           }
         ]
       },
+      kameos: MK1_KAMEOS,
       characters: hydrateRoster(
         "mk1",
         "mk",
@@ -629,17 +644,22 @@ const SEED_DATA = {
         ]
       },
       advancedGuide: {
-        title: "Guía Avanzada DBFZ: Special Tag, IAD Cross-up, Guard Cancel y Limit Break",
+        title: "Guía Avanzada DBFZ: Posicionamiento 3v3 (Point / Mid / Anchor), Special Tag y Limit Break",
         videoUrl: "https://www.youtube.com/embed/wVRKT8O4L7g?cc_load_policy=1&cc_lang_pref=es&hl=es",
         videoAuthor: "TinyTorgue - Mecánicas Avanzadas Parche 1.50",
-        summary: "Aprovecha el Special Tag en mitad de combo y el aumento de daño de Limit Break para tu último personaje en pie.",
+        summary: "Domina el orden óptimo del equipo (Point, Mid, Anchor), Special Tag en mitad de combo y el aumento de daño de Limit Break para tu último personaje en pie.",
         sections: [
           {
-            heading: "1. Special Tag (Z-Change desde Movimientos Especiales)",
+            heading: "1. Posicionamiento Competitivo 3v3: Point, Mid y Anchor",
+            content: "• Point (1.º): Abre la partida con 0 barras y 2 asistencias detrás. Debe generar mucho Ki y abrir guardias con apoyo (ej. Gogeta SS4, Blue Goku, Teen Gohan, Vegito).\n• Mid (2.º): Aporta la mejor asistencia clave del equipo (Lockdown como Kid Buu A, Invencible como Android 17 A o Beam) y entra vía Special Tag/DHC cuando ya hay barra (ej. Android 17, Piccolo, Adult Gohan, Lab Coat 21).\n• Anchor (3.º): Especialista en jugar 1v3 con Limit Break (+daño y +1 barra gratis) y Sparking Blast, manteniendo una gran asistencia mientras espera (ej. Base Goku, Broly Z, Tien, Janemba, Trunks)."
+          },
+          {
+            heading: "2. Special Tag (Z-Change desde Movimientos Especiales)",
             content: "En mitad de un movimiento especial puedes pulsar A1 o A2 para que tu compañero entre directamente con Super Dash y continúe el combo sin gastar barra."
           }
         ]
       },
+      metaTeams: DBFZ_META_TEAMS,
       characters: hydrateRoster(
         "dbfz",
         "anime",

@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=JetBrains+Mono:wght@500;700&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=29" />
+  <link rel="stylesheet" href="/styles.css?v=30" />
 </head>
 <body>
   <!-- BARRA DE NAVEGACIÓN MINIMALISTA DE DISEÑO EDITORIAL -->
@@ -347,6 +347,9 @@
           <button class="game-tab" data-tooltab="tool-profile">
             5. Mis Mains y Práctica
           </button>
+          <button class="game-tab" data-tooltab="tool-synergy">
+            6. Kameos MK1, Sinergias y Equipos DBFZ
+          </button>
         </div>
       </div>
 
@@ -446,6 +449,28 @@
           <div id="trainingProfileContainer"></div>
         </div>
       </div>
+
+      <div id="tool-synergy" class="tool-subview hidden">
+        <div class="roster-block" id="synergyMk1Anchor" style="margin-bottom:24px;">
+          <div class="roster-block-header">
+            <div>
+              <h3>Mortal Kombat 1 — Laboratorio de Kameos y Comparador de Sinergias</h3>
+              <p>Combina cualquier luchador principal (35) con cualquiera de los 21 Kameos, analiza su sinergia y compara qué aporta cambiar de Kameo según el matchup.</p>
+            </div>
+          </div>
+          <div id="mk1SynergyLabContainer"></div>
+        </div>
+
+        <div class="roster-block" id="synergyDbfzAnchor">
+          <div class="roster-block-header">
+            <div>
+              <h3>Dragon Ball FighterZ — Posicionamiento 3v3 (Point / Mid / Anchor) y Asistencias</h3>
+              <p>Arma tu equipo de 3 luchadores con sus Asistencias (A / B / C), analiza la sinergia de bloqueos/DHC y descubre si otro orden optimiza tus posiciones.</p>
+            </div>
+          </div>
+          <div id="dbfzTeamBuilderContainer"></div>
+        </div>
+      </div>
     </section>
 
     <!-- VISTA 2: HUB DEL JUEGO (DISEÑO UNIFICADO Y LIMPIO CON 3 PÁGINAS) -->
@@ -532,6 +557,8 @@
           </div>
         </div>
 
+        <div id="dbfzPosFilterWrap" class="hidden" style="margin-bottom:16px;"></div>
+
         <div class="roster-block" id="baseSectionAnchor">
           <div class="roster-block-header base-header">
             <div>
@@ -558,6 +585,8 @@
           </div>
           <div id="dlcPacksGroupedContainer"></div>
         </div>
+
+        <div id="gameSpecificRosterExtras"></div>
 
         <div class="subpage-pagination">
           <button class="btn btn-outline" data-goto-subpage="page-advanced">
@@ -635,8 +664,8 @@
     </div>
   </div>
 
-  <script src="/features.js?v=29"></script>
-  <script src="/app.js?v=29"></script>
+  <script src="/features.js?v=30"></script>
+  <script src="/app.js?v=30"></script>
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {

@@ -2126,3 +2126,537 @@ window.initTrainingProfile = function () {
     };
   });
 };
+
+
+// =========================================================================
+// G. LABORATORIO DE KAMEOS MK1, SINERGIAS Y POSICIONAMIENTO 3v3 DBFZ
+// =========================================================================
+window.initSynergyAndTeamLab = function (preselectOpts = {}) {
+  if (typeof state === "undefined" || !state.games.length) return;
+  initMk1SynergyLab(preselectOpts);
+  initDbfzTeamBuilder(preselectOpts);
+};
+
+function evaluateMk1MainKameoPair(mainChar, kameo) {
+  const hpNum = parseInt(String(kameo.hpBonus || "0").replace(/[^-\d]/g, ""), 10) || 0;
+  const totalHp = 1000 + hpNum;
+  const curatedList = mainChar.kameoSynergy?.topKameos || [];
+  const curated = curatedList.find((x) => x.kameo === kameo.name);
+
+  if (curated) {
+    return {
+      score: curated.score || "S",
+      tag: curated.tag || kameo.callType,
+      route: curated.route,
+      reason: curated.reason,
+      totalHp,
+      isCurated: true
+    };
+  }
+
+  const needs = mainChar.kameoSynergy?.needs || ["combo_extender", "safe_pressure"];
+  const kameoTags = kameo.tags || [];
+  const matches = needs.filter((n) => kameoTags.includes(n));
+
+  const tagLabels = {
+    overhead_low: "Mix-up Overhead/Low",
+    safe_pressure: "Seguridad en Bloqueo (+frames)",
+    combo_extender: "Extensión de Combos (+Daño)",
+    anti_zoning: "Defensa Anti-Zoning",
+    setup: "Setplay y Trampas en Esquina",
+    chip_damage: "Chip Damage en Bloqueo",
+    damage_boost: "Escalado de Daño Alto",
+    armor_break: "Rompe-Armadura / Agarre",
+    fast_recharge: "Recarga Rápida de Kameo",
+    meter_drain: "Drenaje de Barra Super"
+  };
+
+  let score = "B+";
+  if (matches.length >= 3) score = "S";
+  else if (matches.length === 2) score = "A+";
+  else if (matches.length === 1) score = "A";
+
+  const matchedText = matches.length
+    ? matches.map((m) => tagLabels[m] || m).join(", ")
+    : kameoTags.slice(0, 2).map((m) => tagLabels[m] || m).join(", ");
+
+  const firstMove = kameo.moves?.[0];
+  return {
+    score,
+    tag: matches.length >= 2 ? "Sinergia Sólida" : "Cobertura Táctica",
+    route: `${mainChar.keyMoves?.[0]?.input || "f+3,2"} + ${firstMove ? `${firstMove.input} (${firstMove.name})` : kameo.name}`,
+    reason: `${kameo.name} aporta a ${mainChar.name}: ${matchedText}. ${kameo.gameplan}`,
+    totalHp,
+    isCurated: false
+  };
+}
+
+function compareTwoKameos(k1, k2) {
+  if (!k1 || !k2) return "";
+  if (k1.id === k2.id) {
+    return `<div style="color:#94a3b8;font-size:0.84rem;">Selecciona un segundo Kameo distinto arriba para analizar cómo se complementan y en qué matchups cambiar entre uno y otro.</div>`;
+  }
+
+  const tags1 = new Set(k1.tags || []);
+  const tags2 = new Set(k2.tags || []);
+  const only1 = (k1.tags || []).filter((t) => !tags2.has(t));
+  const only2 = (k2.tags || []).filter((t) => !tags1.has(t));
+  const shared = (k1.tags || []).filter((t) => tags2.has(t));
+
+  const tagNames = {
+    overhead_low: "Mix-up Overhead/Low",
+    safe_pressure: "Seguridad en Bloqueo",
+    combo_extender: "Extensión de Combos",
+    anti_zoning: "Anti-Zoning / Proyectiles",
+    setup: "Setups y Trampas Oki",
+    chip_damage: "Chip Damage",
+    damage_boost: "Daño Bruto",
+    armor_break: "Armadura / Agarre",
+    fast_recharge: "Recarga Rápida",
+    meter_drain: "Drenaje Super"
+  };
+
+  const complementaryScore = only1.length + only2.length;
+  const verdictBadge = complementaryScore >= 3 ? "Complemento Torneo Óptimo (Alternar en Set)" : "Estilo Similar (Ajuste Fino de Matchup)";
+
+  const has = (k, t) => (k.tags || []).includes(t);
+  const featRow = (label, t) => `
+    <tr>
+      <td style="color:#cbd5e1;font-weight:600;">${label}</td>
+      <td style="text-align:center;">${has(k1, t) ? "✅ Sí" : "—"}</td>
+      <td style="text-align:center;">${has(k2, t) ? "✅ Sí" : "—"}</td>
+    </tr>
+  `;
+
+  return `
+    <div style="margin-top:16px;padding:14px;background:rgba(12,14,18,0.88);border:1px solid rgba(251,191,36,0.3);border-radius:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+        <h4 style="margin:0;color:#fbbf24;font-family:var(--font-display);">Sinergia y Comparativa entre Kameos: ${k1.name} vs ${k2.name}</h4>
+        <span class="synergy-tier-pill ${complementaryScore >= 3 ? "tier-splus" : ""}">${verdictBadge}</span>
+      </div>
+      <p style="font-size:0.83rem;color:#cbd5e1;margin-bottom:10px;">
+        <strong>Cuándo usar ${k1.name} (${k1.hpBonus}):</strong> ${only1.length ? `Cubre ${only1.map((t) => tagNames[t] || t).join(" y ")}. ` : ""}${k1.bestWithMainTypes}
+        <br />
+        <strong>Cuándo cambiar a ${k2.name} (${k2.hpBonus}):</strong> ${only2.length ? `Aporta ${only2.map((t) => tagNames[t] || t).join(" y ")}. ` : ""}${k2.bestWithMainTypes}
+        ${shared.length ? `<br /><span style="color:#94a3b8;">En común: ${shared.map((t) => tagNames[t] || t).join(", ")}.</span>` : ""}
+      </p>
+      <table class="moves-table" style="margin-bottom:0;">
+        <thead>
+          <tr>
+            <th>Propiedad Táctica</th>
+            <th style="text-align:center;">${k1.name} (${k1.hpBonus})</th>
+            <th style="text-align:center;">${k2.name} (${k2.hpBonus})</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${featRow("Mix-up Overhead / Low", "overhead_low")}
+          ${featRow("Seguridad en Bloqueo (Ambush)", "safe_pressure")}
+          ${featRow("Extensión de Combos / Daño", "combo_extender")}
+          ${featRow("Defensa Anti-Zoning", "anti_zoning")}
+          ${featRow("Setplay / Trampas / Oki", "setup")}
+          ${featRow("Recarga Rápida de Barra", "fast_recharge")}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function initMk1SynergyLab(preselectOpts = {}) {
+  const container = document.getElementById("mk1SynergyLabContainer");
+  if (!container) return;
+  const mk1 = state.games.find((g) => g.id === "mk1");
+  if (!mk1 || !Array.isArray(mk1.kameos) || !mk1.kameos.length) return;
+
+  if (!container.dataset.built) {
+    container.dataset.built = "1";
+    container.innerHTML = `
+      <div class="news-filter-bar" style="margin-bottom:16px;">
+        <div class="filter-inputs-row" style="width:100%;">
+          <div class="date-filter-group" style="flex:1;min-width:190px;">
+            <label for="synMkMainSelect">1. Luchador Principal MK1 (35)</label>
+            <select id="synMkMainSelect">${mk1.characters.map((c) => `<option value="${c.id}">${c.name}</option>`).join("")}</select>
+          </div>
+          <div class="date-filter-group" style="flex:1;min-width:190px;">
+            <label for="synMkKameoASelect">2. Kameo Principal (21)</label>
+            <select id="synMkKameoASelect">${mk1.kameos.map((k) => `<option value="${k.id}">${k.name} (${k.hpBonus})</option>`).join("")}</select>
+          </div>
+          <div class="date-filter-group" style="flex:1;min-width:190px;">
+            <label for="synMkKameoBSelect">3. Comparar / Sinergia con Kameo B</label>
+            <select id="synMkKameoBSelect">${mk1.kameos.map((k) => `<option value="${k.id}">${k.name} (${k.hpBonus})</option>`).join("")}</select>
+          </div>
+        </div>
+      </div>
+      <div id="mk1SynergyResults"></div>
+    `;
+
+    const selMain = document.getElementById("synMkMainSelect");
+    const selKA = document.getElementById("synMkKameoASelect");
+    const selKB = document.getElementById("synMkKameoBSelect");
+    if (selKB.options.length > 1) selKB.selectedIndex = 16; // Khameleon por defecto
+
+    const renderMkSyn = () => {
+      const mChar = mk1.characters.find((c) => c.id === selMain.value) || mk1.characters[0];
+      const k1 = mk1.kameos.find((k) => k.id === selKA.value) || mk1.kameos[0];
+      const k2 = mk1.kameos.find((k) => k.id === selKB.value) || mk1.kameos[1];
+      const eval1 = evaluateMk1MainKameoPair(mChar, k1);
+      const eval2 = evaluateMk1MainKameoPair(mChar, k2);
+      const resEl = document.getElementById("mk1SynergyResults");
+      if (!resEl) return;
+
+      const cardHTML = (label, k, ev) => `
+        <div class="synergy-card">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+            <div class="portrait-img-box" style="width:54px;height:54px;flex-shrink:0;">
+              <img src="${k.iconUrl}" alt="${k.name}" referrerpolicy="no-referrer" />
+            </div>
+            <div style="flex:1;">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;">
+                <span style="font-size:0.7rem;color:#94a3b8;text-transform:uppercase;">${label}</span>
+                <span class="synergy-tier-pill ${ev.score.includes("S") ? "tier-splus" : ""}">Sinergia ${ev.score}</span>
+              </div>
+              <strong style="font-size:1.05rem;color:#fff;">${mChar.name} + ${k.name}</strong>
+              <div style="font-size:0.74rem;color:#fbbf24;">${ev.tag} • Vida Total: ${ev.totalHp} HP (${k.hpBonus})</div>
+            </div>
+          </div>
+          <div style="font-size:0.82rem;color:#cbd5e1;margin-bottom:8px;">${ev.reason}</div>
+          <div class="combo-box" style="margin:0;padding:8px 10px;">
+            <div style="font-size:0.7rem;color:#94a3b8;">Ruta / Uso Recomendado:</div>
+            <div class="combo-string" style="font-size:0.8rem;">${ev.route}</div>
+          </div>
+        </div>
+      `;
+
+      resEl.innerHTML = `
+        <div class="synergy-compare-grid">
+          ${cardHTML("Kameo Primario", k1, eval1)}
+          ${cardHTML("Kameo Alternativo", k2, eval2)}
+        </div>
+        ${compareTwoKameos(k1, k2)}
+      `;
+    };
+
+    selMain.addEventListener("change", renderMkSyn);
+    selKA.addEventListener("change", renderMkSyn);
+    selKB.addEventListener("change", renderMkSyn);
+    container._renderMkSyn = renderMkSyn;
+  }
+
+  if (preselectOpts.mkMainId) {
+    const selMain = document.getElementById("synMkMainSelect");
+    if (selMain) selMain.value = preselectOpts.mkMainId;
+  }
+  if (preselectOpts.mkKameoId) {
+    const selKA = document.getElementById("synMkKameoASelect");
+    if (selKA) selKA.value = preselectOpts.mkKameoId;
+  }
+  if (typeof container._renderMkSyn === "function") {
+    container._renderMkSyn();
+  }
+}
+
+function scoreDbfzOrderPermutation(chars) {
+  // chars = [pointChar, midChar, anchorChar]
+  let score = 0;
+  const slotNames = ["Point", "Mid", "Anchor"];
+  chars.forEach((c, idx) => {
+    const pos = c.dbfzPosition;
+    if (!pos) return;
+    const slot = slotNames[idx];
+    if (pos.primaryPos === slot) score += 5;
+    else if ((pos.viablePositions || []).includes(slot)) score += 2;
+    else score -= 3;
+
+    if (idx === 2 && String(pos.limitBreakRating || "").startsWith("S")) score += 4;
+    if (idx === 0 && String(pos.meterNeed || "").includes("Generador")) score += 3;
+    if (idx === 0 && String(pos.meterNeed || "").includes("Alta")) score -= 2;
+  });
+  return score;
+}
+
+function getBestDbfzPermutation(threeChars) {
+  const perms = [
+    [0, 1, 2],
+    [0, 2, 1],
+    [1, 0, 2],
+    [1, 2, 0],
+    [2, 0, 1],
+    [2, 1, 0]
+  ];
+  let bestPerm = [0, 1, 2];
+  let bestScore = -999;
+  perms.forEach((p) => {
+    const sc = scoreDbfzOrderPermutation([threeChars[p[0]], threeChars[p[1]], threeChars[p[2]]]);
+    if (sc > bestScore) {
+      bestScore = sc;
+      bestPerm = p;
+    }
+  });
+  return { bestPerm, bestScore };
+}
+
+function initDbfzTeamBuilder(preselectOpts = {}) {
+  const container = document.getElementById("dbfzTeamBuilderContainer");
+  if (!container) return;
+  const dbfz = state.games.find((g) => g.id === "dbfz");
+  if (!dbfz || !dbfz.characters?.length) return;
+
+  if (!container.dataset.built) {
+    container.dataset.built = "1";
+    const charOpts = dbfz.characters
+      .map((c) => {
+        const pos = c.dbfzPosition ? ` (${c.dbfzPosition.primaryPos})` : "";
+        return `<option value="${c.id}">${c.name}${pos}</option>`;
+      })
+      .join("");
+
+    const metaPills = (dbfz.metaTeams || [])
+      .map(
+        (mt, idx) =>
+          `<button class="btn-chip" data-loadmetateam="${idx}">${mt.title}</button>`
+      )
+      .join("");
+
+    container.innerHTML = `
+      <div style="margin-bottom:14px;">
+        <span style="font-size:0.75rem;color:#fbbf24;font-weight:700;display:block;margin-bottom:6px;">
+          Equipos Meta Pre-armados (1 clic para cargar y analizar):
+        </span>
+        <div class="combo-filter-pills">${metaPills}</div>
+      </div>
+
+      <div class="dbfz-team-slots-grid">
+        <div class="dbfz-slot-card">
+          <div class="dbfz-slot-header">
+            <span class="dbfz-role-pill dbfz-role-point">1. POINT (Punta)</span>
+            <span style="font-size:0.72rem;color:#94a3b8;">Abre ronda • 0 barras</span>
+          </div>
+          <select id="dbfzSlot0Select" class="search-input" style="padding:8px 10px;">${charOpts}</select>
+          <div class="assist-chip-row" data-assist-slot="0">
+            <button type="button" class="assist-chip assist-A active" data-assist="A">Assist A</button>
+            <button type="button" class="assist-chip assist-B" data-assist="B">Assist B</button>
+            <button type="button" class="assist-chip assist-C" data-assist="C">Assist C</button>
+          </div>
+          <div id="dbfzSlot0Info" style="margin-top:10px;font-size:0.79rem;"></div>
+        </div>
+
+        <div class="dbfz-slot-card">
+          <div class="dbfz-slot-header">
+            <span class="dbfz-role-pill dbfz-role-mid">2. MID (Medio)</span>
+            <span style="font-size:0.72rem;color:#94a3b8;">Soporte / Special Tag</span>
+          </div>
+          <select id="dbfzSlot1Select" class="search-input" style="padding:8px 10px;">${charOpts}</select>
+          <div class="assist-chip-row" data-assist-slot="1">
+            <button type="button" class="assist-chip assist-A active" data-assist="A">Assist A</button>
+            <button type="button" class="assist-chip assist-B" data-assist="B">Assist B</button>
+            <button type="button" class="assist-chip assist-C" data-assist="C">Assist C</button>
+          </div>
+          <div id="dbfzSlot1Info" style="margin-top:10px;font-size:0.79rem;"></div>
+        </div>
+
+        <div class="dbfz-slot-card">
+          <div class="dbfz-slot-header">
+            <span class="dbfz-role-pill dbfz-role-anchor">3. ANCHOR (Ancla)</span>
+            <span style="font-size:0.72rem;color:#94a3b8;">Limit Break • 1v3</span>
+          </div>
+          <select id="dbfzSlot2Select" class="search-input" style="padding:8px 10px;">${charOpts}</select>
+          <div class="assist-chip-row" data-assist-slot="2">
+            <button type="button" class="assist-chip assist-A active" data-assist="A">Assist A</button>
+            <button type="button" class="assist-chip assist-B" data-assist="B">Assist B</button>
+            <button type="button" class="assist-chip assist-C" data-assist="C">Assist C</button>
+          </div>
+          <div id="dbfzSlot2Info" style="margin-top:10px;font-size:0.79rem;"></div>
+        </div>
+      </div>
+
+      <div id="dbfzTeamAnalysisBox"></div>
+    `;
+
+    const sel0 = document.getElementById("dbfzSlot0Select");
+    const sel1 = document.getElementById("dbfzSlot1Select");
+    const sel2 = document.getElementById("dbfzSlot2Select");
+    const assistChoices = ["B", "A", "A"];
+
+    const findCharByName = (nm) => dbfz.characters.find((c) => c.name === nm);
+    // Cargar equipo meta inicial (Gogeta SS4 / Android 17 / Base Goku)
+    const defTeam = dbfz.metaTeams?.[0];
+    if (defTeam) {
+      const c0 = findCharByName(defTeam.point.name);
+      const c1 = findCharByName(defTeam.mid.name);
+      const c2 = findCharByName(defTeam.anchor.name);
+      if (c0) sel0.value = c0.id;
+      if (c1) sel1.value = c1.id;
+      if (c2) sel2.value = c2.id;
+      assistChoices[0] = defTeam.point.assist;
+      assistChoices[1] = defTeam.mid.assist;
+      assistChoices[2] = defTeam.anchor.assist;
+    }
+
+    const syncAssistBtns = () => {
+      [0, 1, 2].forEach((slotIdx) => {
+        const row = container.querySelector(`[data-assist-slot="${slotIdx}"]`);
+        if (!row) return;
+        row.querySelectorAll(".assist-chip").forEach((b) => {
+          b.classList.toggle("active", b.dataset.assist === assistChoices[slotIdx]);
+        });
+      });
+    };
+
+    const renderTeam = () => {
+      syncAssistBtns();
+      const picks = [
+        dbfz.characters.find((c) => c.id === sel0.value) || dbfz.characters[0],
+        dbfz.characters.find((c) => c.id === sel1.value) || dbfz.characters[1],
+        dbfz.characters.find((c) => c.id === sel2.value) || dbfz.characters[2]
+      ];
+      const slotLabels = ["Point", "Mid", "Anchor"];
+
+      picks.forEach((ch, idx) => {
+        const infoEl = document.getElementById(`dbfzSlot${idx}Info`);
+        if (!infoEl) return;
+        const pos = ch.dbfzPosition || { primaryPos: "Mid", viablePositions: ["Point", "Mid"], bestAssist: "A", assists: {}, positioningReason: "" };
+        const chosenAssist = assistChoices[idx];
+        const assistObj = pos.assists?.[chosenAssist] || { name: `Assist ${chosenAssist}`, type: "Estándar", blockstun: "28f", notes: "" };
+        const roleWanted = slotLabels[idx];
+
+        let fitBadge = `<span style="color:#f87171;">⚠ Recomendado en ${pos.primaryPos}</span>`;
+        if (pos.primaryPos === roleWanted) fitBadge = `<span style="color:#34d399;">✓ Posición Óptima (${roleWanted})</span>`;
+        else if ((pos.viablePositions || []).includes(roleWanted)) fitBadge = `<span style="color:#fbbf24;">⚡ Viable en ${roleWanted} (Ideal: ${pos.primaryPos})</span>`;
+
+        infoEl.innerHTML = `
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+            <div class="portrait-img-box" style="width:48px;height:48px;flex-shrink:0;">
+              <img src="${ch.iconUrl}" alt="${ch.name}" referrerpolicy="no-referrer" />
+            </div>
+            <div>
+              <div style="font-weight:700;color:#fff;">${ch.name}</div>
+              <div>${fitBadge}</div>
+              <div style="font-size:0.7rem;color:#94a3b8;">Limit Break: ${pos.limitBreakRating || "A"} • Barra: ${pos.meterNeed || "Media"}</div>
+            </div>
+          </div>
+          <div class="dbfz-assist-box ${pos.bestAssist === chosenAssist ? "is-recommended" : ""}">
+            <div style="display:flex;justify-content:space-between;font-size:0.75rem;">
+              <strong style="color:#fbbf24;">Assist ${chosenAssist}: ${assistObj.name}</strong>
+              <span style="color:#94a3b8;">${assistObj.blockstun || ""}</span>
+            </div>
+            <div style="font-size:0.72rem;color:#cbd5e1;margin-top:3px;">${assistObj.type} — ${assistObj.notes}</div>
+          </div>
+        `;
+      });
+
+      const currentScore = scoreDbfzOrderPermutation(picks);
+      const { bestPerm, bestScore } = getBestDbfzPermutation(picks);
+      const needsReorder = bestScore > currentScore && (bestPerm[0] !== 0 || bestPerm[1] !== 1 || bestPerm[2] !== 2);
+      const optimalNames = bestPerm.map((i) => picks[i].name);
+
+      // Cobertura táctica del equipo
+      const assistInfos = picks.map((c, i) => c.dbfzPosition?.assists?.[assistChoices[i]] || {});
+      const allTypesStr = assistInfos.map((a) => `${a.type || ""} ${a.notes || ""}`).join(" ").toLowerCase();
+      const hasBeam = allTypesStr.includes("beam") || allTypesStr.includes("proyectil") || allTypesStr.includes("ki");
+      const hasLockdown = allTypesStr.includes("lockdown") || allTypesStr.includes("blockstun") || allTypesStr.includes("parálisis");
+      const hasDefense = allTypesStr.includes("dp") || allTypesStr.includes("invencible") || allTypesStr.includes("escudo");
+      const hasDuplicate = new Set(picks.map((p) => p.id)).size < 3;
+
+      const anchorPos = picks[2].dbfzPosition || {};
+      const box = document.getElementById("dbfzTeamAnalysisBox");
+      if (!box) return;
+
+      box.innerHTML = `
+        <div class="guide-section-item" style="margin-top:0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
+            <h4 style="margin:0;">Análisis de Sinergia y Posicionamiento del Equipo 3v3</h4>
+            <span class="synergy-tier-pill ${!needsReorder && !hasDuplicate ? "tier-splus" : ""}">
+              ${hasDuplicate ? "⚠ Luchadores Duplicados" : needsReorder ? "🔄 Se puede optimizar el orden" : "✓ Orden de Posiciones Óptimo"}
+            </span>
+          </div>
+
+          ${
+            needsReorder
+              ? `<div style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.45);padding:10px 12px;border-radius:6px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                  <div style="font-size:0.83rem;color:#fde68a;">
+                    <strong>Consejo de Posicionamiento:</strong> Rendirían mejor ordenados como:
+                    <strong>Point:</strong> ${optimalNames[0]} • <strong>Mid:</strong> ${optimalNames[1]} • <strong>Anchor:</strong> ${optimalNames[2]}
+                  </div>
+                  <button type="button" class="btn btn-primary" id="btnApplyBestDbfzOrder" style="padding:5px 12px;font-size:0.72rem;">Aplicar Orden Recomendado</button>
+                </div>`
+              : ""
+          }
+
+          <div class="roster-split-pills" style="margin-bottom:10px;">
+            <span class="pill-base">${hasBeam ? "✅ Control Neutro / Beam o Ki" : "⚠ Falta Beam o Ki en Asistencias"}</span>
+            <span class="pill-base">${hasLockdown ? "✅ Mix-up 50/50 / Blockstun Largo" : "ℹ Blockstun estándar (sin Lockdown pesado)"}</span>
+            <span class="pill-base">${hasDefense ? "✅ Cobertura Defensiva (DP / Barrera)" : "ℹ Sin Asistencia DP/Invencible"}</span>
+            <span class="pill-base">Limit Break Anchor: ${anchorPos.limitBreakRating || "A"}</span>
+          </div>
+
+          <p style="font-size:0.82rem;color:#cbd5e1;margin:0;">
+            <strong>Por qué funciona este orden:</strong>
+            <br />• <strong>Point (${picks[0].name}):</strong> ${picks[0].dbfzPosition?.positioningReason || ""}
+            <br />• <strong>Mid (${picks[1].name}):</strong> ${picks[1].dbfzPosition?.positioningReason || ""}
+            <br />• <strong>Anchor (${picks[2].name}):</strong> ${picks[2].dbfzPosition?.positioningReason || ""}
+          </p>
+        </div>
+      `;
+
+      const applyBtn = document.getElementById("btnApplyBestDbfzOrder");
+      if (applyBtn) {
+        applyBtn.onclick = () => {
+          const oldPicks = [...picks];
+          const oldAssists = [...assistChoices];
+          sel0.value = oldPicks[bestPerm[0]].id;
+          sel1.value = oldPicks[bestPerm[1]].id;
+          sel2.value = oldPicks[bestPerm[2]].id;
+          assistChoices[0] = oldAssists[bestPerm[0]];
+          assistChoices[1] = oldAssists[bestPerm[1]];
+          assistChoices[2] = oldAssists[bestPerm[2]];
+          renderTeam();
+        };
+      }
+    };
+
+    [sel0, sel1, sel2].forEach((s) => s.addEventListener("change", renderTeam));
+    container.querySelectorAll("[data-assist-slot]").forEach((row) => {
+      const idx = Number(row.dataset.assistSlot);
+      row.querySelectorAll(".assist-chip").forEach((btn) => {
+        btn.onclick = () => {
+          assistChoices[idx] = btn.dataset.assist;
+          renderTeam();
+        };
+      });
+    });
+
+    container.querySelectorAll("[data-loadmetateam]").forEach((btn) => {
+      btn.onclick = () => {
+        const mt = dbfz.metaTeams?.[Number(btn.dataset.loadmetateam)];
+        if (!mt) return;
+        const c0 = findCharByName(mt.point.name);
+        const c1 = findCharByName(mt.mid.name);
+        const c2 = findCharByName(mt.anchor.name);
+        if (c0) sel0.value = c0.id;
+        if (c1) sel1.value = c1.id;
+        if (c2) sel2.value = c2.id;
+        assistChoices[0] = mt.point.assist;
+        assistChoices[1] = mt.mid.assist;
+        assistChoices[2] = mt.anchor.assist;
+        renderTeam();
+      };
+    });
+
+    container._setDbfzCharacter = (charId, slotIndex = 0) => {
+      const ch = dbfz.characters.find((c) => c.id === charId);
+      if (!ch) return;
+      const targetPos = ch.dbfzPosition?.primaryPos;
+      const sIdx = targetPos === "Point" ? 0 : targetPos === "Mid" ? 1 : targetPos === "Anchor" ? 2 : slotIndex;
+      const sel = [sel0, sel1, sel2][sIdx];
+      if (sel) sel.value = ch.id;
+      if (ch.dbfzPosition?.bestAssist) assistChoices[sIdx] = ch.dbfzPosition.bestAssist;
+      renderTeam();
+    };
+    container._renderTeam = renderTeam;
+  }
+
+  if (preselectOpts.dbfzCharId && typeof container._setDbfzCharacter === "function") {
+    container._setDbfzCharacter(preselectOpts.dbfzCharId);
+  } else if (typeof container._renderTeam === "function") {
+    container._renderTeam();
+  }
+}
