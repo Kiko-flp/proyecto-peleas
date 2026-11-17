@@ -1,4 +1,4 @@
-{
+﻿{
     "dbfz|Cell":  {
                       "Special 2 (QCB Mix / Advance)":  {
                                                             "hasNativeHitbox":  true,
@@ -10356,5 +10356,829 @@
                                                        "source":  "SuperCombo Wiki",
                                                        "type":  "image"
                                                    }
-                   }
+                   },
+    "dbfz|Vegeta (Super Saiyan)":  {
+                                       "DBFZ_Vegeta_(Super_Saiyan)_214LM_Hitbox.png":  {
+                                                                                           "hasNativeHitbox":  true,
+                                                                                           "url":  "/animaciones-personajes/dbfz/vegeta_super_saiyan/DBFZ_Vegeta_(Super_Saiyan)_214LM_Hitbox.png",
+                                                                                           "source":  "Dustloop Wiki",
+                                                                                           "type":  "image"
+                                                                                       },
+                                       "DBFZ_Vegeta_(Super_Saiyan)_214X_Hitbox.png":  {
+                                                                                          "hasNativeHitbox":  true,
+                                                                                          "url":  "/animaciones-personajes/dbfz/vegeta_super_saiyan/DBFZ_Vegeta_(Super_Saiyan)_214X_Hitbox.png",
+                                                                                          "source":  "Dustloop Wiki",
+                                                                                          "type":  "image"
+                                                                                      },
+                                       "DBFZ_Vegeta_(Super_Saiyan)_236LM_Hitbox.png":  {
+                                                                                           "hasNativeHitbox":  true,
+                                                                                           "url":  "/animaciones-personajes/dbfz/vegeta_super_saiyan/DBFZ_Vegeta_(Super_Saiyan)_236LM_Hitbox.png",
+                                                                                           "source":  "Dustloop Wiki",
+                                                                                           "type":  "image"
+                                                                                       },
+                                       "DBFZ_Vegeta_(Super_Saiyan)_236M_1_Hitbox.png":  {
+                                                                                            "hasNativeHitbox":  true,
+                                                                                            "url":  "/animaciones-personajes/dbfz/vegeta_super_saiyan/DBFZ_Vegeta_(Super_Saiyan)_236M_1_Hitbox.png",
+                                                                                            "source":  "Dustloop Wiki",
+                                                                                            "type":  "image"
+                                                                                        },
+                                       "DBFZ_Vegeta_(Super_Saiyan)_236M_2_Hitbox.png":  {
+                                                                                            "hasNativeHitbox":  true,
+                                                                                            "url":  "/animaciones-personajes/dbfz/vegeta_super_saiyan/DBFZ_Vegeta_(Super_Saiyan)_236M_2_Hitbox.png",
+                                                                                            "source":  "Dustloop Wiki",
+                                                                                            "type":  "image"
+                                                                                        },
+                                       "DBFZ_Vegeta_(Super_Saiyan)_236S_Hitbox.png":  {
+                                                                                          "hasNativeHitbox":  true,
+                                                                                          "url":  "/animaciones-personajes/dbfz/vegeta_super_saiyan/DBFZ_Vegeta_(Super_Saiyan)_236S_Hitbox.png",
+                                                                                          "source":  "Dustloop Wiki",
+                                                                                          "type":  "image"
+                                                                                      },
+                                       "DBFZ_Vegeta_(Super_Saiyan)_236X_Hitbox.png":  {
+                                                                                          "hasNativeHitbox":  true,
+                                                                                          "url":  "/animaciones-personajes/dbfz/vegeta_super_saiyan/DBFZ_Vegeta_(Super_Saiyan)_236X_Hitbox.png",
+                                                                                          "source":  "Dustloop Wiki",
+                                                                                          "type":  "image"
+                                                                                      },
+                                       "DBFZ_Vegeta_(Super_Saiyan)_2H_Hitbox.png":  {
+                                                                                        "hasNativeHitbox":  true,
+                                                                                        "url":  "/animaciones-personajes/dbfz/vegeta_super_saiyan/DBFZ_Vegeta_(Super_Saiyan)_2H_Hitbox.png",
+                                                                                        "source":  "Dustloop Wiki",
+                                                                                        "type":  "image"
+                                                                                    },
+                                       "DBFZ_Vegeta_(Super_Saiyan)_2L_Hitbox.png":  {
+                                                                                        "hasNativeHitbox":  true,
+                                                                                        "url":  "/animaciones-personajes/dbfz/vegeta_super_saiyan/DBFZ_Vegeta_(Super_Saiyan)_2L_Hitbox.png",
+                                                                                        "source":  "Dustloop Wiki",
+                                                                                        "type":  "image"
+                                                                                    },
+                                       "DBFZ_Vegeta_(Super_Saiyan)_2M_Hitbox.png":  {
+                                                                                        "hasNativeHitbox":  true,
+                                                                                        "url":  "/animaciones-personajes/dbfz/vegeta_super_saiyan/DBFZ_Vegeta_(Super_Saiyan)_2M_Hitbox.png",
+                                                                                        "source":  "Dustloop Wiki",
+                                                                                        "type":  "image"
+                                                                                    },
+                                       "DBFZ_Vegeta_(Super_Saiyan)_5H_Hitbox.png":  {
+                                                                                        "hasNativeHitbox":  true,
+                                                                                        "url":  "/animaciones-personajes/dbfz/vegeta_super_saiyan/DBFZ_Vegeta_(Super_Saiyan)_5H_Hitbox.png",
+                                                                                        "source":  "Dustloop Wiki",
+                                                                                        "type":  "image"
+                                                                                    },
+                                       "DBFZ_Vegeta_(Super_Saiyan)_5L_Hitbox.png":  {
+                                                                                        "hasNativeHitbox":  true,
+                                                                                        "url":  "/animaciones-personajes/dbfz/vegeta_super_saiyan/DBFZ_Vegeta_(Super_Saiyan)_5L_Hitbox.png",
+                                                                                        "source":  "Dustloop Wiki",
+                                                                                        "type":  "image"
+                                                                                    },
+                                       "DBFZ_Vegeta_(Super_Saiyan)_5LL_Hitbox.png":  {
+                                                                                         "hasNativeHitbox":  true,
+                                                                                         "url":  "/animaciones-personajes/dbfz/vegeta_super_saiyan/DBFZ_Vegeta_(Super_Saiyan)_5LL_Hitbox.png",
+                                                                                         "source":  "Dustloop Wiki",
+                                                                                         "type":  "image"
+                                                                                     },
+                                       "DBFZ_Vegeta_(Super_Saiyan)_5LLL_Hitbox.png":  {
+                                                                                          "hasNativeHitbox":  true,
+                                                                                          "url":  "/animaciones-personajes/dbfz/vegeta_super_saiyan/DBFZ_Vegeta_(Super_Saiyan)_5LLL_Hitbox.png",
+                                                                                          "source":  "Dustloop Wiki",
+                                                                                          "type":  "image"
+                                                                                      }
+                                   },
+    "dbfz|Frieza":  {
+                        "DBFZ_Frieza_214LM_Hitbox.png":  {
+                                                             "hasNativeHitbox":  true,
+                                                             "url":  "/animaciones-personajes/dbfz/frieza/DBFZ_Frieza_214LM_Hitbox.png",
+                                                             "source":  "Dustloop Wiki",
+                                                             "type":  "image"
+                                                         },
+                        "DBFZ_Frieza_214S_Hitbox.png":  {
+                                                            "hasNativeHitbox":  true,
+                                                            "url":  "/animaciones-personajes/dbfz/frieza/DBFZ_Frieza_214S_Hitbox.png",
+                                                            "source":  "Dustloop Wiki",
+                                                            "type":  "image"
+                                                        },
+                        "DBFZ_Frieza_236H_Hitbox.png":  {
+                                                            "hasNativeHitbox":  true,
+                                                            "url":  "/animaciones-personajes/dbfz/frieza/DBFZ_Frieza_236H_Hitbox.png",
+                                                            "source":  "Dustloop Wiki",
+                                                            "type":  "image"
+                                                        },
+                        "DBFZ_Frieza_236L_Hitbox.png":  {
+                                                            "hasNativeHitbox":  true,
+                                                            "url":  "/animaciones-personajes/dbfz/frieza/DBFZ_Frieza_236L_Hitbox.png",
+                                                            "source":  "Dustloop Wiki",
+                                                            "type":  "image"
+                                                        },
+                        "DBFZ_Frieza_236LM_Hitbox.png":  {
+                                                             "hasNativeHitbox":  true,
+                                                             "url":  "/animaciones-personajes/dbfz/frieza/DBFZ_Frieza_236LM_Hitbox.png",
+                                                             "source":  "Dustloop Wiki",
+                                                             "type":  "image"
+                                                         },
+                        "DBFZ_Frieza_2H_Hitbox.png":  {
+                                                          "hasNativeHitbox":  true,
+                                                          "url":  "/animaciones-personajes/dbfz/frieza/DBFZ_Frieza_2H_Hitbox.png",
+                                                          "source":  "Dustloop Wiki",
+                                                          "type":  "image"
+                                                      },
+                        "DBFZ_Frieza_2L_Hitbox.png":  {
+                                                          "hasNativeHitbox":  true,
+                                                          "url":  "/animaciones-personajes/dbfz/frieza/DBFZ_Frieza_2L_Hitbox.png",
+                                                          "source":  "Dustloop Wiki",
+                                                          "type":  "image"
+                                                      },
+                        "DBFZ_Frieza_2M_1_Hitbox.png":  {
+                                                            "hasNativeHitbox":  true,
+                                                            "url":  "/animaciones-personajes/dbfz/frieza/DBFZ_Frieza_2M_1_Hitbox.png",
+                                                            "source":  "Dustloop Wiki",
+                                                            "type":  "image"
+                                                        },
+                        "DBFZ_Frieza_2M_2_Hitbox.png":  {
+                                                            "hasNativeHitbox":  true,
+                                                            "url":  "/animaciones-personajes/dbfz/frieza/DBFZ_Frieza_2M_2_Hitbox.png",
+                                                            "source":  "Dustloop Wiki",
+                                                            "type":  "image"
+                                                        },
+                        "DBFZ_Frieza_2S_Hitbox.png":  {
+                                                          "hasNativeHitbox":  true,
+                                                          "url":  "/animaciones-personajes/dbfz/frieza/DBFZ_Frieza_2S_Hitbox.png",
+                                                          "source":  "Dustloop Wiki",
+                                                          "type":  "image"
+                                                      },
+                        "DBFZ_Frieza_5H_Hitbox.png":  {
+                                                          "hasNativeHitbox":  true,
+                                                          "url":  "/animaciones-personajes/dbfz/frieza/DBFZ_Frieza_5H_Hitbox.png",
+                                                          "source":  "Dustloop Wiki",
+                                                          "type":  "image"
+                                                      },
+                        "DBFZ_Frieza_5L_Hitbox.png":  {
+                                                          "hasNativeHitbox":  true,
+                                                          "url":  "/animaciones-personajes/dbfz/frieza/DBFZ_Frieza_5L_Hitbox.png",
+                                                          "source":  "Dustloop Wiki",
+                                                          "type":  "image"
+                                                      },
+                        "DBFZ_Frieza_5LL_Hitbox.png":  {
+                                                           "hasNativeHitbox":  true,
+                                                           "url":  "/animaciones-personajes/dbfz/frieza/DBFZ_Frieza_5LL_Hitbox.png",
+                                                           "source":  "Dustloop Wiki",
+                                                           "type":  "image"
+                                                       },
+                        "DBFZ_Frieza_5LLL_Hitbox.png":  {
+                                                            "hasNativeHitbox":  true,
+                                                            "url":  "/animaciones-personajes/dbfz/frieza/DBFZ_Frieza_5LLL_Hitbox.png",
+                                                            "source":  "Dustloop Wiki",
+                                                            "type":  "image"
+                                                        }
+                    },
+    "dbfz|Vegeta (SSGSS / Blue)":  {
+                                       "DBFZ_Vegeta_(SSGSS)_214LM_Hitbox.png":  {
+                                                                                    "hasNativeHitbox":  true,
+                                                                                    "url":  "/animaciones-personajes/dbfz/vegeta_ssgss_blue/DBFZ_Vegeta_(SSGSS)_214LM_Hitbox.png",
+                                                                                    "source":  "Dustloop Wiki",
+                                                                                    "type":  "image"
+                                                                                },
+                                       "DBFZ_Vegeta_(SSGSS)_214X_Hitbox.png":  {
+                                                                                   "hasNativeHitbox":  true,
+                                                                                   "url":  "/animaciones-personajes/dbfz/vegeta_ssgss_blue/DBFZ_Vegeta_(SSGSS)_214X_Hitbox.png",
+                                                                                   "source":  "Dustloop Wiki",
+                                                                                   "type":  "image"
+                                                                               },
+                                       "DBFZ_Vegeta_(SSGSS)_236HS_Hitbox.png":  {
+                                                                                    "hasNativeHitbox":  true,
+                                                                                    "url":  "/animaciones-personajes/dbfz/vegeta_ssgss_blue/DBFZ_Vegeta_(SSGSS)_236HS_Hitbox.png",
+                                                                                    "source":  "Dustloop Wiki",
+                                                                                    "type":  "image"
+                                                                                },
+                                       "DBFZ_Vegeta_(SSGSS)_236LM_Hitbox.png":  {
+                                                                                    "hasNativeHitbox":  true,
+                                                                                    "url":  "/animaciones-personajes/dbfz/vegeta_ssgss_blue/DBFZ_Vegeta_(SSGSS)_236LM_Hitbox.png",
+                                                                                    "source":  "Dustloop Wiki",
+                                                                                    "type":  "image"
+                                                                                },
+                                       "DBFZ_Vegeta_(SSGSS)_236S_Hitbox.png":  {
+                                                                                   "hasNativeHitbox":  true,
+                                                                                   "url":  "/animaciones-personajes/dbfz/vegeta_ssgss_blue/DBFZ_Vegeta_(SSGSS)_236S_Hitbox.png",
+                                                                                   "source":  "Dustloop Wiki",
+                                                                                   "type":  "image"
+                                                                               },
+                                       "DBFZ_Vegeta_(SSGSS)_236X_Hitbox.png":  {
+                                                                                   "hasNativeHitbox":  true,
+                                                                                   "url":  "/animaciones-personajes/dbfz/vegeta_ssgss_blue/DBFZ_Vegeta_(SSGSS)_236X_Hitbox.png",
+                                                                                   "source":  "Dustloop Wiki",
+                                                                                   "type":  "image"
+                                                                               },
+                                       "DBFZ_Vegeta_(SSGSS)_236XX_Hitbox.png":  {
+                                                                                    "hasNativeHitbox":  true,
+                                                                                    "url":  "/animaciones-personajes/dbfz/vegeta_ssgss_blue/DBFZ_Vegeta_(SSGSS)_236XX_Hitbox.png",
+                                                                                    "source":  "Dustloop Wiki",
+                                                                                    "type":  "image"
+                                                                                },
+                                       "DBFZ_Vegeta_(SSGSS)_236XXX_Hitbox.png":  {
+                                                                                     "hasNativeHitbox":  true,
+                                                                                     "url":  "/animaciones-personajes/dbfz/vegeta_ssgss_blue/DBFZ_Vegeta_(SSGSS)_236XXX_Hitbox.png",
+                                                                                     "source":  "Dustloop Wiki",
+                                                                                     "type":  "image"
+                                                                                 },
+                                       "DBFZ_Vegeta_(SSGSS)_2H_Hitbox.png":  {
+                                                                                 "hasNativeHitbox":  true,
+                                                                                 "url":  "/animaciones-personajes/dbfz/vegeta_ssgss_blue/DBFZ_Vegeta_(SSGSS)_2H_Hitbox.png",
+                                                                                 "source":  "Dustloop Wiki",
+                                                                                 "type":  "image"
+                                                                             },
+                                       "DBFZ_Vegeta_(SSGSS)_2L_Hitbox.png":  {
+                                                                                 "hasNativeHitbox":  true,
+                                                                                 "url":  "/animaciones-personajes/dbfz/vegeta_ssgss_blue/DBFZ_Vegeta_(SSGSS)_2L_Hitbox.png",
+                                                                                 "source":  "Dustloop Wiki",
+                                                                                 "type":  "image"
+                                                                             },
+                                       "DBFZ_Vegeta_(SSGSS)_2M_Hitbox.png":  {
+                                                                                 "hasNativeHitbox":  true,
+                                                                                 "url":  "/animaciones-personajes/dbfz/vegeta_ssgss_blue/DBFZ_Vegeta_(SSGSS)_2M_Hitbox.png",
+                                                                                 "source":  "Dustloop Wiki",
+                                                                                 "type":  "image"
+                                                                             },
+                                       "DBFZ_Vegeta_(SSGSS)_2S_Hitbox.png":  {
+                                                                                 "hasNativeHitbox":  true,
+                                                                                 "url":  "/animaciones-personajes/dbfz/vegeta_ssgss_blue/DBFZ_Vegeta_(SSGSS)_2S_Hitbox.png",
+                                                                                 "source":  "Dustloop Wiki",
+                                                                                 "type":  "image"
+                                                                             },
+                                       "DBFZ_Vegeta_(SSGSS)_5H_Hitbox.png":  {
+                                                                                 "hasNativeHitbox":  true,
+                                                                                 "url":  "/animaciones-personajes/dbfz/vegeta_ssgss_blue/DBFZ_Vegeta_(SSGSS)_5H_Hitbox.png",
+                                                                                 "source":  "Dustloop Wiki",
+                                                                                 "type":  "image"
+                                                                             },
+                                       "DBFZ_Vegeta_(SSGSS)_5L_Hitbox.png":  {
+                                                                                 "hasNativeHitbox":  true,
+                                                                                 "url":  "/animaciones-personajes/dbfz/vegeta_ssgss_blue/DBFZ_Vegeta_(SSGSS)_5L_Hitbox.png",
+                                                                                 "source":  "Dustloop Wiki",
+                                                                                 "type":  "image"
+                                                                             }
+                                   },
+    "dbfz|Goku (Super Saiyan)":  {
+                                     "DBFZ_Goku_(Super_Saiyan)_214HS_Hitbox.png":  {
+                                                                                       "hasNativeHitbox":  true,
+                                                                                       "url":  "/animaciones-personajes/dbfz/goku_super_saiyan/DBFZ_Goku_(Super_Saiyan)_214HS_Hitbox.png",
+                                                                                       "source":  "Dustloop Wiki",
+                                                                                       "type":  "image"
+                                                                                   },
+                                     "DBFZ_Goku_(Super_Saiyan)_214LM_Hitbox.png":  {
+                                                                                       "hasNativeHitbox":  true,
+                                                                                       "url":  "/animaciones-personajes/dbfz/goku_super_saiyan/DBFZ_Goku_(Super_Saiyan)_214LM_Hitbox.png",
+                                                                                       "source":  "Dustloop Wiki",
+                                                                                       "type":  "image"
+                                                                                   },
+                                     "DBFZ_Goku_(Super_Saiyan)_214X_1_Hitbox.png":  {
+                                                                                        "hasNativeHitbox":  true,
+                                                                                        "url":  "/animaciones-personajes/dbfz/goku_super_saiyan/DBFZ_Goku_(Super_Saiyan)_214X_1_Hitbox.png",
+                                                                                        "source":  "Dustloop Wiki",
+                                                                                        "type":  "image"
+                                                                                    },
+                                     "DBFZ_Goku_(Super_Saiyan)_214X_2_Hitbox.png":  {
+                                                                                        "hasNativeHitbox":  true,
+                                                                                        "url":  "/animaciones-personajes/dbfz/goku_super_saiyan/DBFZ_Goku_(Super_Saiyan)_214X_2_Hitbox.png",
+                                                                                        "source":  "Dustloop Wiki",
+                                                                                        "type":  "image"
+                                                                                    },
+                                     "DBFZ_Goku_(Super_Saiyan)_236HS_Hitbox.png":  {
+                                                                                       "hasNativeHitbox":  true,
+                                                                                       "url":  "/animaciones-personajes/dbfz/goku_super_saiyan/DBFZ_Goku_(Super_Saiyan)_236HS_Hitbox.png",
+                                                                                       "source":  "Dustloop Wiki",
+                                                                                       "type":  "image"
+                                                                                   },
+                                     "DBFZ_Goku_(Super_Saiyan)_236LM_Hitbox.png":  {
+                                                                                       "hasNativeHitbox":  true,
+                                                                                       "url":  "/animaciones-personajes/dbfz/goku_super_saiyan/DBFZ_Goku_(Super_Saiyan)_236LM_Hitbox.png",
+                                                                                       "source":  "Dustloop Wiki",
+                                                                                       "type":  "image"
+                                                                                   },
+                                     "DBFZ_Goku_(Super_Saiyan)_236S_Hitbox.png":  {
+                                                                                      "hasNativeHitbox":  true,
+                                                                                      "url":  "/animaciones-personajes/dbfz/goku_super_saiyan/DBFZ_Goku_(Super_Saiyan)_236S_Hitbox.png",
+                                                                                      "source":  "Dustloop Wiki",
+                                                                                      "type":  "image"
+                                                                                  },
+                                     "DBFZ_Goku_(Super_Saiyan)_236X_Hitbox.png":  {
+                                                                                      "hasNativeHitbox":  true,
+                                                                                      "url":  "/animaciones-personajes/dbfz/goku_super_saiyan/DBFZ_Goku_(Super_Saiyan)_236X_Hitbox.png",
+                                                                                      "source":  "Dustloop Wiki",
+                                                                                      "type":  "image"
+                                                                                  },
+                                     "DBFZ_Goku_(Super_Saiyan)_2H_Hitbox.png":  {
+                                                                                    "hasNativeHitbox":  true,
+                                                                                    "url":  "/animaciones-personajes/dbfz/goku_super_saiyan/DBFZ_Goku_(Super_Saiyan)_2H_Hitbox.png",
+                                                                                    "source":  "Dustloop Wiki",
+                                                                                    "type":  "image"
+                                                                                },
+                                     "DBFZ_Goku_(Super_Saiyan)_2L_Hitbox.png":  {
+                                                                                    "hasNativeHitbox":  true,
+                                                                                    "url":  "/animaciones-personajes/dbfz/goku_super_saiyan/DBFZ_Goku_(Super_Saiyan)_2L_Hitbox.png",
+                                                                                    "source":  "Dustloop Wiki",
+                                                                                    "type":  "image"
+                                                                                },
+                                     "DBFZ_Goku_(Super_Saiyan)_2M_Hitbox.png":  {
+                                                                                    "hasNativeHitbox":  true,
+                                                                                    "url":  "/animaciones-personajes/dbfz/goku_super_saiyan/DBFZ_Goku_(Super_Saiyan)_2M_Hitbox.png",
+                                                                                    "source":  "Dustloop Wiki",
+                                                                                    "type":  "image"
+                                                                                },
+                                     "DBFZ_Goku_(Super_Saiyan)_5H_Hitbox.png":  {
+                                                                                    "hasNativeHitbox":  true,
+                                                                                    "url":  "/animaciones-personajes/dbfz/goku_super_saiyan/DBFZ_Goku_(Super_Saiyan)_5H_Hitbox.png",
+                                                                                    "source":  "Dustloop Wiki",
+                                                                                    "type":  "image"
+                                                                                },
+                                     "DBFZ_Goku_(Super_Saiyan)_5L_Hitbox.png":  {
+                                                                                    "hasNativeHitbox":  true,
+                                                                                    "url":  "/animaciones-personajes/dbfz/goku_super_saiyan/DBFZ_Goku_(Super_Saiyan)_5L_Hitbox.png",
+                                                                                    "source":  "Dustloop Wiki",
+                                                                                    "type":  "image"
+                                                                                },
+                                     "DBFZ_Goku_(Super_Saiyan)_5LL_Hitbox.png":  {
+                                                                                     "hasNativeHitbox":  true,
+                                                                                     "url":  "/animaciones-personajes/dbfz/goku_super_saiyan/DBFZ_Goku_(Super_Saiyan)_5LL_Hitbox.png",
+                                                                                     "source":  "Dustloop Wiki",
+                                                                                     "type":  "image"
+                                                                                 }
+                                 },
+    "dbfz|Android 21 (Lab Coat)":  {
+                                       "DBFZ_Lab_Coat_Android_21_214HS.png":  {
+                                                                                  "hasNativeHitbox":  false,
+                                                                                  "url":  "/animaciones-personajes/dbfz/android_21_lab_coat/DBFZ_Lab_Coat_Android_21_214HS.png",
+                                                                                  "source":  "Dustloop Wiki",
+                                                                                  "type":  "image"
+                                                                              },
+                                       "DBFZ_Lab_Coat_Android_21_214HS2.png":  {
+                                                                                   "hasNativeHitbox":  false,
+                                                                                   "url":  "/animaciones-personajes/dbfz/android_21_lab_coat/DBFZ_Lab_Coat_Android_21_214HS2.png",
+                                                                                   "source":  "Dustloop Wiki",
+                                                                                   "type":  "image"
+                                                                               },
+                                       "DBFZ_Lab_Coat_Android_21_214LM.png":  {
+                                                                                  "hasNativeHitbox":  false,
+                                                                                  "url":  "/animaciones-personajes/dbfz/android_21_lab_coat/DBFZ_Lab_Coat_Android_21_214LM.png",
+                                                                                  "source":  "Dustloop Wiki",
+                                                                                  "type":  "image"
+                                                                              },
+                                       "DBFZ_Lab_Coat_Android_21_214LM2.png":  {
+                                                                                   "hasNativeHitbox":  false,
+                                                                                   "url":  "/animaciones-personajes/dbfz/android_21_lab_coat/DBFZ_Lab_Coat_Android_21_214LM2.png",
+                                                                                   "source":  "Dustloop Wiki",
+                                                                                   "type":  "image"
+                                                                               },
+                                       "DBFZ_Lab_Coat_Android_21_214S.png":  {
+                                                                                 "hasNativeHitbox":  false,
+                                                                                 "url":  "/animaciones-personajes/dbfz/android_21_lab_coat/DBFZ_Lab_Coat_Android_21_214S.png",
+                                                                                 "source":  "Dustloop Wiki",
+                                                                                 "type":  "image"
+                                                                             },
+                                       "DBFZ_Lab_Coat_Android_21_214S2.png":  {
+                                                                                  "hasNativeHitbox":  false,
+                                                                                  "url":  "/animaciones-personajes/dbfz/android_21_lab_coat/DBFZ_Lab_Coat_Android_21_214S2.png",
+                                                                                  "source":  "Dustloop Wiki",
+                                                                                  "type":  "image"
+                                                                              },
+                                       "DBFZ_Lab_Coat_Android_21_214X.png":  {
+                                                                                 "hasNativeHitbox":  false,
+                                                                                 "url":  "/animaciones-personajes/dbfz/android_21_lab_coat/DBFZ_Lab_Coat_Android_21_214X.png",
+                                                                                 "source":  "Dustloop Wiki",
+                                                                                 "type":  "image"
+                                                                             },
+                                       "DBFZ_Lab_Coat_Android_21_22S.png":  {
+                                                                                "hasNativeHitbox":  false,
+                                                                                "url":  "/animaciones-personajes/dbfz/android_21_lab_coat/DBFZ_Lab_Coat_Android_21_22S.png",
+                                                                                "source":  "Dustloop Wiki",
+                                                                                "type":  "image"
+                                                                            },
+                                       "DBFZ_Lab_Coat_Android_21_22X.png":  {
+                                                                                "hasNativeHitbox":  false,
+                                                                                "url":  "/animaciones-personajes/dbfz/android_21_lab_coat/DBFZ_Lab_Coat_Android_21_22X.png",
+                                                                                "source":  "Dustloop Wiki",
+                                                                                "type":  "image"
+                                                                            },
+                                       "DBFZ_Lab_Coat_Android_21_236HS.png":  {
+                                                                                  "hasNativeHitbox":  false,
+                                                                                  "url":  "/animaciones-personajes/dbfz/android_21_lab_coat/DBFZ_Lab_Coat_Android_21_236HS.png",
+                                                                                  "source":  "Dustloop Wiki",
+                                                                                  "type":  "image"
+                                                                              },
+                                       "DBFZ_Lab_Coat_Android_21_236LM.png":  {
+                                                                                  "hasNativeHitbox":  false,
+                                                                                  "url":  "/animaciones-personajes/dbfz/android_21_lab_coat/DBFZ_Lab_Coat_Android_21_236LM.png",
+                                                                                  "source":  "Dustloop Wiki",
+                                                                                  "type":  "image"
+                                                                              },
+                                       "DBFZ_Lab_Coat_Android_21_236LM2.png":  {
+                                                                                   "hasNativeHitbox":  false,
+                                                                                   "url":  "/animaciones-personajes/dbfz/android_21_lab_coat/DBFZ_Lab_Coat_Android_21_236LM2.png",
+                                                                                   "source":  "Dustloop Wiki",
+                                                                                   "type":  "image"
+                                                                               },
+                                       "DBFZ_Lab_Coat_Android_21_236S.png":  {
+                                                                                 "hasNativeHitbox":  false,
+                                                                                 "url":  "/animaciones-personajes/dbfz/android_21_lab_coat/DBFZ_Lab_Coat_Android_21_236S.png",
+                                                                                 "source":  "Dustloop Wiki",
+                                                                                 "type":  "image"
+                                                                             },
+                                       "DBFZ_Lab_Coat_Android_21_236X.png":  {
+                                                                                 "hasNativeHitbox":  false,
+                                                                                 "url":  "/animaciones-personajes/dbfz/android_21_lab_coat/DBFZ_Lab_Coat_Android_21_236X.png",
+                                                                                 "source":  "Dustloop Wiki",
+                                                                                 "type":  "image"
+                                                                             }
+                                   },
+    "dbfz|Zamasu (Fused)":  {
+                                "DBFZ_Zamasu_(Fused)_214LM_Hitbox.png":  {
+                                                                             "hasNativeHitbox":  true,
+                                                                             "url":  "/animaciones-personajes/dbfz/zamasu_fused/DBFZ_Zamasu_(Fused)_214LM_Hitbox.png",
+                                                                             "source":  "Dustloop Wiki",
+                                                                             "type":  "image"
+                                                                         },
+                                "DBFZ_Zamasu_(Fused)_214S_Hitbox.png":  {
+                                                                            "hasNativeHitbox":  true,
+                                                                            "url":  "/animaciones-personajes/dbfz/zamasu_fused/DBFZ_Zamasu_(Fused)_214S_Hitbox.png",
+                                                                            "source":  "Dustloop Wiki",
+                                                                            "type":  "image"
+                                                                        },
+                                "DBFZ_Zamasu_(Fused)_214X_1_Hitbox.png":  {
+                                                                              "hasNativeHitbox":  true,
+                                                                              "url":  "/animaciones-personajes/dbfz/zamasu_fused/DBFZ_Zamasu_(Fused)_214X_1_Hitbox.png",
+                                                                              "source":  "Dustloop Wiki",
+                                                                              "type":  "image"
+                                                                          },
+                                "DBFZ_Zamasu_(Fused)_214X_2_Hitbox.png":  {
+                                                                              "hasNativeHitbox":  true,
+                                                                              "url":  "/animaciones-personajes/dbfz/zamasu_fused/DBFZ_Zamasu_(Fused)_214X_2_Hitbox.png",
+                                                                              "source":  "Dustloop Wiki",
+                                                                              "type":  "image"
+                                                                          },
+                                "DBFZ_Zamasu_(Fused)_236HS_Hitbox.png":  {
+                                                                             "hasNativeHitbox":  true,
+                                                                             "url":  "/animaciones-personajes/dbfz/zamasu_fused/DBFZ_Zamasu_(Fused)_236HS_Hitbox.png",
+                                                                             "source":  "Dustloop Wiki",
+                                                                             "type":  "image"
+                                                                         },
+                                "DBFZ_Zamasu_(Fused)_236LM_Hitbox.png":  {
+                                                                             "hasNativeHitbox":  true,
+                                                                             "url":  "/animaciones-personajes/dbfz/zamasu_fused/DBFZ_Zamasu_(Fused)_236LM_Hitbox.png",
+                                                                             "source":  "Dustloop Wiki",
+                                                                             "type":  "image"
+                                                                         },
+                                "DBFZ_Zamasu_(Fused)_236S_1_Hitbox.png":  {
+                                                                              "hasNativeHitbox":  true,
+                                                                              "url":  "/animaciones-personajes/dbfz/zamasu_fused/DBFZ_Zamasu_(Fused)_236S_1_Hitbox.png",
+                                                                              "source":  "Dustloop Wiki",
+                                                                              "type":  "image"
+                                                                          },
+                                "DBFZ_Zamasu_(Fused)_236S_2_Hitbox_1.png":  {
+                                                                                "hasNativeHitbox":  true,
+                                                                                "url":  "/animaciones-personajes/dbfz/zamasu_fused/DBFZ_Zamasu_(Fused)_236S_2_Hitbox_1.png",
+                                                                                "source":  "Dustloop Wiki",
+                                                                                "type":  "image"
+                                                                            },
+                                "DBFZ_Zamasu_(Fused)_236S_2_Hitbox_2.png":  {
+                                                                                "hasNativeHitbox":  true,
+                                                                                "url":  "/animaciones-personajes/dbfz/zamasu_fused/DBFZ_Zamasu_(Fused)_236S_2_Hitbox_2.png",
+                                                                                "source":  "Dustloop Wiki",
+                                                                                "type":  "image"
+                                                                            },
+                                "DBFZ_Zamasu_(Fused)_236X_Hitbox.png":  {
+                                                                            "hasNativeHitbox":  true,
+                                                                            "url":  "/animaciones-personajes/dbfz/zamasu_fused/DBFZ_Zamasu_(Fused)_236X_Hitbox.png",
+                                                                            "source":  "Dustloop Wiki",
+                                                                            "type":  "image"
+                                                                        },
+                                "DBFZ_Zamasu_(Fused)_2H_Hitbox.png":  {
+                                                                          "hasNativeHitbox":  true,
+                                                                          "url":  "/animaciones-personajes/dbfz/zamasu_fused/DBFZ_Zamasu_(Fused)_2H_Hitbox.png",
+                                                                          "source":  "Dustloop Wiki",
+                                                                          "type":  "image"
+                                                                      },
+                                "DBFZ_Zamasu_(Fused)_2L_Hitbox.png":  {
+                                                                          "hasNativeHitbox":  true,
+                                                                          "url":  "/animaciones-personajes/dbfz/zamasu_fused/DBFZ_Zamasu_(Fused)_2L_Hitbox.png",
+                                                                          "source":  "Dustloop Wiki",
+                                                                          "type":  "image"
+                                                                      },
+                                "DBFZ_Zamasu_(Fused)_2M_Hitbox.png":  {
+                                                                          "hasNativeHitbox":  true,
+                                                                          "url":  "/animaciones-personajes/dbfz/zamasu_fused/DBFZ_Zamasu_(Fused)_2M_Hitbox.png",
+                                                                          "source":  "Dustloop Wiki",
+                                                                          "type":  "image"
+                                                                      },
+                                "DBFZ_Zamasu_(Fused)_5H_Hitbox.png":  {
+                                                                          "hasNativeHitbox":  true,
+                                                                          "url":  "/animaciones-personajes/dbfz/zamasu_fused/DBFZ_Zamasu_(Fused)_5H_Hitbox.png",
+                                                                          "source":  "Dustloop Wiki",
+                                                                          "type":  "image"
+                                                                      }
+                            },
+    "dbfz|Gogeta (SS4)":  {
+                              "DBFZ_Gogeta_(SS4)_214HS_Hitbox.png":  {
+                                                                         "hasNativeHitbox":  true,
+                                                                         "url":  "/animaciones-personajes/dbfz/gogeta_ss4/DBFZ_Gogeta_(SS4)_214HS_Hitbox.png",
+                                                                         "source":  "Dustloop Wiki",
+                                                                         "type":  "image"
+                                                                     },
+                              "DBFZ_Gogeta_(SS4)_214LM_Hitbox.png":  {
+                                                                         "hasNativeHitbox":  true,
+                                                                         "url":  "/animaciones-personajes/dbfz/gogeta_ss4/DBFZ_Gogeta_(SS4)_214LM_Hitbox.png",
+                                                                         "source":  "Dustloop Wiki",
+                                                                         "type":  "image"
+                                                                     },
+                              "DBFZ_Gogeta_(SS4)_214S_Hitbox.png":  {
+                                                                        "hasNativeHitbox":  true,
+                                                                        "url":  "/animaciones-personajes/dbfz/gogeta_ss4/DBFZ_Gogeta_(SS4)_214S_Hitbox.png",
+                                                                        "source":  "Dustloop Wiki",
+                                                                        "type":  "image"
+                                                                    },
+                              "DBFZ_Gogeta_(SS4)_214X_Hitbox.png":  {
+                                                                        "hasNativeHitbox":  true,
+                                                                        "url":  "/animaciones-personajes/dbfz/gogeta_ss4/DBFZ_Gogeta_(SS4)_214X_Hitbox.png",
+                                                                        "source":  "Dustloop Wiki",
+                                                                        "type":  "image"
+                                                                    },
+                              "DBFZ_Gogeta_(SS4)_22S_Hitbox.png":  {
+                                                                       "hasNativeHitbox":  true,
+                                                                       "url":  "/animaciones-personajes/dbfz/gogeta_ss4/DBFZ_Gogeta_(SS4)_22S_Hitbox.png",
+                                                                       "source":  "Dustloop Wiki",
+                                                                       "type":  "image"
+                                                                   },
+                              "DBFZ_Gogeta_(SS4)_236LM_Hitbox.png":  {
+                                                                         "hasNativeHitbox":  true,
+                                                                         "url":  "/animaciones-personajes/dbfz/gogeta_ss4/DBFZ_Gogeta_(SS4)_236LM_Hitbox.png",
+                                                                         "source":  "Dustloop Wiki",
+                                                                         "type":  "image"
+                                                                     },
+                              "DBFZ_Gogeta_(SS4)_236S_Hitbox.png":  {
+                                                                        "hasNativeHitbox":  true,
+                                                                        "url":  "/animaciones-personajes/dbfz/gogeta_ss4/DBFZ_Gogeta_(SS4)_236S_Hitbox.png",
+                                                                        "source":  "Dustloop Wiki",
+                                                                        "type":  "image"
+                                                                    },
+                              "DBFZ_Gogeta_(SS4)_236X_Hitbox.png":  {
+                                                                        "hasNativeHitbox":  true,
+                                                                        "url":  "/animaciones-personajes/dbfz/gogeta_ss4/DBFZ_Gogeta_(SS4)_236X_Hitbox.png",
+                                                                        "source":  "Dustloop Wiki",
+                                                                        "type":  "image"
+                                                                    },
+                              "DBFZ_Gogeta_(SS4)_2H_Hitbox.png":  {
+                                                                      "hasNativeHitbox":  true,
+                                                                      "url":  "/animaciones-personajes/dbfz/gogeta_ss4/DBFZ_Gogeta_(SS4)_2H_Hitbox.png",
+                                                                      "source":  "Dustloop Wiki",
+                                                                      "type":  "image"
+                                                                  },
+                              "DBFZ_Gogeta_(SS4)_2L_Hitbox.png":  {
+                                                                      "hasNativeHitbox":  true,
+                                                                      "url":  "/animaciones-personajes/dbfz/gogeta_ss4/DBFZ_Gogeta_(SS4)_2L_Hitbox.png",
+                                                                      "source":  "Dustloop Wiki",
+                                                                      "type":  "image"
+                                                                  },
+                              "DBFZ_Gogeta_(SS4)_2M_Hitbox.png":  {
+                                                                      "hasNativeHitbox":  true,
+                                                                      "url":  "/animaciones-personajes/dbfz/gogeta_ss4/DBFZ_Gogeta_(SS4)_2M_Hitbox.png",
+                                                                      "source":  "Dustloop Wiki",
+                                                                      "type":  "image"
+                                                                  },
+                              "DBFZ_Gogeta_(SS4)_5H_Hitbox.png":  {
+                                                                      "hasNativeHitbox":  true,
+                                                                      "url":  "/animaciones-personajes/dbfz/gogeta_ss4/DBFZ_Gogeta_(SS4)_5H_Hitbox.png",
+                                                                      "source":  "Dustloop Wiki",
+                                                                      "type":  "image"
+                                                                  },
+                              "DBFZ_Gogeta_(SS4)_5L_Hitbox.png":  {
+                                                                      "hasNativeHitbox":  true,
+                                                                      "url":  "/animaciones-personajes/dbfz/gogeta_ss4/DBFZ_Gogeta_(SS4)_5L_Hitbox.png",
+                                                                      "source":  "Dustloop Wiki",
+                                                                      "type":  "image"
+                                                                  },
+                              "DBFZ_Gogeta_(SS4)_5LL_Hitbox.png":  {
+                                                                       "hasNativeHitbox":  true,
+                                                                       "url":  "/animaciones-personajes/dbfz/gogeta_ss4/DBFZ_Gogeta_(SS4)_5LL_Hitbox.png",
+                                                                       "source":  "Dustloop Wiki",
+                                                                       "type":  "image"
+                                                                   }
+                          },
+    "dbfz|Vegeta (Base)":  {
+
+                           },
+    "dbfz|Android 17":  {
+                            "DBFZ_Android_17_214LM_Hitbox.png":  {
+                                                                     "hasNativeHitbox":  true,
+                                                                     "url":  "/animaciones-personajes/dbfz/android_17/DBFZ_Android_17_214LM_Hitbox.png",
+                                                                     "source":  "Dustloop Wiki",
+                                                                     "type":  "image"
+                                                                 },
+                            "DBFZ_Android_17_22S_Hitbox.png":  {
+                                                                   "hasNativeHitbox":  true,
+                                                                   "url":  "/animaciones-personajes/dbfz/android_17/DBFZ_Android_17_22S_Hitbox.png",
+                                                                   "source":  "Dustloop Wiki",
+                                                                   "type":  "image"
+                                                               },
+                            "DBFZ_Android_17_22S_Shot_Hitbox.png":  {
+                                                                        "hasNativeHitbox":  true,
+                                                                        "url":  "/animaciones-personajes/dbfz/android_17/DBFZ_Android_17_22S_Shot_Hitbox.png",
+                                                                        "source":  "Dustloop Wiki",
+                                                                        "type":  "image"
+                                                                    },
+                            "DBFZ_Android_17_236HS_Hitbox.png":  {
+                                                                     "hasNativeHitbox":  true,
+                                                                     "url":  "/animaciones-personajes/dbfz/android_17/DBFZ_Android_17_236HS_Hitbox.png",
+                                                                     "source":  "Dustloop Wiki",
+                                                                     "type":  "image"
+                                                                 },
+                            "DBFZ_Android_17_236LM_Hitbox.png":  {
+                                                                     "hasNativeHitbox":  true,
+                                                                     "url":  "/animaciones-personajes/dbfz/android_17/DBFZ_Android_17_236LM_Hitbox.png",
+                                                                     "source":  "Dustloop Wiki",
+                                                                     "type":  "image"
+                                                                 },
+                            "DBFZ_Android_17_236X_Hitbox.png":  {
+                                                                    "hasNativeHitbox":  true,
+                                                                    "url":  "/animaciones-personajes/dbfz/android_17/DBFZ_Android_17_236X_Hitbox.png",
+                                                                    "source":  "Dustloop Wiki",
+                                                                    "type":  "image"
+                                                                },
+                            "DBFZ_Android_17_2H_Hitbox.png":  {
+                                                                  "hasNativeHitbox":  true,
+                                                                  "url":  "/animaciones-personajes/dbfz/android_17/DBFZ_Android_17_2H_Hitbox.png",
+                                                                  "source":  "Dustloop Wiki",
+                                                                  "type":  "image"
+                                                              },
+                            "DBFZ_Android_17_2L_Hitbox.png":  {
+                                                                  "hasNativeHitbox":  true,
+                                                                  "url":  "/animaciones-personajes/dbfz/android_17/DBFZ_Android_17_2L_Hitbox.png",
+                                                                  "source":  "Dustloop Wiki",
+                                                                  "type":  "image"
+                                                              },
+                            "DBFZ_Android_17_2M_Hitbox.png":  {
+                                                                  "hasNativeHitbox":  true,
+                                                                  "url":  "/animaciones-personajes/dbfz/android_17/DBFZ_Android_17_2M_Hitbox.png",
+                                                                  "source":  "Dustloop Wiki",
+                                                                  "type":  "image"
+                                                              },
+                            "DBFZ_Android_17_3H_Hitbox.png":  {
+                                                                  "hasNativeHitbox":  true,
+                                                                  "url":  "/animaciones-personajes/dbfz/android_17/DBFZ_Android_17_3H_Hitbox.png",
+                                                                  "source":  "Dustloop Wiki",
+                                                                  "type":  "image"
+                                                              },
+                            "DBFZ_Android_17_5H_Hitbox.png":  {
+                                                                  "hasNativeHitbox":  true,
+                                                                  "url":  "/animaciones-personajes/dbfz/android_17/DBFZ_Android_17_5H_Hitbox.png",
+                                                                  "source":  "Dustloop Wiki",
+                                                                  "type":  "image"
+                                                              },
+                            "DBFZ_Android_17_5L_Hitbox.png":  {
+                                                                  "hasNativeHitbox":  true,
+                                                                  "url":  "/animaciones-personajes/dbfz/android_17/DBFZ_Android_17_5L_Hitbox.png",
+                                                                  "source":  "Dustloop Wiki",
+                                                                  "type":  "image"
+                                                              },
+                            "DBFZ_Android_17_5LL_Hitbox.png":  {
+                                                                   "hasNativeHitbox":  true,
+                                                                   "url":  "/animaciones-personajes/dbfz/android_17/DBFZ_Android_17_5LL_Hitbox.png",
+                                                                   "source":  "Dustloop Wiki",
+                                                                   "type":  "image"
+                                                               },
+                            "DBFZ_Android_17_5LLL_Hitbox.png":  {
+                                                                    "hasNativeHitbox":  true,
+                                                                    "url":  "/animaciones-personajes/dbfz/android_17/DBFZ_Android_17_5LLL_Hitbox.png",
+                                                                    "source":  "Dustloop Wiki",
+                                                                    "type":  "image"
+                                                                }
+                        },
+    "dbfz|Goku (Base)":  {
+
+                         },
+    "dbfz|Goku (SSGSS / Blue)":  {
+                                     "DBFZ_Goku_(SSGSS)_214LM_Hitbox.png":  {
+                                                                                "hasNativeHitbox":  true,
+                                                                                "url":  "/animaciones-personajes/dbfz/goku_ssgss_blue/DBFZ_Goku_(SSGSS)_214LM_Hitbox.png",
+                                                                                "source":  "Dustloop Wiki",
+                                                                                "type":  "image"
+                                                                            },
+                                     "DBFZ_Goku_(SSGSS)_214X_1_Hitbox.png":  {
+                                                                                 "hasNativeHitbox":  true,
+                                                                                 "url":  "/animaciones-personajes/dbfz/goku_ssgss_blue/DBFZ_Goku_(SSGSS)_214X_1_Hitbox.png",
+                                                                                 "source":  "Dustloop Wiki",
+                                                                                 "type":  "image"
+                                                                             },
+                                     "DBFZ_Goku_(SSGSS)_214X_2_Hitbox.png":  {
+                                                                                 "hasNativeHitbox":  true,
+                                                                                 "url":  "/animaciones-personajes/dbfz/goku_ssgss_blue/DBFZ_Goku_(SSGSS)_214X_2_Hitbox.png",
+                                                                                 "source":  "Dustloop Wiki",
+                                                                                 "type":  "image"
+                                                                             },
+                                     "DBFZ_Goku_(SSGSS)_236LM_Hitbox.png":  {
+                                                                                "hasNativeHitbox":  true,
+                                                                                "url":  "/animaciones-personajes/dbfz/goku_ssgss_blue/DBFZ_Goku_(SSGSS)_236LM_Hitbox.png",
+                                                                                "source":  "Dustloop Wiki",
+                                                                                "type":  "image"
+                                                                            },
+                                     "DBFZ_Goku_(SSGSS)_236S_1_Hitbox.png":  {
+                                                                                 "hasNativeHitbox":  true,
+                                                                                 "url":  "/animaciones-personajes/dbfz/goku_ssgss_blue/DBFZ_Goku_(SSGSS)_236S_1_Hitbox.png",
+                                                                                 "source":  "Dustloop Wiki",
+                                                                                 "type":  "image"
+                                                                             },
+                                     "DBFZ_Goku_(SSGSS)_236S_2_Hitbox.png":  {
+                                                                                 "hasNativeHitbox":  true,
+                                                                                 "url":  "/animaciones-personajes/dbfz/goku_ssgss_blue/DBFZ_Goku_(SSGSS)_236S_2_Hitbox.png",
+                                                                                 "source":  "Dustloop Wiki",
+                                                                                 "type":  "image"
+                                                                             },
+                                     "DBFZ_Goku_(SSGSS)_236S_Hitbox_1.png":  {
+                                                                                 "hasNativeHitbox":  true,
+                                                                                 "url":  "/animaciones-personajes/dbfz/goku_ssgss_blue/DBFZ_Goku_(SSGSS)_236S_Hitbox_1.png",
+                                                                                 "source":  "Dustloop Wiki",
+                                                                                 "type":  "image"
+                                                                             },
+                                     "DBFZ_Goku_(SSGSS)_236S_Hitbox_2.png":  {
+                                                                                 "hasNativeHitbox":  true,
+                                                                                 "url":  "/animaciones-personajes/dbfz/goku_ssgss_blue/DBFZ_Goku_(SSGSS)_236S_Hitbox_2.png",
+                                                                                 "source":  "Dustloop Wiki",
+                                                                                 "type":  "image"
+                                                                             },
+                                     "DBFZ_Goku_(SSGSS)_236X_Hitbox.png":  {
+                                                                               "hasNativeHitbox":  true,
+                                                                               "url":  "/animaciones-personajes/dbfz/goku_ssgss_blue/DBFZ_Goku_(SSGSS)_236X_Hitbox.png",
+                                                                               "source":  "Dustloop Wiki",
+                                                                               "type":  "image"
+                                                                           },
+                                     "DBFZ_Goku_(SSGSS)_2H_Hitbox.png":  {
+                                                                             "hasNativeHitbox":  true,
+                                                                             "url":  "/animaciones-personajes/dbfz/goku_ssgss_blue/DBFZ_Goku_(SSGSS)_2H_Hitbox.png",
+                                                                             "source":  "Dustloop Wiki",
+                                                                             "type":  "image"
+                                                                         },
+                                     "DBFZ_Goku_(SSGSS)_2L_Hitbox.png":  {
+                                                                             "hasNativeHitbox":  true,
+                                                                             "url":  "/animaciones-personajes/dbfz/goku_ssgss_blue/DBFZ_Goku_(SSGSS)_2L_Hitbox.png",
+                                                                             "source":  "Dustloop Wiki",
+                                                                             "type":  "image"
+                                                                         },
+                                     "DBFZ_Goku_(SSGSS)_2M_Hitbox.png":  {
+                                                                             "hasNativeHitbox":  true,
+                                                                             "url":  "/animaciones-personajes/dbfz/goku_ssgss_blue/DBFZ_Goku_(SSGSS)_2M_Hitbox.png",
+                                                                             "source":  "Dustloop Wiki",
+                                                                             "type":  "image"
+                                                                         },
+                                     "DBFZ_Goku_(SSGSS)_5H_Hitbox.png":  {
+                                                                             "hasNativeHitbox":  true,
+                                                                             "url":  "/animaciones-personajes/dbfz/goku_ssgss_blue/DBFZ_Goku_(SSGSS)_5H_Hitbox.png",
+                                                                             "source":  "Dustloop Wiki",
+                                                                             "type":  "image"
+                                                                         },
+                                     "DBFZ_Goku_(SSGSS)_5L_Hitbox.png":  {
+                                                                             "hasNativeHitbox":  true,
+                                                                             "url":  "/animaciones-personajes/dbfz/goku_ssgss_blue/DBFZ_Goku_(SSGSS)_5L_Hitbox.png",
+                                                                             "source":  "Dustloop Wiki",
+                                                                             "type":  "image"
+                                                                         }
+                                 },
+    "tekken8|Devil Jin":  {
+                              "T8-p2-devil-jin-f,n,d,dfx+3.mp4":  {
+                                                                      "hasNativeHitbox":  false,
+                                                                      "url":  "/animaciones-personajes/tekken8/devil_jin/T8-p2-devil-jin-f,n,d,dfx+3.mp4",
+                                                                      "source":  "Wavu Wiki",
+                                                                      "type":  "video"
+                                                                  },
+                              "T8-p2-devil-jin-f,n,d,dfx+3.mp4.mp4":  {
+                                                                          "hasNativeHitbox":  false,
+                                                                          "url":  "/animaciones-personajes/tekken8/devil_jin/T8-p2-devil-jin-f,n,d,dfx+3.mp4.mp4",
+                                                                          "source":  "Wavu Wiki",
+                                                                          "type":  "video"
+                                                                      },
+                              "T8-p2-devil-jin-ws1,4.mp4":  {
+                                                                "hasNativeHitbox":  false,
+                                                                "url":  "/animaciones-personajes/tekken8/devil_jin/T8-p2-devil-jin-ws1,4.mp4",
+                                                                "source":  "Wavu Wiki",
+                                                                "type":  "video"
+                                                            }
+                          },
+    "tekken8|Paul Phoenix":  {
+                                 "T8-p2-paul-f+3,2.mp4":  {
+                                                              "hasNativeHitbox":  false,
+                                                              "url":  "/animaciones-personajes/tekken8/paul_phoenix/T8-p2-paul-f+3,2.mp4",
+                                                              "source":  "Wavu Wiki",
+                                                              "type":  "video"
+                                                          }
+                             },
+    "tekken8|Reina":  {
+                          "T8-p2-reina-uns.2.mp4":  {
+                                                        "hasNativeHitbox":  false,
+                                                        "url":  "/animaciones-personajes/tekken8/reina/T8-p2-reina-uns.2.mp4",
+                                                        "source":  "Wavu Wiki",
+                                                        "type":  "video"
+                                                    }
+                      },
+    "tekken8|Armor King":  {
+                               "T8-p2-armor-king-db+3+4.mp4":  {
+                                                                   "hasNativeHitbox":  false,
+                                                                   "url":  "/animaciones-personajes/tekken8/armor_king/T8-p2-armor-king-db+3+4.mp4",
+                                                                   "source":  "Wavu Wiki",
+                                                                   "type":  "video"
+                                                               }
+                           }
 }

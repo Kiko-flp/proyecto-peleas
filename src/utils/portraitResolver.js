@@ -438,13 +438,61 @@ async function resolveCharacterPortraitUrl(gameId, charName) {
     }
   }
 
-  // 6. MORTAL KOMBAT 1
-  else if (gameId === "mk1") {
+  // 6. MORTAL KOMBAT 1 & MK11
+  else if (gameId === "mk1" || gameId === "mk11") {
     resolvedUrl = await queryPageImage(
       "https://mortalkombat.fandom.com/api.php",
-      [...exactTitles, `${charName}/Mortal Kombat 1`],
+      [...exactTitles, `${charName}/Mortal Kombat 1`, `${charName}/Mortal Kombat 11`],
       exactTitles[0]
     );
+  }
+
+  // 6B. ENTREGAS CLÁSICAS Y NUEVAS SAGAS (SF3S, USF4, Tekken 7, COTW, KOF XV, UNI2, 2XKO, GBVSR, GGXrd, Melee)
+  else if (gameId === "sf3s" || gameId === "usf4") {
+    resolvedUrl = await queryPageImage(
+      "https://streetfighter.fandom.com/api.php",
+      exactTitles,
+      exactTitles[0]
+    );
+  } else if (gameId === "tekken7") {
+    resolvedUrl = await queryPageImage(
+      "https://tekken.fandom.com/api.php",
+      [...exactTitles, charName.split(" ")[0]],
+      exactTitles[0]
+    );
+  } else if (gameId === "cotw" || gameId === "kofxv") {
+    resolvedUrl = await queryPageImage(
+      "https://snk.fandom.com/api.php",
+      exactTitles,
+      exactTitles[0]
+    );
+  } else if (gameId === "uni2") {
+    resolvedUrl = await queryPageImage(
+      "https://in-birth.fandom.com/api.php",
+      exactTitles,
+      exactTitles[0]
+    );
+  } else if (gameId === "2xko") {
+    resolvedUrl = await queryPageImage(
+      "https://leagueoflegends.fandom.com/api.php",
+      exactTitles,
+      exactTitles[0]
+    );
+  } else if (gameId === "gbvsr") {
+    resolvedUrl = await queryPageImage(
+      "https://gbf.wiki/api.php",
+      exactTitles,
+      exactTitles[0]
+    );
+  } else if (gameId === "ggxrd") {
+    resolvedUrl = await queryPageImage(
+      "https://guiltygear.fandom.com/api.php",
+      exactTitles,
+      exactTitles[0]
+    );
+  } else if (gameId === "ssbm") {
+    const clean = charName.toLowerCase().replace(/[^a-z0-9]+/g, "_");
+    resolvedUrl = `https://www.smashbros.com/assets_v2/img/fighter/thumb_a/${clean}.png`;
   }
 
   // 7. Respaldo en Wikis de franquicias invitadas (Final Fantasy, Baki, Cyberpunk, Invincible, The Boys, Scream, Terminator)

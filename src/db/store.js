@@ -27,6 +27,7 @@ class DataStore {
       submissions: this.state.submissions || [],
       verifiedUsers: this.state.verifiedUsers || [],
       authRequests: this.state.authRequests || [],
+      notifiedNewsIds: this.state.notifiedNewsIds || [],
       ownerChatId: this.state.ownerChatId || ""
     };
   }
@@ -44,6 +45,7 @@ class DataStore {
     if (Array.isArray(saved.submissions)) this.state.submissions = saved.submissions;
     if (Array.isArray(saved.verifiedUsers)) this.state.verifiedUsers = saved.verifiedUsers;
     if (Array.isArray(saved.authRequests)) this.state.authRequests = saved.authRequests;
+    if (Array.isArray(saved.notifiedNewsIds)) this.state.notifiedNewsIds = saved.notifiedNewsIds;
     if (saved.ownerChatId) this.state.ownerChatId = saved.ownerChatId;
     this.applySavedOverrides();
   }
@@ -243,6 +245,28 @@ class DataStore {
   getGames(sagaId = null) {
     if (!sagaId || sagaId === "all") return this.state.games;
     return this.state.games.filter((g) => g.sagaId === sagaId);
+  }
+
+  getGamesLite(sagaId = null) {
+    return this.getGames(sagaId).map((g) => ({
+      ...g,
+      isLite: true,
+      characters: (g.characters || []).map((c) => ({
+        id: c.id,
+        name: c.name,
+        archetype: c.archetype,
+        difficulty: c.difficulty,
+        isDLC: c.isDLC,
+        dlcPack: c.dlcPack,
+        isUnreleased: c.isUnreleased,
+        releaseWindow: c.releaseWindow,
+        recommendedSubSystem: c.recommendedSubSystem,
+        iconUrl: c.iconUrl,
+        fallbackIconUrl: c.fallbackIconUrl,
+        dbfzPosition: c.dbfzPosition || null,
+        kameoSynergy: c.kameoSynergy || null
+      }))
+    }));
   }
 
   getGameById(gameId) {

@@ -14,16 +14,33 @@ const youtubeManager = require("../src/youtube/youtubeManager");
 async function run() {
   console.log("Ejecutando tests de FGC Vault...");
 
-  // 1. Verificar 6 juegos y sus 274 personajes con datos reales
+  // 1. Verificar juegos (6 principales + 5 nuevas sagas + 6 clásicos = 17 juegos) y planteles reales
   const games = store.getGames();
-  assert.strictEqual(games.length, 6, "Deben existir exactamente 6 juegos principales");
+  assert.strictEqual(games.length, 17, `Deben existir exactamente 17 juegos (encontrados ${games.length})`);
+
+  const classicGames = games.filter((g) => g.isClassic === true);
+  assert.strictEqual(classicGames.length, 6, "Deben existir exactamente 6 entregas clásicas históricas");
+
+  const coreCount = games
+    .filter((g) => ["mk1", "sf6", "tekken8", "dbfz", "gg-strive", "ssbu"].includes(g.id))
+    .reduce((sum, g) => sum + g.characters.length, 0);
+  assert.strictEqual(coreCount, 274, `Esperados 274 personajes en los 6 juegos base, encontrados ${coreCount}`);
 
   const totalChars = games.reduce((sum, g) => sum + g.characters.length, 0);
-  assert.strictEqual(totalChars, 274, `Esperados 274 personajes, encontrados ${totalChars}`);
+  assert(totalChars >= 440, `Esperados >=440 personajes totales en catálogo ampliado, encontrados ${totalChars}`);
+
+  const mk1 = store.getGameById("mk1");
+  assert(mk1 && Array.isArray(mk1.kameos) && mk1.kameos.length === 21, "MK1 debe tener exactamente 21 Kameos");
+  assert(mk1.kameos.every((k) => Array.isArray(k.frameDataCards) && k.frameDataCards.length >= 2), "Todos los Kameos deben incluir frameDataCards");
+
+  const liteGames = store.getGamesLite();
+  assert.strictEqual(liteGames.length, 17, "getGamesLite debe devolver los 17 juegos");
+  assert(!liteGames[0].characters[0].frameDataCards, "getGamesLite no debe incluir frameDataCards pesados en el bootstrap");
 
   const tekken = store.getGameById("tekken8");
   const yujiro = tekken.characters.find((c) => c.name.includes("Yujiro"));
   assert(yujiro && yujiro.isUnreleased === true, "Yujiro Hanma debe tener isUnreleased=true");
+  assert(yujiro.counterplay && yujiro.counterplay.sidestep, "Tekken 8 debe incluir counterplay y sidestep");
 
   // 2. Verificar que realFrameData.json cargó datos reales (e.g. SF6 Ryu o MK1 Ashrah)
   const sf6 = store.getGameById("sf6");

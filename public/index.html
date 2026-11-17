@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=JetBrains+Mono:wght@500;700&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=31" />
+  <link rel="stylesheet" href="/styles.css?v=32" />
 </head>
 <body>
   <!-- BARRA DE NAVEGACIÓN MINIMALISTA DE DISEÑO EDITORIAL -->
@@ -75,17 +75,24 @@
         <div class="hero-stats" id="heroStatsBox"></div>
       </div>
 
-      <!-- BARRA DE FILTRO POR SAGA Y BUSCADOR INSTANTÁNEO -->
-      <div class="catalog-toolbar">
-        <div class="saga-tabs" id="sagaTabsContainer"></div>
-        <div class="search-wrap">
-          <input
-            type="search"
-            id="searchGameOrCharInput"
-            class="search-input"
-            placeholder="Buscar juego, personaje o pack DLC (ej. Scorpion, Akuma, Armor King)..."
-          />
+      <!-- BARRA DE FILTRO POR SAGA, ÉPOCA Y BUSCADOR INSTANTÁNEO -->
+      <div class="catalog-toolbar" style="flex-direction:column;align-items:stretch;gap:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+          <div class="combo-filter-pills" id="eraFilterTabs">
+            <button class="btn-chip active" data-era="all">Todos los Juegos</button>
+            <button class="btn-chip" data-era="modern">Actuales Torneo</button>
+            <button class="btn-chip" data-era="classic">🏛 Clásicos Históricos</button>
+          </div>
+          <div class="search-wrap" style="min-width:260px;flex:1;max-width:460px;">
+            <input
+              type="search"
+              id="searchGameOrCharInput"
+              class="search-input"
+              placeholder="Buscar juego, personaje o pack DLC (ej. Scorpion, Akuma, Armor King)..."
+            />
+          </div>
         </div>
+        <div class="saga-tabs" id="sagaTabsContainer"></div>
       </div>
 
       <!-- RESULTADOS INSTANTÁNEOS DE PERSONAJES AL ESCRIBIR -->
@@ -350,6 +357,9 @@
           <button class="game-tab" data-tooltab="tool-synergy">
             6. Kameos MK1, Sinergias y Equipos DBFZ
           </button>
+          <button class="game-tab" data-tooltab="tool-framequiz">
+            7. Minijuego: ¿Seguro o Castigable?
+          </button>
         </div>
       </div>
 
@@ -469,6 +479,18 @@
             </div>
           </div>
           <div id="dbfzTeamBuilderContainer"></div>
+        </div>
+      </div>
+
+      <div id="tool-framequiz" class="tool-subview hidden">
+        <div class="roster-block">
+          <div class="roster-block-header">
+            <div>
+              <h3>Reto de Reflejos Frame Data: ¿Seguro o Castigable?</h3>
+              <p>Entrena tu ojo competitivo identificando al vuelo si un ataque en bloqueo es seguro (+ / -1 a -4), castigable ligero (-5 a -9) o lanzador/combo (-10 o peor).</p>
+            </div>
+          </div>
+          <div id="frameQuizContainer"></div>
         </div>
       </div>
     </section>
@@ -664,8 +686,8 @@
     </div>
   </div>
 
-  <script src="/features.js?v=31"></script>
-  <script src="/app.js?v=31"></script>
+  <script src="/features.js?v=32"></script>
+  <script src="/app.js?v=32"></script>
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {

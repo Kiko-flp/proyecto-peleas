@@ -20,6 +20,7 @@ const {
   DBFZ_CHARACTER_POSITIONS,
   DBFZ_META_TEAMS
 } = require("./kameosAndTeams");
+const { EXTRA_SAGAS, EXTRA_GAMES } = require("./extraGamesAndClassics");
 
 // Fichas detalladas personalizadas que se fusionan con el plantel completo de cada juego
 const DETAILED_OVERRIDES = {
@@ -229,43 +230,19 @@ const SEED_DATA = {
   missingContentRoadmap: [
     {
       id: "miss-1",
-      area: "Entregas Clásicas e Históricas",
-      target: "Mortal Kombat / Street Fighter / Tekken / Guilty Gear / Smash",
-      priority: "Alta",
-      whatIsMissing: "Añadir entregas anteriores clave de cada saga: Mortal Kombat 11 Ultimate, Mortal Kombat XL, USFIV, Street Fighter III: 3rd Strike, Tekken 7, GG Xrd REV 2 y Super Smash Bros. Melee.",
-      purposeForEvaluation: "Cumplir el objetivo de cubrir todos los juegos de lucha históricos además de la entrega actual de cada franquicia."
+      area: "Clips Cortos de Movimientos MK1",
+      target: "Mortal Kombat 1 (35 Luchadores + 21 Kameos)",
+      priority: "Media",
+      whatIsMissing: "Capturar y añadir clips .mp4/.gif locales de ataques individuales de MK1 en animaciones-personajes/mk1/ para complementar el Frame Meter interactivo 60 FPS.",
+      purposeForEvaluation: "Completar el soporte audiovisual local junto a SF6, Tekken 8, DBFZ, GGST y Smash Ultimate."
     },
     {
       id: "miss-2",
-      area: "Vídeos Específicos por Personaje",
-      target: "Los 6 juegos actuales (271 personajes)",
-      priority: "Alta",
-      whatIsMissing: "Asignar un vídeo tutorial individual específico de YouTube a cada personaje secundario y de los últimos pases DLC (en lugar del vídeo general del juego).",
-      purposeForEvaluation: "Que cada uno de los 271 luchadores tenga su propio vídeo dedicado además de su guía en texto."
-    },
-    {
-      id: "miss-3",
-      area: "Animaciones Frame a Frame de Combate (GIF/MP4)",
-      target: "Mortal Kombat 1 y Tekken 8 (Fichas Frame Data)",
-      priority: "Media",
-      whatIsMissing: "Capturar y añadir clips MP4/GIF de cada movimiento de MK1 y Tekken 8 en animaciones-personajes/ (actualmente los wikis públicos no exponen sprites hitbox directos para esos dos títulos).",
-      purposeForEvaluation: "Complementar el Frame Meter interactivo que ya calcula Startup/Active/Recovery reales con el vídeo de cada ataque."
-    },
-    {
-      id: "miss-4",
-      area: "Guías Anti-Personaje (Matchups y Castigos)",
-      target: "Fichas individuales de personajes (Tekken 8, SF6 y MK1)",
-      priority: "Media",
-      whatIsMissing: "Añadir un bloque de 'Cómo ganarle / Castigos clave' en cada personaje indicando hacia qué lado hacer Sidestep o en qué golpe hacer Flawless Block / Interrupt.",
-      purposeForEvaluation: "Ayudar a los jugadores que entran buscando cómo defenderse contra un personaje concreto que les cuesta en ranked."
-    },
-    {
-      id: "miss-5",
-      area: "Nuevas Sagas de Lucha",
-      target: "Catálogo Principal de Juegos",
-      priority: "Media",
-      whatIsMissing: "Incorporar sagas adicionales de peso competitivo: The King of Fighters XV, Fatal Fury: City of the Wolves, Granblue Fantasy Versus: Rising, Under Night In-Birth II y 2XKO.",
-      purposeForEvaluation: "Valorar qué saga añadir primero según el interés de los usuarios y del circuito EVO."
+      area: "Vídeos Individuales Verificados por Personaje",
+      target: "Planteles DLC y Clásicos Históricos",
+      priority: "Baja",
+      whatIsMissing: "Curar enlaces tutoriales manuales en español para personajes secundarios y entregas clásicas sin vídeo dedicado.",
+      purposeForEvaluation: "Garantizar que cada luchador muestre un tutorial verificado con marcas de pausa tácticas."
     }
   ],
 
@@ -420,7 +397,8 @@ const SEED_DATA = {
       notationLegend: "Nair/Fair/Bair/Uair/Dair = Aéreos | Utilt/Ftilt/Dtilt = Tilts | USmash/FSmash/DSmash | OOS = Out of Shield | DI = Directional Influence",
       accentColor: "#3b82f6",
       description: "El referente de los Platform Fighters: porcentajes de empuje, control de escenario, recuperación (Edgeguard/Ledgetrap) y DI."
-    }
+    },
+    ...EXTRA_SAGAS
   ],
 
   games: [
@@ -776,7 +754,8 @@ const SEED_DATA = {
         "3b82f6",
         SSBU_RAW
       )
-    }
+    },
+    ...EXTRA_GAMES
   ],
 
   submissions: [

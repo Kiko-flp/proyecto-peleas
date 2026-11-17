@@ -297,11 +297,17 @@ async function resolveSsbuHitboxes(charName) {
 }
 
 async function resolveDustloopHitboxes(gameId, charName) {
-  const prefixGame = gameId === "gg-strive" ? "GGST" : "DBFZ";
+  const prefixGame =
+    gameId === "gg-strive" ? "GGST" :
+    gameId === "gbvsr" ? "GBVSR" :
+    gameId === "ggxrd" ? "GGXRD-R2" :
+    "DBFZ";
   const charSlug =
     gameId === "gg-strive"
       ? (GGST_DUSTLOOP_PREFIX[charName] || charName).replace(/\s+/g, "_")
-      : (DBFZ_DUSTLOOP_PREFIX[charName] || charName.replace(/\s+/g, ""));
+      : (gameId === "gbvsr" || gameId === "ggxrd")
+        ? charName.replace(/\s+/g, "_")
+        : (DBFZ_DUSTLOOP_PREFIX[charName] || charName.replace(/\s+/g, ""));
   const prefix = `${prefixGame}_${charSlug}_`;
 
   try {
@@ -590,11 +596,11 @@ async function resolveCharacterHitboxes(gameId, charName) {
   const localData = getLocalCharHitboxes(gameId, charName);
   let remoteData = {};
 
-  if (gameId === "ssbu") {
+  if (gameId === "ssbu" || gameId === "ssbm") {
     remoteData = await resolveSsbuHitboxes(charName);
   } else if (gameId === "sf6") {
     remoteData = await resolveSf6Hitboxes(charName);
-  } else if (gameId === "gg-strive" || gameId === "dbfz") {
+  } else if (gameId === "gg-strive" || gameId === "dbfz" || gameId === "gbvsr" || gameId === "ggxrd") {
     remoteData = await resolveDustloopHitboxes(gameId, charName);
   } else if (gameId === "tekken8") {
     remoteData = await resolveWavuHitboxes(charName);

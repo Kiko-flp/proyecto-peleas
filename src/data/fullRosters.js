@@ -8,6 +8,7 @@
  */
 
 const crypto = require("crypto");
+const { getSpecificCharData } = require("./charCombosAndCounterplay");
 let REAL_FRAME_DATA = {};
 try {
   REAL_FRAME_DATA = require("./realFrameData.json");
@@ -262,8 +263,8 @@ function buildFrameDataCards(gameId, charName, archetype) {
 
   const h = hashNum(`${gameId}:${charName}`);
 
-  // 1. SUPER SMASH BROS. ULTIMATE — MOVELIST COMPLETO (23 ATAQUES)
-  if (gameId === "ssbu") {
+  // 1. SUPER SMASH BROS. ULTIMATE & MELEE — MOVELIST COMPLETO (23 ATAQUES)
+  if (gameId === "ssbu" || gameId === "ssbm") {
     const rawMoves = [
       // Ground Attacks (Tilts, Jabs, Dash)
       { moveName: "Jab 1", input: "Neutral A (1)", category: "Ground Attacks", type: "jab", s: 3 + (h % 3), a: 2, r: 16, ob: -13 },
@@ -314,8 +315,8 @@ function buildFrameDataCards(gameId, charName, archetype) {
     });
   }
 
-  // 2. STREET FIGHTER 6 — MOVELIST COMPLETO (22 ATAQUES)
-  if (gameId === "sf6") {
+  // 2. STREET FIGHTER 6 / SF3S / USF4 / COTW / KOF XV — MOVELIST COMPLETO (22 ATAQUES)
+  if (["sf6", "sf3s", "usf4", "cotw", "kofxv"].includes(gameId)) {
     const rawMoves = [
       // Standing Normals
       { moveName: "Standing Light Punch", input: "5LP", category: "Standing & Crouching Normals", type: "jab", s: 4, a: 3, r: 7, ob: "-1 On Block (+4 Hit)" },
@@ -363,8 +364,8 @@ function buildFrameDataCards(gameId, charName, archetype) {
     });
   }
 
-  // 3. TEKKEN 8 — MOVELIST COMPLETO (20 ATAQUES CLAVE Y SISTEMA HEAT)
-  if (gameId === "tekken8") {
+  // 3. TEKKEN 8 & TEKKEN 7 — MOVELIST COMPLETO (20 ATAQUES CLAVE)
+  if (gameId === "tekken8" || gameId === "tekken7") {
     const rawMoves = [
       { moveName: "Left Jab String (10f Punish)", input: "1, 2", category: "Standing & High/Mid Pokes", type: "jab", s: 10, a: 2, r: 17, ob: "-1 / -3 On Block (+8 Hit)" },
       { moveName: "Flash / i10 Knockdown String", input: "1, 1, 2 / 2, 1", category: "Standing & High/Mid Pokes", type: "jab", s: 10, a: 2, r: 22, ob: "-12 / -3 On Block" },
@@ -408,8 +409,8 @@ function buildFrameDataCards(gameId, charName, archetype) {
     });
   }
 
-  // 4. MORTAL KOMBAT 1 — MOVELIST COMPLETO (18 ATAQUES Y ESPECIALES)
-  if (gameId === "mk1") {
+  // 4. MORTAL KOMBAT 1 & MK11 — MOVELIST COMPLETO (18 ATAQUES Y ESPECIALES)
+  if (gameId === "mk1" || gameId === "mk11") {
     const rawMoves = [
       { moveName: "Standing 1 Jab", input: "1", category: "Basic Attacks & Kombo Strings", type: "jab", s: 7, a: 2, r: 13, ob: "0 On Block (+2 Hit)" },
       { moveName: "High Punish String", input: "1, 2, 1", category: "Basic Attacks & Kombo Strings", type: "jab", s: 7, a: 3, r: 19, ob: "-2 On Block (Safe)" },
@@ -450,8 +451,8 @@ function buildFrameDataCards(gameId, charName, archetype) {
     });
   }
 
-  // 5. GUILTY GEAR -STRIVE- & DRAGON BALL FIGHTERZ — MOVELIST COMPLETO (18 ATAQUES)
-  const isGG = gameId === "gg-strive";
+  // 5. ANIME / TAG FIGHTERS (GGST, GGXRD, GBVSR, UNI2, 2XKO, DBFZ)
+  const isGG = ["gg-strive", "ggxrd", "gbvsr", "uni2", "2xko"].includes(gameId);
   const rawMoves = [
     { moveName: isGG ? "Standing Punch (5P)" : "Standing Light (5L)", input: isGG ? "5P" : "5L", category: "Ground Normals", type: "jab", s: 5 + (h % 2), a: 3, r: 8, ob: "-2 On Block" },
     { moveName: isGG ? "Standing Kick (5K)" : "Auto-Combo 2nd Hit (5LL)", input: isGG ? "5K" : "5LL", category: "Ground Normals", type: "jab", s: 7, a: 4, r: 11, ob: "-3 On Block" },
@@ -626,11 +627,13 @@ function buildCharacterMatchups(gameId, charObj, allRawInGame, colorHex) {
 function buildRosterEntry(gameId, sagaNotation, wikiBaseUrl, defaultVideo, colorHex, raw, allRawInGame = []) {
   const slug = raw.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   const isDLC = Boolean(raw.dlcPack);
+  const specific = getSpecificCharData(gameId, raw.name, raw.archetype, raw.difficulty);
 
-  const keyMoves = raw.keyMoves || getDefaultKeyMoves(gameId, raw.name);
-  const combos = raw.combos || getDefaultCombos(gameId, raw.name);
+  const keyMoves = raw.keyMoves || getDefaultKeyMoves(gameId, raw.name, raw.archetype, raw.difficulty);
+  const combos = raw.combos || getDefaultCombos(gameId, raw.name, raw.archetype, raw.difficulty);
   const frameDataCards = raw.frameDataCards || buildFrameDataCards(gameId, raw.name, raw.archetype);
   const matchups = raw.matchups || buildCharacterMatchups(gameId, raw, allRawInGame, colorHex);
+  const counterplay = raw.counterplay || specific?.counterplay || null;
   const spanishCompilation = buildSpanishVideoCompilation(gameId, raw);
 
   // Asegurar que todos los embeds de YouTube lleven subtítulos en español activados por defecto
@@ -665,6 +668,7 @@ function buildRosterEntry(gameId, sagaNotation, wikiBaseUrl, defaultVideo, color
     frameDataCards,
     combos,
     matchups,
+    counterplay,
     gameplan
   };
 }
@@ -1074,9 +1078,13 @@ const SF6_SPECIFIC_DATA = {
   }
 };
 
-function getDefaultKeyMoves(gameId, name) {
+function getDefaultKeyMoves(gameId, name, archetype = "", difficulty = "Media") {
   if (gameId === "sf6" && SF6_SPECIFIC_DATA[name]?.keyMoves) {
     return SF6_SPECIFIC_DATA[name].keyMoves;
+  }
+  const spec = getSpecificCharData(gameId, name, archetype, difficulty);
+  if (spec && Array.isArray(spec.keyMoves) && spec.keyMoves.length > 0) {
+    return spec.keyMoves;
   }
   switch (gameId) {
     case "mk1":
@@ -1126,9 +1134,13 @@ function getDefaultKeyMoves(gameId, name) {
   }
 }
 
-function getDefaultCombos(gameId, charName = "") {
+function getDefaultCombos(gameId, charName = "", archetype = "", difficulty = "Media") {
   if (gameId === "sf6" && SF6_SPECIFIC_DATA[charName]?.combos) {
     return SF6_SPECIFIC_DATA[charName].combos;
+  }
+  const spec = getSpecificCharData(gameId, charName, archetype, difficulty);
+  if (spec && Array.isArray(spec.combos) && spec.combos.length > 0) {
+    return spec.combos;
   }
   const realEntry = REAL_FRAME_DATA?.[gameId]?.[charName];
   if (realEntry && Array.isArray(realEntry.combos) && realEntry.combos.length > 0) {

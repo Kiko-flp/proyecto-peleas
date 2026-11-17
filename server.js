@@ -384,6 +384,7 @@ app.get("/api/bootstrap", (req, res) => {
   const clientKey = (req.headers["x-admin-key"] || "").trim();
   const isOwnerUnlocked = isValidAdminSession(clientKey);
   const customNews = store.getCustomNews();
+  const useLite = req.query.lite === "1";
 
   res.json({
     youtubeChannel: store.state.youtubeChannel,
@@ -392,8 +393,18 @@ app.get("/api/bootstrap", (req, res) => {
     communityResources: store.getCommunityResources(),
     missingContentRoadmap: store.getMissingContentRoadmap(),
     sagas: store.getSagas(),
-    games: store.getGames()
+    games: useLite ? store.getGamesLite() : store.getGames()
   });
+});
+
+app.get("/api/character-details", (req, res) => {
+  const gameId = String(req.query.gameId || "").trim();
+  const charId = String(req.query.charId || "").trim();
+  const game = store.getGameById(gameId);
+  if (!game) return res.status(404).json({ error: "Juego no encontrado" });
+  const character = (game.characters || []).find((c) => c.id === charId);
+  if (!character) return res.status(404).json({ error: "Personaje no encontrado" });
+  res.json({ gameId, character });
 });
 
 app.get("/api/news", async (req, res) => {

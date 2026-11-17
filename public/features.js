@@ -958,9 +958,12 @@ window.initPunishCalculator = function () {
     .map((g) => `<option value="${g.id}">${g.title}</option>`)
     .join("");
 
-  const populateChars = () => {
-    const game = state.games.find((g) => g.id === gameSel.value) || state.games[0];
+  const populateChars = async () => {
+    let game = state.games.find((g) => g.id === gameSel.value) || state.games[0];
     if (!game) return;
+    if (typeof window.ensureFullGameLoaded === "function") {
+      game = (await window.ensureFullGameLoaded(game.id)) || game;
+    }
 
     myCharSel.innerHTML = game.characters
       .map((c) => `<option value="${c.id}">${c.name}</option>`)
@@ -1899,8 +1902,11 @@ window.initMatchupComparator = function () {
     gameSel.innerHTML = state.games.map((g) => `<option value="${g.id}">${g.title}</option>`).join("");
   }
 
-  const populate = () => {
-    const game = state.games.find((g) => g.id === gameSel.value) || state.games[0];
+  const populate = async () => {
+    let game = state.games.find((g) => g.id === gameSel.value) || state.games[0];
+    if (game && typeof window.ensureFullGameLoaded === "function") {
+      game = (await window.ensureFullGameLoaded(game.id)) || game;
+    }
     const opts = game.characters.map((c) => `<option value="${c.id}">${c.name}</option>`).join("");
     mySel.innerHTML = opts;
     oppSel.innerHTML = opts;
@@ -1927,6 +1933,8 @@ window.initMatchupComparator = function () {
 
     const myFastest = [...myMoves].sort((a, b) => a.startupNum - b.startupNum)[0];
     const oppFastest = [...oppMoves].sort((a, b) => a.startupNum - b.startupNum)[0];
+    const myBestCombo = myChar.combos?.[0];
+    const oppBestCombo = oppChar.combos?.[0];
     const oppUnsafe = oppMoves.filter((m) => m.onBlockNum !== null && m.onBlockNum <= -4);
 
     const rowsHTML = oppUnsafe
@@ -1960,13 +1968,15 @@ window.initMatchupComparator = function () {
       <div class="guide-split-layout" style="margin-bottom:18px;">
         <div class="guide-section-item" style="margin-top:0;border-left:3px solid #22c55e;">
           <h4 style="margin-bottom:6px;">⚡ Tu Personaje: ${myChar.name}</h4>
-          <p style="font-size:0.84rem;margin-bottom:6px;"><strong>Arquetipo:</strong> ${myChar.archetype}</p>
-          <p style="font-size:0.84rem;"><strong>Poke más rápido:</strong> ${myFastest ? `${myFastest.moveName} (${myFastest.startupNum}f)` : "—"}</p>
+          <p style="font-size:0.84rem;margin-bottom:4px;"><strong>Arquetipo:</strong> ${myChar.archetype}</p>
+          <p style="font-size:0.84rem;margin-bottom:4px;"><strong>Poke más rápido:</strong> ${myFastest ? `${myFastest.moveName} (${myFastest.startupNum}f)` : "—"}</p>
+          ${myBestCombo ? `<p style="font-size:0.78rem;color:#34d399;margin:0;"><strong>BnB Clave:</strong> ${myBestCombo.notation} (${myBestCombo.damage})</p>` : ""}
         </div>
         <div class="guide-section-item" style="margin-top:0;border-left:3px solid #e11d48;">
           <h4 style="margin-bottom:6px;">🎯 Rival: ${oppChar.name}</h4>
-          <p style="font-size:0.84rem;margin-bottom:6px;"><strong>Arquetipo:</strong> ${oppChar.archetype}</p>
-          <p style="font-size:0.84rem;"><strong>Poke más rápido:</strong> ${oppFastest ? `${oppFastest.moveName} (${oppFastest.startupNum}f)` : "—"}</p>
+          <p style="font-size:0.84rem;margin-bottom:4px;"><strong>Arquetipo:</strong> ${oppChar.archetype}</p>
+          <p style="font-size:0.84rem;margin-bottom:4px;"><strong>Poke más rápido:</strong> ${oppFastest ? `${oppFastest.moveName} (${oppFastest.startupNum}f)` : "—"}</p>
+          ${oppBestCombo ? `<p style="font-size:0.78rem;color:#fca5a5;margin:0;"><strong>Amenaza BnB:</strong> ${oppBestCombo.notation} (${oppBestCombo.damage})</p>` : ""}
         </div>
       </div>
 
@@ -2055,8 +2065,23 @@ window.initTrainingProfile = function () {
   if (!container) return;
   const data = loadTrainingProfileData();
 
+  const backupBarHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;padding:12px 14px;background:rgba(12,14,18,0.88);border:1px solid rgba(255,255,255,0.12);border-radius:8px;">
+      <span style="font-size:0.8rem;color:#cbd5e1;"><strong>Respaldo Personal (Mains, Notas y Drills):</strong> Lleva tus datos entre PC y móvil.</span>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button type="button" class="btn btn-outline" id="btnExportProfileJson" style="padding:6px 12px;font-size:0.72rem;">⬇ Exportar Backup JSON</button>
+        <label class="btn btn-outline" style="padding:6px 12px;font-size:0.72rem;cursor:pointer;">
+          ⬆ Importar JSON
+          <input type="file" id="inpImportProfileJson" accept="application/json" style="display:none;" />
+        </label>
+      </div>
+    </div>
+  `;
+
   if (data.mains.length === 0) {
-    container.innerHTML = `
+    container.innerHTML =
+      backupBarHTML +
+      `
       <div class="guide-section-item" style="margin-top:0;text-align:center;padding:28px;">
         <h4 style="margin-bottom:8px;">Aún no tienes ningún Main guardado</h4>
         <p style="font-size:0.88rem;color:#9b9b9b;">
@@ -2064,10 +2089,13 @@ window.initTrainingProfile = function () {
         </p>
       </div>
     `;
+    bindProfileBackupControls();
     return;
   }
 
-  container.innerHTML = data.mains
+  container.innerHTML =
+    backupBarHTML +
+    data.mains
     .map((m) => {
       const k = `${m.gameId}:${m.charId}`;
       const note = data.notesByChar[k] || "";
@@ -2689,4 +2717,204 @@ function initDbfzTeamBuilder(preselectOpts = {}) {
   } else if (typeof container._renderTeam === "function") {
     container._renderTeam();
   }
+}
+
+function bindProfileBackupControls() {
+  const expBtn = document.getElementById("btnExportProfileJson");
+  if (expBtn) {
+    expBtn.onclick = () => {
+      const payload = loadTrainingProfileData();
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `fgc_vault_mains_${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+  }
+  const impInp = document.getElementById("inpImportProfileJson");
+  if (impInp) {
+    impInp.onchange = (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(String(reader.result || "{}"));
+          if (parsed && Array.isArray(parsed.mains)) {
+            saveTrainingProfileData({
+              mains: parsed.mains,
+              notesByChar: parsed.notesByChar || {},
+              drillsByChar: parsed.drillsByChar || {}
+            });
+            window.initTrainingProfile();
+          }
+        } catch (_) {}
+      };
+      reader.readAsText(file);
+    };
+  }
+}
+
+// Re-bind backup controls even when mains > 0
+const _origInitTrainingProfile = window.initTrainingProfile;
+window.initTrainingProfile = function () {
+  _origInitTrainingProfile();
+  bindProfileBackupControls();
+};
+
+// =========================================================================
+// H. MINIJUEGO INTERACTIVO DE FRAME DATA ("¿SEGURO O CASTIGABLE?")
+// =========================================================================
+const FRAME_QUIZ_RECORD_KEY = "fgc_vault_frame_quiz_best_v1";
+const frameQuizState = {
+  gameId: "sf6",
+  streak: 0,
+  best: Number(localStorage.getItem(FRAME_QUIZ_RECORD_KEY) || 0),
+  totalAnswered: 0,
+  correct: 0,
+  currentItem: null,
+  answered: false
+};
+
+window.initFrameQuizGame = async function () {
+  const container = document.getElementById("frameQuizContainer");
+  if (!container || typeof state === "undefined" || !state.games.length) return;
+
+  if (!container.dataset.built) {
+    container.dataset.built = "1";
+    container.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+        <div class="date-filter-group" style="min-width:220px;">
+          <label for="fquizGameSelect">Juego para entrenar:</label>
+          <select id="fquizGameSelect">${state.games.map((g) => `<option value="${g.id}" ${g.id === "sf6" ? "selected" : ""}>${g.title}</option>`).join("")}</select>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;font-family:var(--font-mono);font-size:0.8rem;">
+          <span class="pill-base" id="fqStreakPill">🔥 Racha: 0</span>
+          <span class="pill-base" id="fqBestPill">🏆 Récord: ${frameQuizState.best}</span>
+          <span class="pill-base" id="fqAccPill">✓ Aciertos: 0/0</span>
+        </div>
+      </div>
+      <div id="frameQuizStage"></div>
+    `;
+
+    const gSel = document.getElementById("fquizGameSelect");
+    gSel.addEventListener("change", () => {
+      frameQuizState.gameId = gSel.value;
+      loadNextFrameQuizQuestion();
+    });
+  }
+
+  await loadNextFrameQuizQuestion();
+};
+
+async function loadNextFrameQuizQuestion() {
+  const stage = document.getElementById("frameQuizStage");
+  if (!stage) return;
+  let game = state.games.find((g) => g.id === frameQuizState.gameId) || state.games[0];
+  if (game && typeof window.ensureFullGameLoaded === "function") {
+    game = (await window.ensureFullGameLoaded(game.id)) || game;
+  }
+
+  const pool = [];
+  (game.characters || []).forEach((c) => {
+    (c.frameDataCards || []).forEach((m) => {
+      const ob = extractOnBlockNumber(m.onBlock);
+      if (ob !== null && ob >= -35 && ob <= 15 && !String(m.onBlock || "").toLowerCase().includes("unblockable")) {
+        pool.push({ char: c, move: m, onBlockNum: ob, game });
+      }
+    });
+  });
+
+  if (pool.length === 0) {
+    stage.innerHTML = `<p style="color:#94a3b8;">No hay movimientos compatibles en este juego todavía.</p>`;
+    return;
+  }
+
+  const pick = pool[Math.floor(Math.random() * pool.length)];
+  frameQuizState.currentItem = pick;
+  frameQuizState.answered = false;
+
+  const cmd = typeof translateNotation === "function" ? translateNotation(pick.move.input, game.sagaId, state.notationMode) : pick.move.input;
+  const answerCat = pick.onBlockNum >= -4 ? "safe" : pick.onBlockNum >= -9 ? "light" : "launch";
+
+  stage.innerHTML = `
+    <div class="guide-section-item" style="margin-top:0;padding:20px;">
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px;">
+        <div class="portrait-img-box" style="width:64px;height:64px;flex-shrink:0;">
+          <img src="${pick.char.iconUrl}" alt="${pick.char.name}" referrerpolicy="no-referrer" />
+        </div>
+        <div>
+          <span class="diff-badge">${game.title}</span>
+          <h4 style="margin:4px 0 2px;font-size:1.25rem;color:#fff;">${pick.char.name} — ${pick.move.moveName}</h4>
+          <div><span class="code-input-pill">${cmd}</span> <span style="font-family:var(--font-mono);font-size:0.78rem;color:#94a3b8;">Startup: ${pick.move.startup}</span></div>
+        </div>
+      </div>
+
+      <p style="font-size:0.9rem;color:#e2e8f0;margin-bottom:14px;">
+        Acabas de bloquear este ataque. ¿Cuál es la respuesta correcta sin regalar tu turno?
+      </p>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:14px;">
+        <button type="button" class="quiz-option-btn" data-fqchoice="safe">
+          <span class="quiz-opt-letter">A</span>
+          <span>🛡 Seguro / Positivo (+ o -1 a -4)</span>
+        </button>
+        <button type="button" class="quiz-option-btn" data-fqchoice="light">
+          <span class="quiz-opt-letter">B</span>
+          <span>👊 Castigo Rápido (-5 a -9)</span>
+        </button>
+        <button type="button" class="quiz-option-btn" data-fqchoice="launch">
+          <span class="quiz-opt-letter">C</span>
+          <span>💥 ¡Castigo Fuerte / Combo! (-10 o peor)</span>
+        </button>
+      </div>
+
+      <div id="fqFeedbackBox"></div>
+    </div>
+  `;
+
+  stage.querySelectorAll("[data-fqchoice]").forEach((btn) => {
+    btn.onclick = () => {
+      if (frameQuizState.answered) return;
+      frameQuizState.answered = true;
+      frameQuizState.totalAnswered++;
+      const chosen = btn.dataset.fqchoice;
+      const ok = chosen === answerCat;
+
+      if (ok) {
+        frameQuizState.correct++;
+        frameQuizState.streak++;
+        if (frameQuizState.streak > frameQuizState.best) {
+          frameQuizState.best = frameQuizState.streak;
+          try { localStorage.setItem(FRAME_QUIZ_RECORD_KEY, String(frameQuizState.best)); } catch (_) {}
+        }
+      } else {
+        frameQuizState.streak = 0;
+      }
+
+      document.getElementById("fqStreakPill").textContent = `🔥 Racha: ${frameQuizState.streak}`;
+      document.getElementById("fqBestPill").textContent = `🏆 Récord: ${frameQuizState.best}`;
+      document.getElementById("fqAccPill").textContent = `✓ Aciertos: ${frameQuizState.correct}/${frameQuizState.totalAnswered}`;
+
+      const exactLabel =
+        answerCat === "safe"
+          ? "SEGURO / POSITIVO en bloqueo (bloqueando normal no se castiga)"
+          : answerCat === "light"
+            ? "CASTIGABLE LIGERO (puedes castigar con ataques rápidos de 5f–9f)"
+            : "ALTAMENTE INSEGURO (castígalo siempre con tu combo más pesado / lanzador)";
+
+      document.getElementById("fqFeedbackBox").innerHTML = `
+        <div style="padding:12px 14px;border-radius:8px;background:${ok ? "rgba(16,185,129,0.15)" : "rgba(239,68,68,0.15)"};border:1px solid ${ok ? "#10b981" : "#ef4444"};display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+          <div>
+            <strong style="color:${ok ? "#34d399" : "#fca5a5"};">${ok ? "✅ ¡Correcto!" : "❌ Fallaste"} — ${pick.move.onBlock}</strong>
+            <div style="font-size:0.82rem;color:#e2e8f0;margin-top:3px;">Es <strong>${exactLabel}</strong>.</div>
+          </div>
+          <button type="button" class="btn btn-primary" id="btnNextFrameQuiz">Siguiente Ataque ➔</button>
+        </div>
+      `;
+      document.getElementById("btnNextFrameQuiz")?.addEventListener("click", loadNextFrameQuizQuestion);
+    };
+  });
 }

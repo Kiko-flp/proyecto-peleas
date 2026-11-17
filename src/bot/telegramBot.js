@@ -10,7 +10,7 @@
 
 const store = require("../db/store");
 const youtubeManager = require("../youtube/youtubeManager");
-const { CURATED_FGC_NEWS } = require("../data/fgcNews");
+const { CURATED_FGC_NEWS, getFgcNews } = require("../data/fgcNews");
 
 class TelegramBotManager {
   constructor() {
@@ -143,10 +143,63 @@ class TelegramBotManager {
         { command: "youtube", description: "Actualizar enlace/@handle del canal" },
         { command: "yt_asignar", description: "Vincular vídeo a personaje/juego" },
         { command: "yt_pausa", description: "Añadir pausa explicativa ES" },
+        { command: "check_parches", description: "Buscar nuevos parches FGC y notificar" },
         { command: "backup", description: "Descargar copia de seguridad JSON" },
         { command: "miid", description: "Consultar tu Chat ID autorizado" }
       ]
     });
+  }
+
+  async checkAndNotifyNewPatches(manualTrigger = false) {
+    if (!this.isConfigured() || !this.adminChatId) return { checked: false, notifiedCount: 0 };
+    try {
+      const liveNews = await getFgcNews();
+      const seen = new Set(store.state.notifiedNewsIds || []);
+      const patchRegex = /parche|patch|balance|nerf|buff|update|season|dlc|evo|notes/i;
+      const fresh = liveNews.filter((n) => n && n.id && !seen.has(n.id) && patchRegex.test(`${n.title} ${n.category} ${n.summary}`));
+
+      if (fresh.length === 0) {
+        if (manualTrigger) {
+          const ownerChat = this.adminChatId.split(",")[0].trim();
+          await this.callTelegram("sendMessage", {
+            chat_id: ownerChat,
+            text: "✅ *Parches al día:* No hay notas de parche nuevas desde la última comprobación.",
+            parse_mode: "Markdown"
+          });
+        }
+        return { checked: true, notifiedCount: 0 };
+      }
+
+      const toSend = fresh.slice(0, 3);
+      const ownerChat = this.adminChatId.split(",")[0].trim();
+      for (const item of toSend) {
+        const msg =
+          `🔔 *ALERTA AUTOMÁTICA DE PARCHE / FGC*\n\n` +
+          `🎮 *Saga:* ${item.saga || "FGC"}\n` +
+          `📰 *Titular:* ${item.title}\n` +
+          `📅 *Fecha:* ${item.date || item.isoDate || "Reciente"}\n` +
+          `${item.url ? `🔗 [Leer nota oficial](${item.url})` : ""}`;
+        await this.callTelegram("sendMessage", {
+          chat_id: ownerChat,
+          text: msg,
+          parse_mode: "Markdown"
+        });
+      }
+
+      store.state.notifiedNewsIds = [...seen, ...fresh.map((f) => f.id)].slice(-200);
+      store.addLog(`🔔 Alerta automática de ${toSend.length} parche(s)/noticias nuevas enviada por Telegram.`);
+      return { checked: true, notifiedCount: toSend.length };
+    } catch (_) {
+      return { checked: false, notifiedCount: 0 };
+    }
+  }
+
+  schedulePatchAlerts() {
+    if (this.patchAlertTimer) clearInterval(this.patchAlertTimer);
+    this.patchAlertTimer = setInterval(() => {
+      this.checkAndNotifyNewPatches(false);
+    }, 3 * 60 * 60 * 1000);
+    if (typeof this.patchAlertTimer.unref === "function") this.patchAlertTimer.unref();
   }
 
   async start(options = {}) {
@@ -166,6 +219,7 @@ class TelegramBotManager {
     this.botFirstName = me.first_name || "Clayface";
     this.startedAt = Date.now();
     await this.registerBotCommands();
+    this.schedulePatchAlerts();
 
     const rawWebhookBase = (
       process.env.TELEGRAM_WEBHOOK_URL ||
@@ -657,6 +711,8 @@ class TelegramBotManager {
           text: `✅ *Canal actualizado:* ${updated.publicUrl} (${updated.handle})`,
           parse_mode: "Markdown"
         });
+      } else if (text.startsWith("/check_parches")) {
+        await this.checkAndNotifyNewPatches(true);
       }
     }
 

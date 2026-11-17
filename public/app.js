@@ -21,6 +21,7 @@ const state = {
   sagas: [],
   games: [],
   selectedSagaId: "all",
+  selectedEraFilter: "all",
   selectedGameId: null,
   selectedSubpage: "page-basic",
   selectedCharacter: null,
@@ -469,9 +470,57 @@ function setActiveTopNav(activeId) {
   });
 }
 
+const fullGameLoadedSet = new Set();
+const fullCharCache = new Map();
+
+window.ensureFullGameLoaded = async function (gameId) {
+  const g = state.games.find((x) => x.id === gameId);
+  if (!g) return null;
+  if (!g.isLite || fullGameLoadedSet.has(gameId)) return g;
+  try {
+    const res = await fetch(`/api/games/${encodeURIComponent(gameId)}`);
+    if (res.ok) {
+      const fullGame = await res.json();
+      const idx = state.games.findIndex((x) => x.id === gameId);
+      if (idx >= 0) {
+        state.games[idx] = { ...fullGame, isLite: false };
+      }
+      fullGameLoadedSet.add(gameId);
+      return state.games[idx];
+    }
+  } catch (_) {}
+  return g;
+};
+
+window.ensureCharDetailsLoaded = async function (gameId, charId) {
+  const key = `${gameId}:${charId}`;
+  const game = state.games.find((g) => g.id === gameId);
+  const existing = game?.characters?.find((c) => c.id === charId);
+  if (existing && Array.isArray(existing.frameDataCards) && existing.frameDataCards.length > 0) {
+    return existing;
+  }
+  if (fullCharCache.has(key)) {
+    const cached = fullCharCache.get(key);
+    if (game && existing) Object.assign(existing, cached);
+    return existing || cached;
+  }
+  try {
+    const res = await fetch(`/api/character-details?gameId=${encodeURIComponent(gameId)}&charId=${encodeURIComponent(charId)}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.character) {
+        fullCharCache.set(key, data.character);
+        if (game && existing) Object.assign(existing, data.character);
+        return existing || data.character;
+      }
+    }
+  } catch (_) {}
+  return existing || null;
+};
+
 async function loadBootstrap() {
   try {
-    const res = await fetch("/api/bootstrap");
+    const res = await fetch("/api/bootstrap?lite=1");
     const data = await res.json();
     state.youtubeChannel = data.youtubeChannel || null;
     state.events = data.events || [];
@@ -628,6 +677,9 @@ function openToolsPage(initialTab = "tool-quiz", quizMode = "general", synergyOp
   }
   if (typeof window.initSynergyAndTeamLab === "function") {
     window.initSynergyAndTeamLab(synergyOpts);
+  }
+  if (typeof window.initFrameQuizGame === "function") {
+    window.initFrameQuizGame();
   }
   if (synergyOpts?.scrollAnchorId) {
     setTimeout(() => {
@@ -986,6 +1038,11 @@ function renderGamesGrid() {
   const q = state.searchQuery.trim().toLowerCase();
 
   let list = state.games;
+  if (state.selectedEraFilter === "modern") {
+    list = list.filter((g) => !g.isClassic);
+  } else if (state.selectedEraFilter === "classic") {
+    list = list.filter((g) => Boolean(g.isClassic));
+  }
   if (state.selectedSagaId !== "all") {
     list = list.filter((g) => g.sagaId === state.selectedSagaId);
   }
@@ -1015,6 +1072,7 @@ function renderGamesGrid() {
           <div>
             <div class="game-card-banner" style="background-image: ${coverBg};">
               <span class="game-patch-pill">${game.currentPatch}</span>
+              ${game.isClassic ? `<span class="game-patch-pill" style="top:14px;left:14px;right:auto;background:rgba(245,158,11,0.88);color:#000;font-weight:700;">🏛 Clásico</span>` : ""}
               <h3>${game.title}</h3>
               <div class="game-card-meta">
                 ${saga ? saga.developer : ""} • ${game.releaseYear}
@@ -1713,11 +1771,21 @@ async function hydrateCharacterRealHitboxes(game, ch, modalBody) {
 // =========================================================================
 // MODAL DE GUÍA INDIVIDUAL DE PERSONAJE
 // =========================================================================
-function openCharacterModal(gameId, charId) {
+async function openCharacterModal(gameId, charId) {
   const game = state.games.find((g) => g.id === gameId);
   if (!game) return;
-  const ch = game.characters.find((c) => c.id === charId);
+  let ch = game.characters.find((c) => c.id === charId);
   if (!ch) return;
+
+  if (!Array.isArray(ch.frameDataCards) || ch.frameDataCards.length === 0) {
+    const modalBackdrop = document.getElementById("characterModalBackdrop");
+    const modalBody = document.getElementById("charModalBody");
+    const modalHeader = document.getElementById("charModalHeader");
+    if (modalHeader) modalHeader.innerHTML = `<div><h2>Cargando ficha completa de ${ch.name}...</h2></div><button class="btn-close-modal" id="btnCloseCharModal">✕</button>`;
+    if (modalBody) modalBody.innerHTML = `<div style="padding:36px;text-align:center;color:#94a3b8;">Cargando Frame Data, combos, matchups y defensa bajo demanda...</div>`;
+    modalBackdrop?.classList.remove("hidden");
+    ch = (await window.ensureCharDetailsLoaded(gameId, charId)) || ch;
+  }
 
   state.selectedCharacter = { gameId, charId };
 
@@ -2125,6 +2193,64 @@ function openCharacterModal(gameId, charId) {
         `;
       }
       return "";
+    })()}
+
+    <!-- CÓMO GANARLE (COUNTERPLAY / DEFENSA) Y TABLA RÁPIDA DE CASTIGOS / OOS -->
+    ${(() => {
+      const cp = ch.counterplay;
+      const cards = ch.frameDataCards || [];
+      const fastestMoves = [...cards]
+        .map((c) => {
+          const m = String(c.startup || "").match(/(\d+)/);
+          return { ...c, sNum: m ? parseInt(m[1], 10) : 99 };
+        })
+        .filter((c) => c.sNum > 0 && c.sNum <= 22)
+        .sort((a, b) => a.sNum - b.sNum)
+        .slice(0, 6);
+
+      const cpHtml = cp
+        ? `<div class="ufd-section-banner">Cómo Ganarle a ${ch.name} — Defensa, Counterplay y Castigos Clave</div>
+           <div class="guide-section-item" style="margin-top:8px;margin-bottom:16px;border-left:3px solid #f59e0b;">
+             <h4 style="margin-top:0;color:#fbbf24;">${cp.title || `Defensa contra ${ch.name}`}</h4>
+             ${cp.sidestep ? `<p style="font-size:0.84rem;margin:4px 0;"><strong>Paso Lateral (Sidestep):</strong> ${cp.sidestep}</p>` : ""}
+             ${cp.oos ? `<p style="font-size:0.84rem;margin:4px 0;"><strong>Opciones Out of Shield (OOS):</strong> ${cp.oos}</p>` : ""}
+             ${cp.flawless ? `<p style="font-size:0.84rem;margin:4px 0;"><strong>Bloqueo / Interrupción:</strong> ${cp.flawless}</p>` : ""}
+             ${cp.duck ? `<p style="font-size:0.84rem;margin:4px 0;"><strong>Puntos Débiles / Qué Agachar:</strong> ${cp.duck}</p>` : ""}
+             ${cp.tip ? `<p style="font-size:0.84rem;margin:4px 0;"><strong>Consejo Clave:</strong> ${cp.tip}</p>` : ""}
+           </div>`
+        : "";
+
+      const fastHtml = fastestMoves.length
+        ? `<div class="text-panel-card" style="margin-bottom:16px;">
+             <h4 style="margin-top:0;font-family:var(--font-display);">Tabla Rápida de Castigos / Opciones Más Rápidas de ${ch.name} (Startup Ordenado)</h4>
+             <table class="moves-table" style="margin-bottom:0;">
+               <thead>
+                 <tr>
+                   <th>Startup</th>
+                   <th>Movimiento</th>
+                   <th>Input</th>
+                   <th>En Bloqueo / Escudo</th>
+                 </tr>
+               </thead>
+               <tbody>
+                 ${fastestMoves
+                   .map(
+                     (fm) => `
+                   <tr>
+                     <td style="font-family:var(--font-mono);font-weight:700;color:#34d399;">${fm.sNum}f</td>
+                     <td><strong>${fm.moveName}</strong></td>
+                     <td><span class="code-input-pill">${translateNotation(fm.input, game.sagaId, state.notationMode)}</span></td>
+                     <td style="font-size:0.8rem;color:#cbd5e1;">${fm.onBlock}</td>
+                   </tr>
+                 `
+                   )
+                   .join("")}
+               </tbody>
+             </table>
+           </div>`
+        : "";
+
+      return cpHtml + fastHtml;
     })()}
 
     <!-- SECCIÓN DE MATCHUPS: VENTAJAS Y COUNTERS CON EL PORQUÉ -->
@@ -2685,6 +2811,15 @@ document.addEventListener("DOMContentLoaded", () => {
     state.searchQuery = e.target.value;
     renderQuickSearch();
     renderGamesGrid();
+  });
+
+  document.querySelectorAll("#eraFilterTabs [data-era]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#eraFilterTabs [data-era]").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      state.selectedEraFilter = btn.dataset.era;
+      renderGamesGrid();
+    });
   });
 
   const inGameSearch = document.getElementById("inGameCharSearch");
