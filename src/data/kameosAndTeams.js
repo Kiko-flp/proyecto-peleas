@@ -1324,6 +1324,120 @@ const DBFZ_META_TEAMS = [
   }
 ];
 
+const KAMEO_FRAME_DATA_CARDS = {
+  "Darrius": [
+    { moveName: "Tornado Kick (Summon)", input: "n+K", category: "Kameo Summon & Extenders", startup: "19f (Mid)", active: "19–30", recovery: "26f", onBlock: "+2 On Block (+28 Launch)", totalFrames: "56f (Coste 50%)", notes: "Patadas múltiples con gran ventaja en bloqueo; extiende combos en la esquina." },
+    { moveName: "Spinning Heel", input: "f+K", category: "Kameo Summon & Extenders", startup: "16f (Overhead)", active: "16–19", recovery: "24f", onBlock: "-5 On Block (+24 On Hit)", totalFrames: "43f (Coste 50%)", notes: "Overhead seguro de media distancia para sorprender tras cadenas bajas." },
+    { moveName: "Handstand Heel Drop", input: "b+K", category: "Kameo Ambush & Setups", startup: "22f (Overhead)", active: "22–25", recovery: "20f", onBlock: "-3 On Block (+32 Launch)", totalFrames: "45f (Coste 100%)", notes: "Ambush clásico para convertir agarres normales (Throws) en combo completo." }
+  ],
+  "Cyrax (Kameo)": [
+    { moveName: "Horizontal Kopter Chopper", input: "n+K", category: "Kameo Ambush & Chip Pressure", startup: "21f (High-Mid)", active: "21–32", recovery: "24f", onBlock: "+4 On Block (+18 On Hit)", totalFrames: "56f (Coste 50%)", notes: "Ambush de sierras múltiples: blinda especiales arriesgados e inflige chip damage." },
+    { moveName: "Vertical Kopter", input: "f+K", category: "Kameo Ambush & Chip Pressure", startup: "22f (Mid)", active: "22–31", recovery: "28f", onBlock: "-4 On Block (+38 Launch)", totalFrames: "59f (Coste 100%)", notes: "Lanza al aire desde cualquier cadena para daño explosivo en mitad de pantalla." },
+    { moveName: "Electro Net", input: "b+K", category: "Kameo Summon & Setups", startup: "28f (High Trap)", active: "28–34", recovery: "29f", onBlock: "-9 On Block (Stun Captura)", totalFrames: "63f (Coste 50%)", notes: "Captura en red para reiniciar tu setup principal o ganar tiempo de carga." },
+    { moveName: "Cyber Bomb", input: "d+K", category: "Kameo Summon & Setups", startup: "24f (Mid Trampa)", active: "24–28", recovery: "22f", onBlock: "+12 On Block (+35 Launch)", totalFrames: "50f (Coste 50%)", notes: "Detona con retardo creando trampas de Oki tras un derribo." }
+  ],
+  "Frost": [
+    { moveName: "Ice Karpet", input: "b+K", category: "Kameo Summon & Control", startup: "21f (Low)", active: "21–27", recovery: "28f", onBlock: "-11 On Block (Freeze Launch)", totalFrames: "55f (Coste 50%)", notes: "Ataque bajo deslizante de medio alcance que congela al rival para combo gratis." },
+    { moveName: "Ice Crash", input: "f+K", category: "Kameo Summon & Control", startup: "20f (Mid)", active: "20–24", recovery: "24f", onBlock: "-5 On Block (+19 On Hit)", totalFrames: "48f (Coste 50%)", notes: "Puñales de hielo seguros en bloqueo con buen empuje." },
+    { moveName: "Snowflake (Orbe)", input: "n+K", category: "Kameo Ambush & Setups", startup: "26f (High Projectile)", active: "26–40", recovery: "25f", onBlock: "+6 On Block (+22 On Hit)", totalFrames: "65f (Coste 50%)", notes: "Orbe lento Ambush que protege tu avance mientras ejecutas 50/50." }
+  ],
+  "Goro": [
+    { moveName: "Raise the Roof", input: "n+K", category: "Kameo Ambush & Presión", startup: "18f (Mid)", active: "18–22", recovery: "24f", onBlock: "+2 On Block (+26 Launch)", totalFrames: "46f (Coste 50%)", notes: "Ambush esencial: vuelve positivos los lanzadores o especiales con armadura (-15f+)." },
+    { moveName: "Shokan Walk", input: "f+K", category: "Kameo Summon & Presión", startup: "16f (High-Mid)", active: "16–24", recovery: "27f", onBlock: "-4 On Block (+16 On Hit)", totalFrames: "51f (Coste 50%)", notes: "Lluvia de puños shokan seguros para generar chip damage y espacio." },
+    { moveName: "Punch Walk / Stomp", input: "b+K", category: "Kameo Ambush & Presión", startup: "34f (Unblockable)", active: "34–38", recovery: "32f", onBlock: "Imbloqueable (+30 Launch)", totalFrames: "70f (Coste 50%)", notes: "Salto desde fuera de pantalla para castigar zoners o cerrar knockdowns." }
+  ],
+  "Jax": [
+    { moveName: "Back Breaker (Air)", input: "n+K", category: "Kameo Ambush & Extenders", startup: "12f (Air Grab)", active: "12–15", recovery: "24f", onBlock: "Imbloqueable Aire (+24 Oki)", totalFrames: "39f (Coste 50%)", notes: "Cierra cualquier combo aéreo en el aire con gran daño y Oki limpio (+100 HP)." },
+    { moveName: "Ground Pound", input: "d+K", category: "Kameo Ambush & Extenders", startup: "35f (Unblockable)", active: "35–40", recovery: "30f", onBlock: "Imbloqueable (+34 Launch)", totalFrames: "70f (Coste 50%)", notes: "Terremoto global al suelo; obliga al rival a saltar directo a tu trampa." },
+    { moveName: "Energy Wave", input: "f+K", category: "Kameo Summon & Extenders", startup: "15f (Mid)", active: "15–19", recovery: "26f", onBlock: "-6 On Block (+28 Launch)", totalFrames: "45f (Coste 50%)", notes: "Onda rápida de puños en el suelo que rebota para extender cadenas." }
+  ],
+  "Kano": [
+    { moveName: "Knife Toss (Cuchillos)", input: "n+K", category: "Kameo Ambush & Mix/Presión", startup: "19f (High-Mid)", active: "19–27", recovery: "22f", onBlock: "+8 On Block (+18 On Hit)", totalFrames: "49f (Coste 50%)", notes: "Lanza 3 cuchillos mientras atacas; te deja muy positivo (+8) y con recarga rápida." },
+    { moveName: "Kano Ball", input: "f+K", category: "Kameo Ambush & Mix/Presión", startup: "18f (Mid)", active: "18–26", recovery: "28f", onBlock: "-2 On Block (+24 On Hit)", totalFrames: "54f (Coste 50%)", notes: "Bola voladora Ambush que cubre lanzadores inseguros o sorprende en neutro." },
+    { moveName: "Eye Laser", input: "b+K", category: "Kameo Summon & Zoning", startup: "22f (Mid Beam)", active: "22–26", recovery: "30f", onBlock: "-8 On Block (+26 Hitstun)", totalFrames: "56f (Coste 50%)", notes: "Láser de pantalla completa para controlar saltos y avanzar." }
+  ],
+  "Kung Lao (Kameo)": [
+    { moveName: "Low Hat", input: "d+K (Hold)", category: "Kameo Ambush & Mix-up", startup: "20f (Low)", active: "20–26", recovery: "21f", onBlock: "+2 On Block (+16 On Hit)", totalFrames: "47f (Coste 50%)", notes: "Sombrero bajo cargable Ambush; junto a tu Overhead crea un 50/50 ineludible." },
+    { moveName: "Tempest Spin", input: "n+K", category: "Kameo Summon & Anti-Air", startup: "15f (Mid Anti-Air)", active: "15–22", recovery: "27f", onBlock: "-9 On Block (+32 Launch)", totalFrames: "49f (Coste 50%)", notes: "Giro antiaéreo y extensor de combo rápido a corta distancia." },
+    { moveName: "Teleport", input: "b+K", category: "Kameo Utility", startup: "18f (Teletransporte)", active: "18–20", recovery: "14f", onBlock: "Reposición (+0/+2 Mix)", totalFrames: "34f (Coste 50%)", notes: "Evade proyectiles y te recoloca detrás del rival para sorprender." }
+  ],
+  "Motaro": [
+    { moveName: "Teleport (Ambush)", input: "b+K", category: "Kameo Ambush & Anti-Zoning", startup: "14f (Teletransporte)", active: "14–16", recovery: "16f", onBlock: "Positivo tras Special", totalFrames: "32f (Coste 50%)", notes: "Convierte especiales lentos o agarres en seguridad total y combos extra." },
+    { moveName: "Turret Shot", input: "f+K", category: "Kameo Summon & Control", startup: "21f (Mid/Low x3)", active: "21–33", recovery: "26f", onBlock: "-4 On Block (+20 On Hit)", totalFrames: "59f (Coste 50%)", notes: "Ráfaga de 3 disparos con enorme presión a media/larga distancia." },
+    { moveName: "Reflect Shield", input: "d+K", category: "Kameo Ambush & Anti-Zoning", startup: "8f (Reflector)", active: "8–28", recovery: "18f", onBlock: "Devuelve Proyectiles", totalFrames: "46f (Coste 50%)", notes: "Escudo instantáneo que devuelve proyectiles al zoner rival." }
+  ],
+  "Sareena": [
+    { moveName: "Kia's Blades (Dobles)", input: "b+K", category: "Kameo Summon & Daño", startup: "16f (High x4)", active: "16–44", recovery: "24f", onBlock: "+2 On Block (+42 Combo)", totalFrames: "68f (Coste 50%)", notes: "4 impactos ida y vuelta: cualquier poke convierte en +400 de daño sin barra." },
+    { moveName: "Demonic Retreat", input: "f+K", category: "Kameo Summon & Mix-up", startup: "17f (Overhead)", active: "17–21", recovery: "25f", onBlock: "-7 On Block (+20 On Hit)", totalFrames: "46f (Coste 50%)", notes: "Patada Overhead segura con mucho desplazamiento hacia adelante." },
+    { moveName: "Demonik Rune", input: "d+K", category: "Kameo Utility", startup: "20f (Aura Drenaje)", active: "20–60", recovery: "22f", onBlock: "Drena Super Rival", totalFrames: "82f (Coste 100%)", notes: "Reduce la barra Super del oponente mientras controlas la zona." }
+  ],
+  "Scorpion (Kameo)": [
+    { moveName: "Flame Aura / Fire Breath", input: "u+K", category: "Kameo Ambush & Extenders", startup: "15f (Mid Air Extender)", active: "15–21", recovery: "22f", onBlock: "-5 On Block (+36 Launch)", totalFrames: "43f (Coste 50%)", notes: "Rebota al rival en pleno aire extendiendo rutas BnB sin gastar barra propia." },
+    { moveName: "Hell Blades", input: "f+K", category: "Kameo Summon & Mix-up", startup: "18f (Overhead)", active: "18–21", recovery: "24f", onBlock: "-6 On Block (+26 Launch)", totalFrames: "45f (Coste 50%)", notes: "Overhead rápido de largo alcance ideal para mezclar con pokes bajos." },
+    { moveName: "Spear Pull", input: "b+K", category: "Kameo Utility", startup: "12f (Evasión)", active: "12–16", recovery: "14f", onBlock: "Escape Seguro", totalFrames: "30f (Coste 50%)", notes: "Te arrastra hacia atrás evitando castigos tras especiales fallidos." }
+  ],
+  "Sektor (Kameo)": [
+    { moveName: "Up Rocket (Misil Guiado)", input: "b+K / n+K", category: "Kameo Ambush & Presión", startup: "24f+Delay (Mid Homing)", active: "24–30", recovery: "22f", onBlock: "+14 On Block (+38 Launch)", totalFrames: "52f (Coste 50%)", notes: "Cae desde el cielo cubriendo tus entradas y forzando ventaja masiva (+14)." },
+    { moveName: "Flame Thrower", input: "f+K", category: "Kameo Summon & Chip", startup: "14f (Mid Chip)", active: "14–26", recovery: "25f", onBlock: "-4 On Block (+18 Hitstun)", totalFrames: "51f (Coste 50%)", notes: "Lanzallamas rápido que desgasta en bloqueo." },
+    { moveName: "Teleport Punch", input: "u+K", category: "Kameo Ambush & Extenders", startup: "20f (Mid Teleport)", active: "20–24", recovery: "26f", onBlock: "-9 On Block (+32 Launch)", totalFrames: "50f (Coste 50%)", notes: "Gancho teletransportado detrás del rival para confirmar lanzadores." }
+  ],
+  "Shujinko": [
+    { moveName: "Meditate", input: "n+K (Hold)", category: "Kameo Carga", startup: "12f (Carga Ki)", active: "12–30", recovery: "14f", onBlock: "Recarga x2 Kameo", totalFrames: "44f (Gratis)", notes: "Recarga el medidor de Shujinko mucho más rápido tras knockdowns." },
+    { moveName: "Mimic (Robo de Especial)", input: "f+K", category: "Kameo Mimic Specials", startup: "16f (Especial Rival)", active: "16–22", recovery: "24f", onBlock: "-4 a +3 On Block", totalFrames: "46f (Coste 50%)", notes: "Copia y dispara el ataque especial característico del oponente." },
+    { moveName: "Five Point Strike", input: "b+K", category: "Kameo Mimic Specials", startup: "14f (Mid Stun)", active: "14–20", recovery: "26f", onBlock: "-6 On Block (+40 Stun)", totalFrames: "46f (Coste 100%)", notes: "Golpe de palma devastador que aturde de pie para combo máximo." }
+  ],
+  "Sonya": [
+    { moveName: "Square Wave (Air)", input: "u+K", category: "Kameo Ambush & Extenders", startup: "14f (Mid Air Rebote)", active: "14–18", recovery: "20f", onBlock: "-5 On Block (+34 Combo)", totalFrames: "38f (Coste 50%)", notes: "Puño aéreo Ambush que rebota al enemigo y extiende cualquier lanzador." },
+    { moveName: "Energy Rings", input: "n+K (Hold)", category: "Kameo Summon & Zoning", startup: "16f (High / Unblockable)", active: "16–20", recovery: "24f", onBlock: "-3 / Imbloqueable Hold", totalFrames: "44f (Coste 50%)", notes: "Proyectil cargable hasta romper la guardia si mantienes pulsado." },
+    { moveName: "Leg Grab", input: "b+K", category: "Kameo Summon & Anti-Air", startup: "15f (Mid Lanzador)", active: "15–19", recovery: "26f", onBlock: "-9 On Block (+28 Launch)", totalFrames: "45f (Coste 50%)", notes: "Llave de piernas antiaérea en la esquina." }
+  ],
+  "Stryker": [
+    { moveName: "Double Grenades", input: "b+K", category: "Kameo Ambush & Seguridad", startup: "20f (Mid x2)", active: "20–30", recovery: "22f", onBlock: "+2 On Block (+18 On Hit)", totalFrames: "52f (Coste 50%)", notes: "Dos granadas Ambush que hacen completamente seguro cualquier movimiento arriesgado." },
+    { moveName: "Baton Overhead", input: "f+K", category: "Kameo Summon & Mix-up", startup: "20f (Overhead)", active: "20–23", recovery: "25f", onBlock: "-7 On Block (+22 On Hit)", totalFrames: "48f (Coste 50%)", notes: "Porra rápida Overhead para mezclar en rango medio." },
+    { moveName: "Baton Low / Taser", input: "d+K", category: "Kameo Summon & Mix-up", startup: "19f (Low)", active: "19–22", recovery: "25f", onBlock: "-7 On Block (+20 On Hit)", totalFrames: "47f (Coste 50%)", notes: "Barrido bajo de porra eléctrica." }
+  ],
+  "Sub-Zero (Kameo)": [
+    { moveName: "Ice Armor", input: "d+K", category: "Kameo Ambush & Anti-Zoning", startup: "10f (Armadura Ki)", active: "10–90", recovery: "15f", onBlock: "Inmune Proyectiles", totalFrames: "25f (Coste 50%)", notes: "Armadura helada que ignora proyectiles durante varios segundos." },
+    { moveName: "Arctic Freeze", input: "f+K", category: "Kameo Summon & Setups", startup: "22f (Mid Freeze)", active: "22–26", recovery: "28f", onBlock: "-10 On Block (+45 Freeze)", totalFrames: "54f (Coste 50%)", notes: "Congela al rival en mitad del combo para invocar clones o Sento." },
+    { moveName: "Shoulder Charge", input: "n+K", category: "Kameo Summon & Neutro", startup: "16f (Mid)", active: "16–24", recovery: "27f", onBlock: "-8 On Block (+24 On Hit)", totalFrames: "51f (Coste 50%)", notes: "Embestida horizontal con mucho empuje." }
+  ],
+  "Tremor": [
+    { moveName: "Cambiar Variación", input: "d+K", category: "Kameo Posturas (3 Formas)", startup: "8f (Switch)", active: "8–10", recovery: "10f", onBlock: "Gratis (0% Barra)", totalFrames: "20f (Sin Coste)", notes: "Alterna al vuelo entre Aftershock, Metallic y Crystalline." },
+    { moveName: "Rolling Rock / Terremoto", input: "n+K", category: "Kameo Ambush & Extenders", startup: "20f (Low / Mid)", active: "20–26", recovery: "24f", onBlock: "+1 On Block (+26 Launch)", totalFrames: "50f (Coste 50%)", notes: "Onda sísmica o roca rodante para extender combos y cubrir cuerdas." },
+    { moveName: "Metallic Lava Ball", input: "f+K", category: "Kameo Ambush & Extenders", startup: "22f (Mid Launcher)", active: "22–26", recovery: "25f", onBlock: "-4 On Block (+32 Launch)", totalFrames: "51f (Coste 50%)", notes: "Proyectil de lava que eleva para rutas de esquina." },
+    { moveName: "Crystalline Armor", input: "b+K", category: "Kameo Utility", startup: "11f (1 Hit Armor)", active: "11–35", recovery: "16f", onBlock: "Armadura 1 Golpe", totalFrames: "51f (Coste 50%)", notes: "Te otorga un escudo capaz de absorber un impacto rival." }
+  ],
+  "Khameleon": [
+    { moveName: "Fan Lift / Toss (Kitana)", input: "n+K / f+K", category: "Kameo Ambush (3 Disfraces)", startup: "17f (Mid Launch)", active: "17–24", recovery: "22f", onBlock: "+1 On Block (+36 Launch)", totalFrames: "46f (Coste 50%)", notes: "Disfraz Azul: eleva al enemigo en bloqueo o combo para extensión masiva." },
+    { moveName: "Ball Roll / Sai (Mileena)", input: "n+K / b+K", category: "Kameo Ambush (3 Disfraces)", startup: "18f (Low / Mid)", active: "18–23", recovery: "25f", onBlock: "-6 On Block (+32 Launch)", totalFrames: "48f (Coste 50%)", notes: "Disfraz Morado: mezcla con ataque bajo lanzador y sai de presión." },
+    { moveName: "Jade Glow / Glaive", input: "d+K / f+K", category: "Kameo Ambush (3 Disfraces)", startup: "19f (Overhead / Escudo)", active: "19–24", recovery: "22f", onBlock: "-3 On Block (Anti-Zoning)", totalFrames: "46f (Coste 50%)", notes: "Disfraz Verde: inmunidad a proyectiles o glaive Overhead lejano." }
+  ],
+  "Janet Cage": [
+    { moveName: "Sentō Stunt Hop Kick", input: "n+K (Hold)", category: "Kameo Ambush & Daño", startup: "16f (Mid Multi-Hit)", active: "16–24", recovery: "22f", onBlock: "-3 On Block (+38 Launch)", totalFrames: "46f (Coste 50%)", notes: "Doble patada aérea Ambush con mínimo escalado de daño." },
+    { moveName: "Nut Punch", input: "f+K", category: "Kameo Summon & Setups", startup: "16f (Mid Restand)", active: "16–19", recovery: "25f", onBlock: "-8 On Block (+34 Restand)", totalFrames: "44f (Coste 50%)", notes: "Deja al rival de pie aturdido para continuar presión directa." },
+    { moveName: "Shadow Dash Kick", input: "b+K", category: "Kameo Summon & Mix-up", startup: "18f (Overhead)", active: "18–22", recovery: "24f", onBlock: "-6 On Block (+22 On Hit)", totalFrames: "46f (Coste 50%)", notes: "Patada rápida Overhead desde media distancia." }
+  ],
+  "Mavado": [
+    { moveName: "Best Laid Plans (Trap Drop)", input: "u+K", category: "Kameo Ambush OTG & Trampas", startup: "17f (Mid OTG)", active: "17–23", recovery: "22f", onBlock: "-5 On Block (+35 OTG Launch)", totalFrames: "45f (Coste 50%)", notes: "Desciende por cuerdas recogiendo del suelo tras barridos o agarres." },
+    { moveName: "Mine (Mina Terrestre)", input: "n+K", category: "Kameo Ambush OTG & Trampas", startup: "24f (Low Trap)", active: "24–32", recovery: "22f", onBlock: "+6 On Block (+36 Launch)", totalFrames: "54f (Coste 50%)", notes: "Mina oculta en el suelo que lanza por los aires si el rival intenta actuar." },
+    { moveName: "Netherrealm Slide", input: "f+K", category: "Kameo Summon & Mix-up", startup: "18f (Low)", active: "18–25", recovery: "27f", onBlock: "-10 On Block (+28 Launch)", totalFrames: "52f (Coste 50%)", notes: "Deslizamiento rápido por debajo de ataques altos." }
+  ],
+  "Ferra": [
+    { moveName: "Torr Carry Overhead", input: "n+K > 2", category: "Kameo Ambush 50/50 + Buff", startup: "20f (Overhead)", active: "20–23", recovery: "25f", onBlock: "-4 On Block / -8 Flawless (+32 Launch)", totalFrames: "48f (Coste 50%)", notes: "Salto Overhead desde la espalda; inicia combo de más del 45%." },
+    { moveName: "Torr Carry Low", input: "n+K > 3", category: "Kameo Ambush 50/50 + Buff", startup: "19f (Low)", active: "19–22", recovery: "25f", onBlock: "-7 On Block (+30 Launch)", totalFrames: "47f (Coste 50%)", notes: "Complemento Low idéntico al timing del Overhead para un 50/50 real." },
+    { moveName: "Pain & Gain", input: "d+K", category: "Kameo Ambush 50/50 + Buff", startup: "14f (Buff +20% Dmg)", active: "14–18", recovery: "16f", onBlock: "+20% Daño Temporal", totalFrames: "34f (Coste 50%)", notes: "Sacrifica algo de vida propia a cambio de aumentar tu daño brutal un 20%." }
+  ],
+  "Madam Bo": [
+    { moveName: "Bottle Toss (Sake)", input: "n+K", category: "Kameo Ambush & Esquina", startup: "21f (Mid Splash)", active: "21–29", recovery: "23f", onBlock: "+3 On Block (+30 Launch)", totalFrames: "52f (Coste 50%)", notes: "Botella incendiaria Ambush para resets y combos continuos en esquina (+50 HP)." },
+    { moveName: "Tea House Kick", input: "f+K", category: "Kameo Summon & Extenders", startup: "16f (Mid Extender)", active: "16–21", recovery: "24f", onBlock: "-6 On Block (+32 Launch)", totalFrames: "45f (Coste 50%)", notes: "Patada ágil que levanta para extender rutas sin consumir barras." },
+    { moveName: "Flying Slipper / Sweep", input: "b+K", category: "Kameo Ambush & Mix-up", startup: "19f (Low)", active: "19–24", recovery: "24f", onBlock: "-5 On Block (+22 Knockdown)", totalFrames: "48f (Coste 50%)", notes: "Barrido bajo o zapatilla voladora para cortar intentos de contraataque." }
+  ]
+};
+
+MK1_KAMEOS.forEach((k) => {
+  k.frameDataCards = KAMEO_FRAME_DATA_CARDS[k.name] || [];
+});
+
 module.exports = {
   MK1_KAMEOS,
   MK1_MAIN_SYNERGIES,

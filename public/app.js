@@ -2242,6 +2242,57 @@ function openKameoModal(kameoId) {
     </div>
   `;
 
+  const kameoFdCards = k.frameDataCards || [];
+  const kameoFdCats = [...new Set(kameoFdCards.map((c) => c.category || "Movimientos Kameo"))];
+  const kameoFdHTML = kameoFdCats
+    .map((catName) => {
+      const cardsInCat = kameoFdCards.filter((c) => (c.category || "Movimientos Kameo") === catName);
+      return `
+        <div class="ufd-section-banner">${catName}</div>
+        <div class="ufd-cards-grid">
+          ${cardsInCat
+            .map((fc) => {
+              const translatedInp = translateNotation(fc.input, mk1.sagaId, state.notationMode);
+              const inspectorPayload = {
+                ...fc,
+                translatedInput: translatedInp,
+                charId: k.id,
+                charName: k.name,
+                gameId: mk1.id,
+                charImgUrl: k.iconUrl,
+                fallbackSrc: k.iconUrl
+              };
+              return `
+                <div class="ufd-card">
+                  <div class="ufd-card-title">
+                    <span>${fc.moveName}</span>
+                    <span class="ufd-card-input">${translatedInp}</span>
+                  </div>
+                  <div class="ufd-bar ufd-bar-startup">${fc.startup}</div>
+                  <div class="ufd-bar ufd-bar-active">${fc.active}</div>
+                  <div class="ufd-bar ufd-bar-recovery">${fc.recovery}</div>
+                  <div class="ufd-bar ufd-bar-onblock">${fc.onBlock}</div>
+                  <div
+                    class="ufd-hitbox-box"
+                    title="Haz clic para abrir el Inspector de Frame Data y Hitbox Activa de ${k.name}"
+                    onclick="window.openHitboxInspector('${encodeURIComponent(JSON.stringify(inspectorPayload))}')"
+                  >
+                    <div class="ufd-real-hitbox-wrap" style="width:100%;">
+                      ${buildCharacterHitboxStageHTML(mk1, k, fc)}
+                    </div>
+                    <div class="ufd-hitbox-caption">🔍 Clic para inspeccionar frames (Startup / Activa / Recovery)</div>
+                  </div>
+                  <div class="ufd-card-notes">${fc.notes}</div>
+                  <div class="ufd-card-footer">${fc.totalFrames}</div>
+                </div>
+              `;
+            })
+            .join("")}
+        </div>
+      `;
+    })
+    .join("");
+
   body.innerHTML = `
     <div class="guide-section-item" style="margin-top:0;margin-bottom:16px;">
       <h4>Rol y Plan de Juego con ${k.name}</h4>
@@ -2251,7 +2302,7 @@ function openKameoModal(kameoId) {
     </div>
 
     <div class="text-panel-card" style="margin-bottom:16px;">
-      <h4 style="margin-top:0;font-family:var(--font-display);">Movimientos Oficiales del Kameo (Summon / Ambush)</h4>
+      <h4 style="margin-top:0;font-family:var(--font-display);">Resumen de Movimientos del Kameo (Summon / Ambush)</h4>
       <table class="moves-table">
         <thead>
           <tr>
@@ -2267,7 +2318,7 @@ function openKameoModal(kameoId) {
             .map(
               (m) => `
               <tr>
-                <td><span class="code-input-pill">${m.input}</span></td>
+                <td><span class="code-input-pill">${translateNotation(m.input, mk1.sagaId, state.notationMode)}</span></td>
                 <td><strong>${m.name}</strong></td>
                 <td style="font-size:0.78rem;color:#fbbf24;">${m.type} (${m.cost})</td>
                 <td style="font-family:var(--font-mono);font-size:0.78rem;">${m.frames}</td>
@@ -2279,6 +2330,8 @@ function openKameoModal(kameoId) {
         </tbody>
       </table>
     </div>
+
+    ${kameoFdHTML}
 
     <div class="ufd-section-banner">Mejores Compañeros Principales para ${k.name} (Haz clic para abrir su ficha)</div>
     <div class="portrait-select-grid" style="margin-top:12px;">

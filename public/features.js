@@ -452,7 +452,8 @@ function updatePlaybackControlsVisibility() {
   if (!wrap) return;
   const hasPlayableVideo = inspectorState.realHitboxType === "video" && Boolean(inspectorState.realHitboxUrl);
   const hasPlayableGif = Array.isArray(inspectorState.gifFrames) && inspectorState.gifFrames.length > 1;
-  wrap.style.display = hasPlayableVideo || hasPlayableGif ? "block" : "none";
+  const isFrameMeterInteractive = !inspectorState.realHitboxUrl && !inspectorState.fetchingReal && inspectorState.totalFrames > 1;
+  wrap.style.display = hasPlayableVideo || hasPlayableGif || isFrameMeterInteractive ? "block" : "none";
 
   const slider = document.getElementById("hbFrameSlider");
   if (slider) {
@@ -603,11 +604,28 @@ function toggleInspectorPlayback() {
   const hasGif = Array.isArray(inspectorState.gifFrames) && inspectorState.gifFrames.length > 1;
   const vidEl = document.getElementById("hbRealVideoEl");
   const hasVid = inspectorState.realHitboxType === "video" && Boolean(vidEl);
-  if (!hasGif && !hasVid) return;
+  const hasMeter = !inspectorState.realHitboxUrl && inspectorState.totalFrames > 1;
+  if (!hasGif && !hasVid && !hasMeter) return;
 
   inspectorState.playing = true;
   const playBtn = document.getElementById("btnHbPlayPause");
   if (playBtn) playBtn.textContent = "⏸ Pausar Frame";
+
+  if (hasMeter) {
+    const stepMeter = () => {
+      if (!inspectorState.playing) return;
+      inspectorState.currentFrame++;
+      if (inspectorState.currentFrame > inspectorState.totalFrames) {
+        inspectorState.currentFrame = 1;
+      }
+      const slider = document.getElementById("hbFrameSlider");
+      if (slider) slider.value = inspectorState.currentFrame;
+      renderInspectorFrame();
+      inspectorState.timer = setTimeout(stepMeter, 45);
+    };
+    inspectorState.timer = setTimeout(stepMeter, 45);
+    return;
+  }
 
   if (hasVid && vidEl) {
     vidEl.play().catch(() => {});
@@ -796,17 +814,29 @@ function renderInspectorFrame(fromVideoSync = false) {
     } else {
       const noticeText = inspectorState.fetchingReal
         ? "⏳ Buscando captura/animación real del juego en wikis oficiales y carpeta local..."
-        : `📊 Frame Meter exacto (${moveName}). Las wikis públicas de este título no disponen de archivo animado frame-a-frame para este ataque.`;
+        : approxGameFrame >= activeStart && approxGameFrame <= activeEnd
+          ? `💥 F${approxGameFrame}: HITBOX ACTIVA — Momento exacto de impacto o bloqueo (Ventana F${activeStart}–${activeEnd}).`
+          : approxGameFrame < activeStart
+            ? `⏳ F${approxGameFrame}: STARTUP — Faltan ${activeStart - approxGameFrame} frame(s) para que aparezca la Hitbox Activa (F${activeStart}).`
+            : `🛡 F${approxGameFrame}: RECUPERACIÓN / END LAG — La Hitbox ya desapareció (${onBlock}).`;
+
+      const portraitHtml = inspectorState.charImgUrl
+        ? `<div class="portrait-img-box" style="width:48px;height:48px;flex-shrink:0;"><img src="${inspectorState.charImgUrl}" alt="${charName}" referrerpolicy="no-referrer" /></div>`
+        : "";
 
       canvasBox.innerHTML = `
-        <div class="hb-char-stage" style="height:210px;background:#18191c;padding:16px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div class="hb-char-stage" style="min-height:210px;background:#18191c;padding:16px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;">
           <div style="display:flex;justify-content:space-between;align-items:center;font-family:var(--font-mono);font-size:0.75rem;color:#fff;">
             <span><strong>${charName}</strong> • ${moveName} (${input})</span>
             <span style="color:#f59e0b;">Frame ${f} / ${totalFrames}</span>
           </div>
 
-          <div style="background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:14px 16px;font-family:var(--font-mono);font-size:0.78rem;color:#cbd5e1;line-height:1.5;">
-            ${noticeText}
+          <div style="display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.45);border:1px solid ${phaseColor};border-radius:8px;padding:12px 14px;">
+            ${portraitHtml}
+            <div style="font-family:var(--font-mono);font-size:0.78rem;color:#e2e8f0;line-height:1.5;">
+              <div>${noticeText}</div>
+              <div style="font-size:0.7rem;color:#94a3b8;margin-top:4px;">Usa el deslizador o ⏮ -1 / ▶ / ⏭ +1 abajo para analizar frame por frame el Frame Meter (60 FPS).</div>
+            </div>
           </div>
 
           <div style="position:relative;height:28px;display:flex;align-items:center;">
