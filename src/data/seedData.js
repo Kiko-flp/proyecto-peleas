@@ -473,14 +473,14 @@ const SEED_DATA = {
     },
 
     // =========================================================================
-    // 2. STREET FIGHTER 6 (26 Personajes)
+    // 2. STREET FIGHTER 6 (30 Personajes)
     // =========================================================================
     {
       id: "sf6",
       sagaId: "street-fighter",
       title: "Street Fighter 6",
       releaseYear: 2023,
-      currentPatch: "Parche Year 3 (Outfit 3) • Act. 28 May 2026",
+      currentPatch: "Parche Year 3 (C. Viper / Alex / Ingrid) • Act. 28 May 2026",
       subSystemName: "Drive System (6 Barras)",
       coverImage: "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1364780/header.jpg",
       coverGradient: "linear-gradient(135deg, #4c1d95 0%, #ea580c 55%, #0f172a 100%)",
@@ -489,34 +489,42 @@ const SEED_DATA = {
         { name: "Capcom Buckler's Boot Camp", url: "https://www.streetfighter.com/6/buckler" }
       ],
       basicGuide: {
-        title: "Fundamentos de Street Fighter 6: El Drive System, Links y Antiaéreos",
+        title: "Fundamentos de Street Fighter 6: Drive System, Controles Clásico/Moderno y Antiaéreos",
         videoUrl: "https://www.youtube.com/embed/seXtzdiKi4Y?cc_load_policy=1&cc_lang_pref=es&hl=es",
         videoAuthor: "Rooflemonger - Guía Completa de Inicio SF6",
-        summary: "Comienzas cada ronda con las 6 barras del Drive Gauge llenas. Gestionarlas para no caer en Burnout es la clave de la victoria.",
+        summary: "Comienzas cada ronda con las 6 barras del Drive Gauge llenas y hasta 3 niveles de Super Art. Dominar el Drive System y no caer en Burnout es la clave del juego.",
         sections: [
           {
-            heading: "1. Las 5 herramientas del Drive Gauge",
-            content: "• Drive Impact (HP+HK, 1 barra): Golpe con armadura que provoca Wall Splat en la esquina.\n• Drive Parry (MP+MK): Bloquea golpes altos, bajos y cross-ups simultáneamente.\n• Overdrive (OD, 2 barras): Versión EX de tus movimientos especiales.\n• Drive Rush (DR, 1 o 3 barras): Añade +4 frames de ventaja a cualquier golpe durante la carrera.\n• Drive Reversal (6+HP+HK bloqueando, 2 barras): Empuja al rival para quitarte la presión."
+            heading: "1. Controles Clásico (6 botones) vs. Moderno (4 botones + SP)",
+            content: "• Control Clásico: LP, MP, HP, LK, MK, HK con comandos direccionales completos (100% de daño y acceso a todos los normales).\n• Control Moderno: Ligero (L), Medio (M), Fuerte (H), Especial (SP) y Auto-Combo. Permite ejecutar Supers y antiaéreos con 1 botón (ideal para reaccionar a proyectiles y saltos) con un 20% menos de daño en especiales ejecutados en atajo."
           },
           {
-            heading: "2. El peligro del Burnout (Agotamiento)",
-            content: "Si gastas las 6 barras entras en Burnout: todos los ataques rivales ganan +4 frames en bloqueo, recibes daño residual (Chip) y un Drive Impact en la esquina te deja Aturdido (Stun)."
+            heading: "2. Las 5 herramientas del Drive Gauge",
+            content: "• Drive Impact (HP+HK, 1 barra, 26f startup): Golpe con 2 hits de armadura; provoca Crumple en Punish Counter y Wall Splat en la esquina.\n• Drive Parry (MP+MK): Bloquea altos, bajos y cross-ups sin perder Drive. Un Perfect Parry en ventana de 2 frames ralentiza la pantalla.\n• Overdrive (OD, 2 barras): Versión mejorada de movimientos especiales.\n• Drive Rush (DR, 1 barra neutro / 3 barras desde normal cancelable): Suma +4 frames en impacto y +4 en bloqueo al siguiente golpe.\n• Drive Reversal (6+HP+HK bloqueando o levantándose, 2 barras): Empuja al rival (-6 on block) para cortar presión."
+          },
+          {
+            heading: "3. El peligro del Burnout (Agotamiento)",
+            content: "Si gastas las 6 barras entras en Burnout: todos los ataques rivales ganan +4 frames extra en bloqueo, los especiales y Supers causan daño residual (Chip) incluso bloqueando, y un Drive Impact en la esquina te deja Aturdido (Stun)."
           }
         ]
       },
       advancedGuide: {
-        title: "Guía Avanzada SF6: Delay Tech, Shimmy, Perfect Parry y DRC Buffering",
+        title: "Guía Avanzada SF6: Delay Tech, Shimmy, Throw Loops y Jaque Mate en Burnout",
         videoUrl: "https://www.youtube.com/embed/g8LYoF0S-Lo?cc_load_policy=1&cc_lang_pref=es&hl=es",
         videoAuthor: "Brian_F - Shimmy y Delay Tech Avanzado SF6",
-        summary: "Cómo defender el bucle de esquinas (Throw Loops), ejecutar Delay Throw Tech y castigar con Shimmy.",
+        summary: "Cómo defender y aplicar el bucle de agarres en esquina (Throw Loops), optimizar Drive Rush Cancel y forzar Checkmates en Burnout.",
         sections: [
           {
-            heading: "1. Delay Throw Tech (Defensa contra Golpe / Agarre)",
-            content: "Si al levantarte bloqueas agachado durante los primeros 4 frames y luego pulsas LP+LK, cubrirás tanto el golpe meaty como el intento de agarre al mismo tiempo."
+            heading: "1. Delay Throw Tech (Defensa contra Meaty y Agarre)",
+            content: "Al levantarte, mantén bloqueo agachado durante los primeros frames (cubriendo cualquier golpe Meaty) y pulsa LP+LK unos 4–6 frames después: si el rival atacó seguirás bloqueando, y si intentó agarrarte escaparás automáticamente del agarre."
           },
           {
-            heading: "2. El Shimmy (Castigar el Delay Tech)",
-            content: "Camina hacia el rival derribado y da un micropaso atrás al levantarse: su intento de zafarse del agarre saldrá al aire y podrás conectarle tu botón Fuerte (5HP) en Punish Counter."
+            heading: "2. El Shimmy y Throw Loops en Esquina",
+            content: "Tras un agarre delantero en la esquina muchos personajes quedan a rango para caminar y repetir agarre (Throw Loop). Para castigar el Delay Tech del defensor, amaga con caminar hacia él y da un paso atrás: su agarre saldrá al aire y podrás castigarlo con 5HP en Punish Counter."
+          },
+          {
+            heading: "3. Escalamiento de Drive Rush Cancel y Burnout Checkmate",
+            content: "Cancelar un golpe con Drive Rush (3 barras) aplica un 15% adicional de escalado al combo, así que resérvalo para rematar rondas o llevar a la esquina. Si dejas al rival en Burnout y en la esquina con poca vida, encadena un botón bloqueado en Drive Impact + Super Art para lograr un jaque mate garantizado."
           }
         ]
       },

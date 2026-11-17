@@ -107,6 +107,8 @@ const CLIENT_EXACT_WIKI_TITLES = {
   "Alex": "Alex",
   "Ingrid": "Ingrid",
   // Tekken 8
+  "King": "King II",
+  "Kuma": "Kuma II",
   "Jack-8": "Jack",
   "Armor King": "Armor King II",
   "Kunimitsu": "Kunimitsu II",
@@ -257,42 +259,30 @@ async function hydrateBrowserPortraits(game) {
 
         if (matchedChar) {
           resolvedInChunk.add(matchedChar.id);
-          clientPortraitCache.set(matchedChar.id, thumb);
           if (matchedChar.iconUrl.startsWith("/api/")) {
+            clientPortraitCache.set(matchedChar.id, thumb);
             matchedChar.iconUrl = thumb;
+            document
+              .querySelectorAll(`img[data-charimg="${matchedChar.id}"]`)
+              .forEach((imgEl) => {
+                if (imgEl.src.includes("/api/char-icon") || imgEl.dataset.usedFallback === "1") {
+                  imgEl.src = thumb;
+                }
+              });
           }
-          document
-            .querySelectorAll(`img[data-charimg="${matchedChar.id}"]`)
-            .forEach((imgEl) => {
-              if (
-                imgEl.src.includes("/api/char-icon") ||
-                imgEl.dataset.usedFallback === "1" ||
-                game.id === "tekken8" ||
-                game.id === "mk1"
-              ) {
-                imgEl.src = thumb;
-              }
-            });
         }
       });
 
       for (const ch of chunk) {
-        if (!resolvedInChunk.has(ch.id) && !clientPortraitCache.has(ch.id)) {
+        if (!resolvedInChunk.has(ch.id) && !clientPortraitCache.has(ch.id) && ch.iconUrl.startsWith("/api/")) {
           searchSingleCharacterPortrait(game.id, ch.name).then((foundUrl) => {
             if (foundUrl) {
               clientPortraitCache.set(ch.id, foundUrl);
-              if (ch.iconUrl.startsWith("/api/")) {
-                ch.iconUrl = foundUrl;
-              }
+              ch.iconUrl = foundUrl;
               document
                 .querySelectorAll(`img[data-charimg="${ch.id}"]`)
                 .forEach((imgEl) => {
-                  if (
-                    imgEl.src.includes("/api/char-icon") ||
-                    imgEl.dataset.usedFallback === "1" ||
-                    game.id === "tekken8" ||
-                    game.id === "mk1"
-                  ) {
+                  if (imgEl.src.includes("/api/char-icon") || imgEl.dataset.usedFallback === "1") {
                     imgEl.src = foundUrl;
                   }
                 });

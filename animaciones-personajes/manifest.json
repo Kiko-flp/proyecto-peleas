@@ -10154,5 +10154,207 @@
                                                          "source":  "Dustloop Wiki",
                                                          "type":  "image"
                                                      }
-                    }
+                    },
+    "sf6|Dee Jay":  {
+                        "Jumping Heavy Attack":  {
+                                                     "hasNativeHitbox":  true,
+                                                     "url":  "/animaciones-personajes/sf6/dee_jay/SF6_Dee_Jay_jhp_hitbox.png",
+                                                     "source":  "SuperCombo Wiki",
+                                                     "type":  "image"
+                                                 },
+                        "Crouching Heavy Punch":  {
+                                                      "hasNativeHitbox":  true,
+                                                      "url":  "/animaciones-personajes/sf6/dee_jay/SF6_Dee_Jay_2hp_hitbox.png",
+                                                      "source":  "SuperCombo Wiki",
+                                                      "type":  "image"
+                                                  },
+                        "Standing Heavy Punch":  {
+                                                     "hasNativeHitbox":  true,
+                                                     "url":  "/animaciones-personajes/sf6/dee_jay/SF6_Dee_Jay_5hp_hitbox.png",
+                                                     "source":  "SuperCombo Wiki",
+                                                     "type":  "image"
+                                                 },
+                        "Standing Heavy Kick":  {
+                                                    "hasNativeHitbox":  true,
+                                                    "url":  "/animaciones-personajes/sf6/dee_jay/SF6_Dee_Jay_5hk_hitbox.png",
+                                                    "source":  "SuperCombo Wiki",
+                                                    "type":  "image"
+                                                },
+                        "Crouching Light Punch":  {
+                                                      "hasNativeHitbox":  true,
+                                                      "url":  "/animaciones-personajes/sf6/dee_jay/SF6_Dee_Jay_2lp_hitbox.png",
+                                                      "source":  "SuperCombo Wiki",
+                                                      "type":  "image"
+                                                  },
+                        "Crouching Heavy Kick (Sweep)":  {
+                                                             "hasNativeHitbox":  true,
+                                                             "url":  "/animaciones-personajes/sf6/dee_jay/SF6_Dee_Jay_2hk_hitbox.png",
+                                                             "source":  "SuperCombo Wiki",
+                                                             "type":  "image"
+                                                         },
+                        "Standing Medium Kick":  {
+                                                     "hasNativeHitbox":  true,
+                                                     "url":  "/animaciones-personajes/sf6/dee_jay/SF6_Dee_Jay_5mk_hitbox.png",
+                                                     "source":  "SuperCombo Wiki",
+                                                     "type":  "image"
+                                                 },
+                        "Standing Light Kick":  {
+                                                    "hasNativeHitbox":  true,
+                                                    "url":  "/animaciones-personajes/sf6/dee_jay/SF6_Dee_Jay_5lk_hitbox.png",
+                                                    "source":  "SuperCombo Wiki",
+                                                    "type":  "image"
+                                                },
+                        "Standing Medium Punch":  {
+                                                      "hasNativeHitbox":  true,
+                                                      "url":  "/animaciones-personajes/sf6/dee_jay/SF6_Dee_Jay_5mp_hitbox.png",
+                                                      "source":  "SuperCombo Wiki",
+                                                      "type":  "image"
+                                                  },
+                        "Special 3 (Advance / Tatsu)":  {
+                                                            "hasNativeHitbox":  true,
+                                                            "url":  "/animaciones-personajes/sf6/dee_jay/SF6_Dee_Jay_214k_hitbox.png",
+                                                            "source":  "SuperCombo Wiki",
+                                                            "type":  "image"
+                                                        },
+                        "Command Overhead":  {
+                                                 "hasNativeHitbox":  true,
+                                                 "url":  "/animaciones-personajes/sf6/dee_jay/SF6_Dee_Jay_6mk_hitbox.png",
+                                                 "source":  "SuperCombo Wiki",
+                                                 "type":  "image"
+                                             },
+                        "Crouching Medium Punch":  {
+                                                       "hasNativeHitbox":  true,
+                                                       "url":  "/animaciones-personajes/sf6/dee_jay/SF6_Dee_Jay_2mp_hitbox.png",
+                                                       "source":  "SuperCombo Wiki",
+                                                       "type":  "image"
+                                                   },
+                        "Jumping Light / Cross-up":  {
+                                                         "hasNativeHitbox":  true,
+                                                         "url":  "/animaciones-personajes/sf6/dee_jay/SF6_Dee_Jay_jlk_hitbox.png",
+                                                         "source":  "SuperCombo Wiki",
+                                                         "type":  "image"
+                                                     },
+                        "Crouching Light Kick":  {
+                                                     "hasNativeHitbox":  true,
+                                                     "url":  "/animaciones-personajes/sf6/dee_jay/SF6_Dee_Jay_2lk_hitbox.png",
+                                                     "source":  "SuperCombo Wiki",
+                                                     "type":  "image"
+                                                 },
+                        "Crouching Medium Kick":  {
+                                                      "hasNativeHitbox":  true,
+                                                      "url":  "/animaciones-personajes/sf6/dee_jay/SF6_Dee_Jay_2mk_hitbox.png",
+                                                      "source":  "SuperCombo Wiki",
+                                                      "type":  "image"
+                                                  },
+                        "Standing Light Punch":  {
+                                                     "hasNativeHitbox":  true,
+                                                     "url":  "/animaciones-personajes/sf6/dee_jay/SF6_Dee_Jay_5lp_hitbox.png",
+                                                     "source":  "SuperCombo Wiki",
+                                                     "type":  "image"
+                                                 },
+                        "Super Art Level 3 (SA3)":  {
+                                                        "hasNativeHitbox":  false,
+                                                        "url":  "/animaciones-personajes/sf6/dee_jay/SF6_Dee_Jay_236236p.png",
+                                                        "source":  "SuperCombo Wiki",
+                                                        "type":  "image"
+                                                    }
+                    },
+    "sf6|A.K.I.":  {
+                       "Jumping Heavy Attack":  {
+                                                    "hasNativeHitbox":  true,
+                                                    "url":  "/animaciones-personajes/sf6/a_k_i/SF6_A.K.I._jhp_hitbox.png",
+                                                    "source":  "SuperCombo Wiki",
+                                                    "type":  "image"
+                                                },
+                       "Crouching Heavy Punch":  {
+                                                     "hasNativeHitbox":  true,
+                                                     "url":  "/animaciones-personajes/sf6/a_k_i/SF6_A.K.I._2hp_hitbox.png",
+                                                     "source":  "SuperCombo Wiki",
+                                                     "type":  "image"
+                                                 },
+                       "Standing Heavy Punch":  {
+                                                    "hasNativeHitbox":  true,
+                                                    "url":  "/animaciones-personajes/sf6/a_k_i/SF6_A.K.I._5hp_hitbox.png",
+                                                    "source":  "SuperCombo Wiki",
+                                                    "type":  "image"
+                                                },
+                       "Standing Heavy Kick":  {
+                                                   "hasNativeHitbox":  true,
+                                                   "url":  "/animaciones-personajes/sf6/a_k_i/SF6_A.K.I._5hk_hitbox.png",
+                                                   "source":  "SuperCombo Wiki",
+                                                   "type":  "image"
+                                               },
+                       "Crouching Light Punch":  {
+                                                     "hasNativeHitbox":  true,
+                                                     "url":  "/animaciones-personajes/sf6/a_k_i/SF6_A.K.I._2lp_hitbox.png",
+                                                     "source":  "SuperCombo Wiki",
+                                                     "type":  "image"
+                                                 },
+                       "Crouching Heavy Kick (Sweep)":  {
+                                                            "hasNativeHitbox":  true,
+                                                            "url":  "/animaciones-personajes/sf6/a_k_i/SF6_A.K.I._2hk_hitbox.png",
+                                                            "source":  "SuperCombo Wiki",
+                                                            "type":  "image"
+                                                        },
+                       "Standing Medium Kick":  {
+                                                    "hasNativeHitbox":  true,
+                                                    "url":  "/animaciones-personajes/sf6/a_k_i/SF6_A.K.I._5mk_hitbox.png",
+                                                    "source":  "SuperCombo Wiki",
+                                                    "type":  "image"
+                                                },
+                       "Standing Light Kick":  {
+                                                   "hasNativeHitbox":  true,
+                                                   "url":  "/animaciones-personajes/sf6/a_k_i/SF6_A.K.I._5lk_hitbox.png",
+                                                   "source":  "SuperCombo Wiki",
+                                                   "type":  "image"
+                                               },
+                       "Standing Medium Punch":  {
+                                                     "hasNativeHitbox":  true,
+                                                     "url":  "/animaciones-personajes/sf6/a_k_i/SF6_A.K.I._5mp_hitbox.png",
+                                                     "source":  "SuperCombo Wiki",
+                                                     "type":  "image"
+                                                 },
+                       "Command Overhead":  {
+                                                "hasNativeHitbox":  true,
+                                                "url":  "/animaciones-personajes/sf6/a_k_i/SF6_A.K.I._6hp_hitbox.png",
+                                                "source":  "SuperCombo Wiki",
+                                                "type":  "image"
+                                            },
+                       "Crouching Medium Punch":  {
+                                                      "hasNativeHitbox":  true,
+                                                      "url":  "/animaciones-personajes/sf6/a_k_i/SF6_A.K.I._2mp_hitbox.png",
+                                                      "source":  "SuperCombo Wiki",
+                                                      "type":  "image"
+                                                  },
+                       "Jumping Light / Cross-up":  {
+                                                        "hasNativeHitbox":  true,
+                                                        "url":  "/animaciones-personajes/sf6/a_k_i/SF6_A.K.I._jlk_hitbox.png",
+                                                        "source":  "SuperCombo Wiki",
+                                                        "type":  "image"
+                                                    },
+                       "Crouching Light Kick":  {
+                                                    "hasNativeHitbox":  true,
+                                                    "url":  "/animaciones-personajes/sf6/a_k_i/SF6_A.K.I._2lk_hitbox.png",
+                                                    "source":  "SuperCombo Wiki",
+                                                    "type":  "image"
+                                                },
+                       "Crouching Medium Kick":  {
+                                                     "hasNativeHitbox":  true,
+                                                     "url":  "/animaciones-personajes/sf6/a_k_i/SF6_A.K.I._2mk_hitbox.png",
+                                                     "source":  "SuperCombo Wiki",
+                                                     "type":  "image"
+                                                 },
+                       "Standing Light Punch":  {
+                                                    "hasNativeHitbox":  true,
+                                                    "url":  "/animaciones-personajes/sf6/a_k_i/SF6_A.K.I._5lp_hitbox.png",
+                                                    "source":  "SuperCombo Wiki",
+                                                    "type":  "image"
+                                                },
+                       "Super Art Level 3 (SA3)":  {
+                                                       "hasNativeHitbox":  true,
+                                                       "url":  "/animaciones-personajes/sf6/a_k_i/SF6_A.K.I._236236p_hitbox.png",
+                                                       "source":  "SuperCombo Wiki",
+                                                       "type":  "image"
+                                                   }
+                   }
 }

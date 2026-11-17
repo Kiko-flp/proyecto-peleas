@@ -503,13 +503,13 @@ async function resolveWavuHitboxes(charName) {
 const SF6_CHAR_PREFIX = {
   "Ken Masters": "Ken",
   "Juri Han": "Juri",
-  "E. Honda": "EHonda",
-  "A.K.I.": "AKI",
-  "M. Bison": "MBison",
-  "Dee Jay": "DeeJay",
+  "E. Honda": "E.Honda",
+  "A.K.I.": "A.K.I.",
+  "M. Bison": "M.Bison",
+  "Dee Jay": "Dee_Jay",
   "Terry Bogard": "Terry",
   "Mai Shiranui": "Mai",
-  "C. Viper": "CViper"
+  "C. Viper": "C.Viper"
 };
 
 async function checkImageExists(url) {

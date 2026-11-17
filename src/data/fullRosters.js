@@ -124,6 +124,51 @@ const DBFZ_DUSTLOOP_NAMES = {
   "Goku (Super Saiyan 4 - DAIMA)": "Goku_(SS4,_DAIMA)"
 };
 
+const MK1_PORTRAIT_OVERRIDES = {
+  "Scorpion": "https://static.wikia.nocookie.net/mkwikia/images/8/8b/Scorpion_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718163822",
+  "Sub-Zero": "https://static.wikia.nocookie.net/mkwikia/images/a/aa/Sub-Zero_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718163942",
+  "Raiden": "https://static.wikia.nocookie.net/mkwikia/images/3/31/Raiden_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718163624",
+  "Kung Lao": "https://static.wikia.nocookie.net/mkwikia/images/f/fd/Kung_Lao_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718162929",
+  "Kitana": "https://static.wikia.nocookie.net/mkwikia/images/7/77/Kitana_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718162917",
+  "Mileena": "https://static.wikia.nocookie.net/mkwikia/images/6/6d/Mileena_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718163556",
+  "Johnny Cage": "https://static.wikia.nocookie.net/mkwikia/images/9/9f/Johnny_Cage_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718160250",
+  "Kenshi": "https://static.wikia.nocookie.net/mkwikia/images/0/0c/Kenshi_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718162900",
+  "Smoke": "https://static.wikia.nocookie.net/mkwikia/images/f/f5/Smoke_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718163800",
+  "Rain": "https://static.wikia.nocookie.net/mkwikia/images/5/5a/Rain_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718163638",
+  "Li Mei": "https://static.wikia.nocookie.net/mkwikia/images/c/c6/Li_Mei_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718163028",
+  "Tanya": "https://static.wikia.nocookie.net/mkwikia/images/e/e1/Tanya_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718163933",
+  "Baraka": "https://static.wikia.nocookie.net/mkwikia/images/5/51/Baraka_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718160140",
+  "Geras": "https://static.wikia.nocookie.net/mkwikia/images/3/33/Geras_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718160217",
+  "Reptile": "https://static.wikia.nocookie.net/mkwikia/images/6/63/Reptile_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718163813",
+  "Ashrah": "https://static.wikia.nocookie.net/mkwikia/images/1/10/Ashrah_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718155925",
+  "Havik": "https://static.wikia.nocookie.net/mkwikia/images/0/0d/Havik_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718160233",
+  "General Shao": "https://static.wikia.nocookie.net/mkwikia/images/7/71/General_Shao_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718163834",
+  "Sindel": "https://static.wikia.nocookie.net/mkwikia/images/3/39/Sindel_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718163915",
+  "Nitara": "https://static.wikia.nocookie.net/mkwikia/images/4/46/Nitara_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718163611",
+  "Reiko": "https://static.wikia.nocookie.net/mkwikia/images/9/9b/Reiko_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718163648",
+  "Shang Tsung": "https://static.wikia.nocookie.net/mkwikia/images/c/c1/Shang_Tsung_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718160318",
+  "Quan Chi": "https://static.wikia.nocookie.net/mkwikia/images/9/9d/Quan_Chi_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718161138",
+  "Peacemaker": "https://static.wikia.nocookie.net/mkwikia/images/a/a6/Peacemaker_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718161228",
+  "Ermac": "https://static.wikia.nocookie.net/mkwikia/images/e/e7/Ermac_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718160610",
+  "Homelander": "https://static.wikia.nocookie.net/mkwikia/images/4/4f/Homelander_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718160556",
+  "Takeda Takahashi": "https://static.wikia.nocookie.net/mkwikia/images/7/79/Takeda_Takahashi_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718161325",
+  "Cyrax": "https://static.wikia.nocookie.net/mkwikia/images/b/b3/Cyrax_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718160430",
+  "Sektor": "https://static.wikia.nocookie.net/mkwikia/images/2/2f/Sektor_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718163058",
+  "Noob Saibot": "https://static.wikia.nocookie.net/mkwikia/images/b/b0/Noob_Saibot_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718163114",
+  "Ghostface": "https://static.wikia.nocookie.net/mkwikia/images/4/46/Ghostface_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718161356",
+  "Conan the Barbarian": "https://static.wikia.nocookie.net/mkwikia/images/4/4f/Conan_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718160419",
+  "T-1000": "https://static.wikia.nocookie.net/mkwikia/images/4/43/T-1000_Select_Icon_%28MK1%29.png/revision/latest?cb=20260718163133"
+};
+
+const TEKKEN8_PORTRAIT_OVERRIDES = {
+  "King": "https://static.wikia.nocookie.net/tekken/images/7/71/King_Tekken_8_%28High_Resolution%29.jpg/revision/latest/scale-to-width-down/277?cb=20251203012405&path-prefix=en",
+  "Kuma": "https://static.wikia.nocookie.net/tekken/images/8/80/Kuma_TK8_render.jpg/revision/latest/scale-to-width-down/228?cb=20230823142016&path-prefix=en",
+  "Armor King": "https://static.wikia.nocookie.net/tekken/images/e/ee/TK8_AKII_Render.jpg/revision/latest/scale-to-width-down/320?cb=20251013223504&path-prefix=en",
+  "Kunimitsu": "https://static.wikia.nocookie.net/tekken/images/a/af/Kunimitsu_II_TK8_Default_1.png/revision/latest?cb=20260529032533&path-prefix=en",
+  "Jack-8": "https://static.wikia.nocookie.net/tekken/images/e/e0/Jack-8_T8_Player_1_Outfit.png/revision/latest?cb=20231013023312&path-prefix=en",
+  "Bob": "https://static.wikia.nocookie.net/tekken/images/4/4e/Bob_TK8_Render.jpg/revision/latest/scale-to-width-down/250?cb=20260819232507&path-prefix=en"
+};
+
 const SSBU_PORTRAIT_OVERRIDES = {
   "Isabelle": "https://www.smashbros.com/assets_v2/img/fighter/isabelle/main.png",
   "Incineroar": "https://www.smashbros.com/assets_v2/img/fighter/incineroar/main.png",
@@ -158,8 +203,16 @@ function getDirectPortraitUrl(gameId, charName, colorHex = "f59e0b", isDLC = fal
     const dbName = (DBFZ_DUSTLOOP_NAMES[charName] || charName).replace(/\s+/g, "_");
     return getMediaWikiHashedUrl("https://www.dustloop.com/wiki/images", `DBFZCE_${dbName}_Icon.png`);
   }
-  if (gameId === "mk1" && MK1_CDN_SLUGS[charName]) {
-    return `https://cdn-mk1.mortalkombat.com/roster/${MK1_CDN_SLUGS[charName]}/thumb.webp`;
+  if (gameId === "mk1") {
+    if (MK1_PORTRAIT_OVERRIDES[charName]) {
+      return MK1_PORTRAIT_OVERRIDES[charName];
+    }
+    if (MK1_CDN_SLUGS[charName]) {
+      return `https://cdn-mk1.mortalkombat.com/roster/${MK1_CDN_SLUGS[charName]}/thumb.webp`;
+    }
+  }
+  if (gameId === "tekken8" && TEKKEN8_PORTRAIT_OVERRIDES[charName]) {
+    return TEKKEN8_PORTRAIT_OVERRIDES[charName];
   }
   const slug = encodeURIComponent(charName);
   const bg = isDLC ? "2e1065" : "0f172a";
@@ -628,7 +681,403 @@ function getDefaultSubSystem(gameId) {
   }
 }
 
+const SF6_SPECIFIC_DATA = {
+  "Ryu": {
+    keyMoves: [
+      { input: "5HP", frames: "10f (-2 on block)", notes: "Principal Whiff Punish de Ryu cancelable en Denjin Hadouken o Drive Rush." },
+      { input: "2MK", frames: "8f Low", notes: "Poke bajo cancelable en Drive Rush (DRC) o Hadouken (236P)." },
+      { input: "623HP", frames: "5f Invuln AA", notes: "Shoryuken Pesado: antiaéreo invulnerable a saltos." },
+      { input: "214P (Denjin)", frames: "Carga especial", notes: "Potencia Hadouken o Hashogeki con más ventaja y daño." }
+    ],
+    combos: [
+      { type: "Midscreen Básico (Sin Barra)", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 2LP > 5LK ~ 623HP", damage: "1620 dmg" },
+      { type: "Drive Rush Confirm", difficulty: "Media", resource: "Con Recursos", notation: "2MK ~ DRC > 2MP > 5HP ~ 214HK", damage: "2480 dmg" },
+      { type: "Punish Counter + Nivel 3", difficulty: "Difícil", resource: "Con Recursos", notation: "5HK (PC) > 5HP ~ DRC > 5HP ~ 236HP ~ 214214P (SA3)", damage: "5620 dmg" }
+    ]
+  },
+  "Ken Masters": {
+    keyMoves: [
+      { input: "5HP", frames: "10f", notes: "Iniciador de esquina cancelable en Jinrai (236K) o Run Tatsu." },
+      { input: "2MK", frames: "7f Low", notes: "Uno de los mejores 2MK del juego para confirmar Drive Rush hacia la esquina." },
+      { input: "236MK > 6LK", frames: "Jinrai Low Mix", notes: "Presión continua en bloqueo con mezcla Alto/Bajo." },
+      { input: "KK (Run) ~ 214K", frames: "Corner Carry", notes: "Lleva al rival de punta a punta de la pantalla." }
+    ],
+    combos: [
+      { type: "Confirmación Rápida", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 5LP > 5LK ~ 623HP", damage: "1580 dmg" },
+      { type: "Corner Carry (Run Tatsu)", difficulty: "Media", resource: "Con Recursos", notation: "2MK ~ DRC > 2MP > 5HP ~ KK ~ 214LK", damage: "2520 dmg" },
+      { type: "Punish Counter + SA3", difficulty: "Difícil", resource: "Con Recursos", notation: "5HP (PC) ~ KK+HK > 2HP ~ DRC > 5HP ~ KK ~ 623HP ~ 236236P (SA3)", damage: "5480 dmg" }
+    ]
+  },
+  "Luke": {
+    keyMoves: [
+      { input: "2MP", frames: "6f (+1 on block)", notes: "Botón estrella de Luke en neutro; controla espacio y confirma fácilmente." },
+      { input: "4HK", frames: "9f (-3)", notes: "Castigo fuerte en neutro con gran empuje." },
+      { input: "214MP (Perfect)", frames: "Flash Knuckle", notes: "Flash Knuckle Perfecto lanza al rival para extender combo." },
+      { input: "236P", frames: "Sand Blast", notes: "Proyectil ultrarrápido para frenar avances." }
+    ],
+    combos: [
+      { type: "BnB Sin Barra", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 2LP ~ 214LP", damage: "1450 dmg" },
+      { type: "Flash Knuckle Perfecto", difficulty: "Media", resource: "Con Recursos", notation: "2MP > 5MP ~ DRC > 4HP ~ [214MP] > 214HP", damage: "2890 dmg" },
+      { type: "Óptimo + SA3", difficulty: "Difícil", resource: "Con Recursos", notation: "5HP (PC) ~ [214MP] > DR > 4HP ~ 214LP > 623HP ~ 214214P (SA3)", damage: "5380 dmg" }
+    ]
+  },
+  "Jamie": {
+    keyMoves: [
+      { input: "5HP", frames: "5f (3 hits)", notes: "Rompe armaduras de Drive Impact y gana intercambios a corta distancia." },
+      { input: "5MK", frames: "8f", notes: "Poke largo cancelable en DRC para ganar Nivel de Bebida." },
+      { input: "22P", frames: "Drink (Bebida)", notes: "Sube el nivel (0 a 4) desbloqueando movimientos y aumentando daño (110%)." },
+      { input: "236P", frames: "Rekka (Palm)", notes: "Lleva a la esquina o finaliza con bebida segura." }
+    ],
+    combos: [
+      { type: "Subir Bebida Básico", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 5LK > 5LP ~ 236P > P > P (Drink)", damage: "1520 dmg" },
+      { type: "Drive Rush Confirm", difficulty: "Media", resource: "Con Recursos", notation: "5MK ~ DRC > 2HP > 5LP-LK-MP (TC) > 22P (Drink)", damage: "2340 dmg" },
+      { type: "Nivel 4 + SA3", difficulty: "Difícil", resource: "Con Recursos", notation: "5HP (PC) ~ DRC > 5HP > 2MP ~ 214HP > 623P ~ 236236K (SA3)", damage: "5740 dmg" }
+    ]
+  },
+  "Chun-Li": {
+    keyMoves: [
+      { input: "5LP / 4MP", frames: "4f / 7f", notes: "Footsies excelentes cancelables en Serenity Stream (214P)." },
+      { input: "2MK", frames: "7f Low", notes: "Alcance enorme para confirmar Drive Rush o Lightning Legs." },
+      { input: "214P > MK", frames: "Stance Low", notes: "Extensión de postura para combos tras golpes medios." },
+      { input: "22K", frames: "Tensho Kicks", notes: "Antiaéreo limpio con invulnerabilidad aérea." }
+    ],
+    combos: [
+      { type: "BnB Sin Barra", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 5LP > 5LK ~ 236LK", damage: "1640 dmg" },
+      { type: "Serenity Stream Confirm", difficulty: "Media", resource: "Con Recursos", notation: "2MK ~ DRC > 4HP ~ 214P~MK > [2]8MK", damage: "2720 dmg" },
+      { type: "Stance Óptimo + SA3", difficulty: "Difícil", resource: "Con Recursos", notation: "4HP ~ 214P~HK > j.HP-HP > j.236K ~ 236236P (SA3)", damage: "5410 dmg" }
+    ]
+  },
+  "Guile": {
+    keyMoves: [
+      { input: "[4]6P", frames: "Sonic Boom", notes: "Proyectil con recuperación rápida ideal para caminar detrás." },
+      { input: "[2]8K", frames: "Flash Kick", notes: "Uno de los mejores antiaéreos del juego." },
+      { input: "4HP / 6MK", frames: "Poke / Bazooka Knee", notes: "Control del espacio horizontal sin perder carga." },
+      { input: "2MP", frames: "6f", notes: "Botón clave para mantener presión en corto." }
+    ],
+    combos: [
+      { type: "BnB Carga Básico", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 2LP > 2LK ~ [2]8HK", damage: "1680 dmg" },
+      { type: "Sonic Blade Loops", difficulty: "Media", resource: "Con Recursos", notation: "5HP ~ [4]6HP > DR > 5MP > 2MP ~ [2]8HK", damage: "2810 dmg" },
+      { type: "Esquina Boom Loops + SA3", difficulty: "Difícil", resource: "Con Recursos", notation: "2MP ~ 214LP > 5HP ~ [4]6PP > 2MP ~ [2]8HK ~ 236236P (SA3)", damage: "5490 dmg" }
+    ]
+  },
+  "Kimberly": {
+    keyMoves: [
+      { input: "2MK / 5MK", frames: "7f / 8f", notes: "Control rápido de media distancia para entrar." },
+      { input: "236K (Sprint)", frames: "Mezcla Run", notes: "Permite Slide bajo, Overhead o frenada engañosa." },
+      { input: "214P (Teleport)", frames: "Bushinpo", notes: "Sorprende por aire contra proyectiles." },
+      { input: "22P", frames: "Spray Cans", notes: "Coloca bombas de humo para setups imparables en esquina." }
+    ],
+    combos: [
+      { type: "Básico Sin Barra", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 5LP > 5LK ~ 214HK", damage: "1540 dmg" },
+      { type: "Corner Carry Run", difficulty: "Media", resource: "Con Recursos", notation: "2MK ~ DRC > 5HP ~ 236K~HK > 236P", damage: "2420 dmg" },
+      { type: "Bomba + SA3 (Buff)", difficulty: "Difícil", resource: "Con Recursos", notation: "5HP ~ 22P > DRC > 4HK > 214PP > j.236P ~ 236236P (SA3)", damage: "5180 dmg" }
+    ]
+  },
+  "Juri Han": {
+    keyMoves: [
+      { input: "5MP", frames: "6f (+2 on block)", notes: "Botón principal de presión +2 en bloqueo." },
+      { input: "2MK", frames: "8f", notes: "Alcance larguísimo cancelable en Drive Rush." },
+      { input: "214P (Fuha)", frames: "Carga Stock", notes: "Acumula cargas para potenciar sus patadas especiales." },
+      { input: "j.214K", frames: "Divekick", notes: "Altera la trayectoria aérea para evadir antiaéreos." }
+    ],
+    combos: [
+      { type: "Ganar Stock Fuha", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 5LP > 5LK ~ 214LP", damage: "1490 dmg" },
+      { type: "Drive Rush + 1 Stock", difficulty: "Media", resource: "Con Recursos", notation: "2MK ~ DRC > 5MP > 2HP ~ 236MK > 623HP", damage: "2760 dmg" },
+      { type: "Feng Shui / SA3", difficulty: "Difícil", resource: "Con Recursos", notation: "5HP (PC) ~ DRC > 5MP > 4HK > 236HK > 236236K (SA3)", damage: "5440 dmg" }
+    ]
+  },
+  "Blanka": {
+    keyMoves: [
+      { input: "[4]6P (Blankaball)", frames: "Horizontal Ball", notes: "Acercamiento rapidísimo prácticamente seguro si espacias LP." },
+      { input: "2MP / 5HK", frames: "Antiaéreo / Crush", notes: "Controles de espacio agresivos." },
+      { input: "236P (Blanka-chan)", frames: "Muñeco", notes: "Activa electricidad para trampas en esquina." },
+      { input: "214P", frames: "Comando Rainbow Roll", notes: "Atraviesa al rival confundiendo el bloqueo." }
+    ],
+    combos: [
+      { type: "BnB Sin Barra", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 5LK > [4]6HP", damage: "1650 dmg" },
+      { type: "Electricidad + DRC", difficulty: "Media", resource: "Con Recursos", notation: "2MP ~ DRC > 5HP > 214PP > [4]6HP", damage: "2790 dmg" },
+      { type: "SA2 Muñeco + SA3", difficulty: "Difícil", resource: "Con Recursos", notation: "5HK (PC) > 5HP ~ DRC > 2HP > 214K~P ~ 236236P (SA3)", damage: "5320 dmg" }
+    ]
+  },
+  "Dhalsim": {
+    keyMoves: [
+      { input: "5MP / 5HP", frames: "Largo alcance", notes: "Controla toda la pantalla manteniendo alejado al rival." },
+      { input: "236P / 214P", frames: "Yoga Fire / Arch", notes: "Proyectiles curvos para forzar errores." },
+      { input: "4+PPP (Teleport)", frames: "Yoga Teleport", notes: "Escapa de la esquina o ataca por la espalda." },
+      { input: "4MK / 4MP", frames: "Antiaéreo", notes: "Frena saltos cercanos y medios." }
+    ],
+    combos: [
+      { type: "Confirmación Corta", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 4MK ~ 236LP", damage: "1520 dmg" },
+      { type: "Yoga Flame Drive Rush", difficulty: "Media", resource: "Con Recursos", notation: "4MK ~ DRC > 4HP ~ 63214HP > SA1", damage: "2940 dmg" },
+      { type: "Esquina Óptimo + SA3", difficulty: "Difícil", resource: "Con Recursos", notation: "j.4HP > 4HP ~ DRC > 4HP ~ 63214PP ~ 236236P (SA3)", damage: "5210 dmg" }
+    ]
+  },
+  "E. Honda": {
+    keyMoves: [
+      { input: "[4]6P (Headbutt)", frames: "Sumo Headbutt", notes: "Presión directa difícil de reaccionar en neutro." },
+      { input: "[2]8K (Buttslam)", frames: "Sumo Smash", notes: "Aterriza positivo (+1 on block) forzando mezcla." },
+      { input: "5MP", frames: "8f (+1 on block)", notes: "Botón clave cancelable tras Buttslam." },
+      { input: "214P (Hands)", frames: "Hundred Hand Slap", notes: "Extensor principal con versión OD en combos." }
+    ],
+    combos: [
+      { type: "Confirmación Básica", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 2LP > [4]6HP", damage: "1690 dmg" },
+      { type: "Sumo Spirit Drive Rush", difficulty: "Media", resource: "Con Recursos", notation: "5MP ~ DRC > 5HP > 214PP > [4]6HP", damage: "3050 dmg" },
+      { type: "Punish Counter + SA3", difficulty: "Difícil", resource: "Con Recursos", notation: "5HK (PC) > 5MP ~ DRC > 5HP > 214LP ~ 236236P (SA3)", damage: "5650 dmg" }
+    ]
+  },
+  "Dee Jay": {
+    keyMoves: [
+      { input: "2MK / 5HK", frames: "Slide / Poke", notes: "Control rápido de media distancia y amagos." },
+      { input: "214K (Sway)", frames: "Jus Cool", notes: "Esquiva ataques hacia atrás y castiga con 4 opciones." },
+      { input: "236P", frames: "Air Slasher", notes: "Proyectil con versión doble OD para avanzar." },
+      { input: "[2]8K", frames: "Up Kicks", notes: "Antiaéreo y finalizador de máximo daño." }
+    ],
+    combos: [
+      { type: "BnB Sin Barra", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 5LP > 5LK ~ 236HK", damage: "1660 dmg" },
+      { type: "Jus Cool Drive Rush", difficulty: "Media", resource: "Con Recursos", notation: "5MP ~ DRC > 4HK > 214K~HK > [2]8HK", damage: "3120 dmg" },
+      { type: "Punish Counter + SA3", difficulty: "Difícil", resource: "Con Recursos", notation: "5HK (PC) ~ DRC > 4HK > 214KK~K > 236236K (SA3)", damage: "5780 dmg" }
+    ]
+  },
+  "Manon": {
+    keyMoves: [
+      { input: "63214P", frames: "Manège Doré (Agarre)", notes: "Aumenta su Nivel de Medalla (1 a 5), multiplicando el daño hasta niveles absurdos." },
+      { input: "5MP / 2MP", frames: "7f / 8f", notes: "Pokes largos para iniciar Strike/Throw." },
+      { input: "236P (Hit-Grab)", frames: "Renversé", notes: "Termina combos ganando medalla." },
+      { input: "2HP > HP", frames: "Antiaéreo TC", notes: "Target Combo antiaéreo fiable." }
+    ],
+    combos: [
+      { type: "Ganar Medalla Básico", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 5LP ~ 236LP (Medalla +1)", damage: "1510 dmg" },
+      { type: "Drive Rush + Medalla", difficulty: "Media", resource: "Con Recursos", notation: "5MP ~ DRC > 2MP > 4HP ~ 236HP", damage: "2680 dmg" },
+      { type: "Nivel 5 + SA3", difficulty: "Difícil", resource: "Con Recursos", notation: "5HP (PC) ~ DRC > 4HP ~ 214KK > 236236P (SA3)", damage: "5590 dmg" }
+    ]
+  },
+  "Marisa": {
+    keyMoves: [
+      { input: "5MP > MP", frames: "Target Combo", notes: "Iniciador fácil hacia Gladius o Dimachaerus." },
+      { input: "236P (Hold)", frames: "Gladius", notes: "Puño con armadura devastador en bloqueo (+4 cargado)." },
+      { input: "214P", frames: "Dimachaerus", notes: "Lanza al rival al suelo para combos de daño masivo." },
+      { input: "623P (Scutum)", frames: "Postura Armadura", notes: "Bloquea altos/bajos y amenaza con agarre especial." }
+    ],
+    combos: [
+      { type: "Básico Sin Barra", difficulty: "Fácil", resource: "Sin Barra", notation: "5MP > 5MP ~ 236LP", damage: "2040 dmg" },
+      { type: "Combo Alto Daño (OD)", difficulty: "Media", resource: "Con Recursos", notation: "5HK (PC) > 214PP > 4HP ~ 236HP (Cargado)", damage: "3680 dmg" },
+      { type: "Máximo Daño + SA3", difficulty: "Difícil", resource: "Con Recursos", notation: "5HP [Cargado] (PC) > 214PP > DRC > 4HP ~ 236PP ~ 236236P", damage: "6350 dmg" }
+    ]
+  },
+  "JP": {
+    keyMoves: [
+      { input: "236P / 214P", frames: "Triglav / Torbalan", notes: "Control total de la pantalla con pinchos y fantasmas." },
+      { input: "22P", frames: "Departure (Portal)", notes: "Coloca portales para setplay y teletransportes." },
+      { input: "22PP (Amnesia)", frames: "Counter OD", notes: "Parry que coloca bombas si el rival golpea." },
+      { input: "5HK / 2HP", frames: "Poke / Antiaéreo", notes: "Mantiene al rival fuera a media distancia." }
+    ],
+    combos: [
+      { type: "Básico Alejar", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 5LK ~ 236HP", damage: "1590 dmg" },
+      { type: "Portal Corner Combo", difficulty: "Media", resource: "Con Recursos", notation: "5HP ~ 22LP > 214HP > 22HK > 236HP", damage: "3080 dmg" },
+      { type: "Esquina Máximo + SA3", difficulty: "Difícil", resource: "Con Recursos", notation: "2HP (PC) ~ 22PP > 5HP ~ 214HP > 22MK ~ 236236P (SA3)", damage: "5490 dmg" }
+    ]
+  },
+  "Zangief": {
+    keyMoves: [
+      { input: "360P (SPD)", frames: "5f Command Grab", notes: "Agarre giratorio de daño monstruoso; OD gana alcance enorme." },
+      { input: "214PP / 5HP [Hold]", frames: "Armadura / Lariat", notes: "Lariat (PP) antiaéreo invulnerable arriba; 5HP absorbe golpes." },
+      { input: "6HP (Headbutt)", frames: "+4 on block", notes: "Al golpear enlaza directo en 2LP o 360P." },
+      { input: "3MP", frames: "8f Hellstab", notes: "Cancelable en Lariat o Super Art." }
+    ],
+    combos: [
+      { type: "Básico Lariat", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 2LP > 3MP ~ PP (Double Lariat)", damage: "1840 dmg" },
+      { type: "Headbutt Confirm", difficulty: "Media", resource: "Con Recursos", notation: "6HP > 3MP ~ DRC > 6HP > 3MP ~ PP", damage: "3190 dmg" },
+      { type: "Borscht Dynamite / SA3", difficulty: "Difícil", resource: "Con Recursos", notation: "5HP (PC) > DR > 6HP > 3MP ~ 720P (SA3 Bolshoi)", damage: "5950 dmg" }
+    ]
+  },
+  "Lily": {
+    keyMoves: [
+      { input: "214P (Wind)", frames: "Condor Wind", notes: "Acumula cargas de viento para volver seguro Condor Spire." },
+      { input: "236K (Con Viento)", frames: "+1 on block", notes: "Entrada directa positiva que fuerza 50/50 con agarre especial." },
+      { input: "360P (Typhoon)", frames: "Agarre Especial", notes: "Castiga a quien bloquea tras Condor Spire." },
+      { input: "2HP", frames: "Antiaéreo Doble Hitbox", notes: "Cubre ambos lados contra cross-ups." }
+    ],
+    combos: [
+      { type: "BnB Con Viento", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 5LP ~ 236LK (Wind)", damage: "1640 dmg" },
+      { type: "Drive Rush + Spire", difficulty: "Media", resource: "Con Recursos", notation: "2HP ~ DRC > 2HP ~ 236HK (Wind) > 623HP", damage: "2920 dmg" },
+      { type: "Viento + SA3", difficulty: "Difícil", resource: "Con Recursos", notation: "5HP (PC) ~ DRC > 2HP ~ 236KK (Wind) ~ 236236P (SA3)", damage: "5360 dmg" }
+    ]
+  },
+  "Cammy": {
+    keyMoves: [
+      { input: "5MK / 2MK", frames: "8f / 7f", notes: "Footsies rapidísimos para controlar la distancia." },
+      { input: "214K (Hooligan) / Divekick", frames: "j.214K", notes: "Presión aérea positiva en los pies del rival." },
+      { input: "236K (Spiral Arrow)", frames: "Knockdown", notes: "Cierra combos con Oki perfecto (Throw Loop)." },
+      { input: "623K (Cannon Spike)", frames: "Antiaéreo", notes: "Patada antiaérea invulnerable." }
+    ],
+    combos: [
+      { type: "BnB Sin Barra", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 5LP > 5LK ~ 236HK", damage: "1590 dmg" },
+      { type: "Drive Rush Corner Carry", difficulty: "Media", resource: "Con Recursos", notation: "2MK ~ DRC > 5HP > 4HK > 214HK > 623HK", damage: "2790 dmg" },
+      { type: "Punish Counter + SA3", difficulty: "Difícil", resource: "Con Recursos", notation: "5HP (PC) ~ DRC > 5HP > 4MP-HK (TC) ~ j.214KK ~ 236236P (SA3)", damage: "5480 dmg" }
+    ]
+  },
+  "Rashid": {
+    keyMoves: [
+      { input: "236P (Cargado)", frames: "Whirlwind", notes: "Torbellino que mejora la velocidad de todos sus ataques." },
+      { input: "214K (Eagle Spike)", frames: "Avance Rápido", notes: "Atraviesa proyectiles con gran alcance." },
+      { input: "236K (Mixer)", frames: "Spinning Mixer", notes: "Antiaéreo y extensor de esquina." },
+      { input: "214214P (SA2)", frames: "Ysaar", notes: "Tornado gigante que garantiza mezcla imparable." }
+    ],
+    combos: [
+      { type: "BnB Sin Barra", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 5LK > 236LP~P", damage: "1560 dmg" },
+      { type: "Ysaar Setup / DRC", difficulty: "Media", resource: "Con Recursos", notation: "2MK ~ DRC > 5HP > 5MP ~ 214HP > 236HK", damage: "2690 dmg" },
+      { type: "Esquina Óptimo + SA3", difficulty: "Difícil", resource: "Con Recursos", notation: "5HP (PC) ~ DRC > 5HP > 2HP ~ 214KK > 236LP ~ 236236K (SA3)", damage: "5340 dmg" }
+    ]
+  },
+  "A.K.I.": {
+    keyMoves: [
+      { input: "236P (Veneno)", frames: "Nightshade", notes: "Envenena al rival aumentando el daño y habilitando Toxic Blossom." },
+      { input: "214P (Serpent Lash)", frames: "Extensor", notes: "Detona el veneno en combos para extender ruta larga." },
+      { input: "22P (Postura Suelo)", frames: "Sinister Slide", notes: "Esquiva golpes altos y proyectiles arrastrándose." },
+      { input: "5HK / 2HK", frames: "Pokes Largos", notes: "Control excelente a media distancia." }
+    ],
+    combos: [
+      { type: "Básico con Veneno", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 5LP > 5LK ~ 214LP", damage: "1540 dmg" },
+      { type: "Detonación de Veneno", difficulty: "Media", resource: "Con Recursos", notation: "5HP ~ 214HP (Toxic Blossom) > DR > 2MK > 236HP", damage: "2940 dmg" },
+      { type: "Esquina Veneno + SA3", difficulty: "Difícil", resource: "Con Recursos", notation: "2HK (PC) > 22P~K > 5HP ~ DRC > 5HK > 214PP ~ 236236P (SA3)", damage: "5610 dmg" }
+    ]
+  },
+  "Ed": {
+    keyMoves: [
+      { input: "5MK > MK > HP", frames: "Target Combo", notes: "Fácil de confirmar y cancelable en Psycho Flicker." },
+      { input: "236P (Hold)", frames: "Psycho Snatcher", notes: "Atrapa al rival en bloqueo (+4) o en golpe para combo." },
+      { input: "214P (Blitz)", frames: "Psycho Blitz", notes: "Finalizador principal para dejar Oki." },
+      { input: "22K (Kill Switch)", frames: "Step Cancel", notes: "Permite acercarse y resetear presión." }
+    ],
+    combos: [
+      { type: "Básico Sin Barra", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 5LP > 5LK ~ 214HP", damage: "1580 dmg" },
+      { type: "Snatcher Combo", difficulty: "Media", resource: "Con Recursos", notation: "2MK ~ DRC > 5HP ~ [236P] > 214PP > 623HP", damage: "2960 dmg" },
+      { type: "Desync SA2 + SA3", difficulty: "Difícil", resource: "Con Recursos", notation: "5HP (PC) ~ 236236K (SA2) > DR > 5HP ~ 22K~P > 214HP ~ SA3", damage: "5520 dmg" }
+    ]
+  },
+  "Akuma": {
+    keyMoves: [
+      { input: "5MK / 5HP", frames: "7f / 9f", notes: "Botones fortísimos con gran alcance y prioridad." },
+      { input: "214K (Adamant Flame)", frames: "2 hits", notes: "Lleva a la esquina y optimiza el daño bruto de Akuma." },
+      { input: "236P (Gohadoken)", frames: "Proyectil", notes: "Variante aérea (j.236P) y cargable para controlar la partida." },
+      { input: "j.LP / 214P (Demon Flip)", frames: "Mezcla Aérea", notes: "Múltiples ángulos de ataque desde el aire." }
+    ],
+    combos: [
+      { type: "Básico Sin Barra", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 2LP > 5LK ~ 214MK > 623HP", damage: "1890 dmg" },
+      { type: "Drive Rush Demon Raid", difficulty: "Media", resource: "Con Recursos", notation: "2MK ~ DRC > 5HP ~ 214HP~P > 623HP", damage: "3120 dmg" },
+      { type: "Shun Goku Satsu / SA3", difficulty: "Difícil", resource: "Con Recursos", notation: "5HP (PC) ~ DRC > 5HK > 5MP ~ 214HK > 623HP ~ 236236P (SA3)", damage: "5880 dmg" }
+    ]
+  },
+  "M. Bison": {
+    keyMoves: [
+      { input: "214P (Psycho Mine)", frames: "Bomba Pegajosa", notes: "Coloca mina explosiva en el rival que detona en combos o bloqueo." },
+      { input: "[4]6K (Scissor Kick)", frames: "Double Knee Press", notes: "Presión segura espaciada desde medio mapa." },
+      { input: "2MP / 5HP", frames: "6f / 10f", notes: "Botones pesados de gran empuje y castigo." },
+      { input: "[2]8K (Shadow Rise)", frames: "Head Press / Devil's Reverse", notes: "Presión aérea impredecible." }
+    ],
+    combos: [
+      { type: "Básico Sin Barra", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 5LP ~ [4]6LK", damage: "1680 dmg" },
+      { type: "Detonación Psycho Mine", difficulty: "Media", resource: "Con Recursos", notation: "2MK ~ DRC > 5MP > 4HK ~ 214PP > [4]6HK", damage: "3260 dmg" },
+      { type: "Mina Activa + SA3", difficulty: "Difícil", resource: "Con Recursos", notation: "5HP (PC) ~ 214HP > DR > 5HP ~ [4]6KK ~ 236236P (SA3)", damage: "6040 dmg" }
+    ]
+  },
+  "Terry Bogard": {
+    keyMoves: [
+      { input: "236P (Power Wave)", frames: "Proyectil Suelo", notes: "Ralentiza al rival en neutro permitiendo avanzar detrás." },
+      { input: "214K (Crack Shoot)", frames: "Avance", notes: "Salta bajos y queda en ventaja si golpea." },
+      { input: "5MP > HP", frames: "Target Combo", notes: "Base para confirmar Power Charge o Burn Knuckle." },
+      { input: "623P (Rising Tackle)", frames: "Antiaéreo", notes: "Invulnerable contra saltos." }
+    ],
+    combos: [
+      { type: "Básico Sin Barra", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 5LK ~ 236HK (Burn Knuckle)", damage: "1640 dmg" },
+      { type: "Power Charge Drive Rush", difficulty: "Media", resource: "Con Recursos", notation: "2MK ~ DRC > 5MP > 2HP ~ 236MP > 623HP", damage: "2820 dmg" },
+      { type: "Buster Wolf + SA3", difficulty: "Difícil", resource: "Con Recursos", notation: "5HP (PC) ~ DRC > 5HP > 236KK > 214HP ~ 236236P (Rising Fang)", damage: "5540 dmg" }
+    ]
+  },
+  "Mai Shiranui": {
+    keyMoves: [
+      { input: "236P (Kachousen)", frames: "Abanico", notes: "Rebota tras impactar en bloqueo si se carga con Flame Stocks." },
+      { input: "214K (Ryuuenbu)", frames: "Presión Giratoria", notes: "Cierra cadenas en bloqueo con buena distancia." },
+      { input: "j.214P (Musasabi)", frames: "Dive aéreo", notes: "Cambia el ritmo del salto desde la esquina." },
+      { input: "5MK / 2MK", frames: "Pokes", notes: "Velocidad excelente para whiff punish." }
+    ],
+    combos: [
+      { type: "BnB Sin Barra", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 5LP > 5LK ~ 214HK", damage: "1570 dmg" },
+      { type: "Abanico Flame + DRC", difficulty: "Media", resource: "Con Recursos", notation: "2MK ~ DRC > 5MP > 2HP ~ 236PP > 623HP", damage: "2790 dmg" },
+      { type: "Óptimo Esquina + SA3", difficulty: "Difícil", resource: "Con Recursos", notation: "5HP (PC) ~ DRC > 4HK > 214PP > 236HK ~ 236236P (SA3)", damage: "5390 dmg" }
+    ]
+  },
+  "Elena": {
+    keyMoves: [
+      { input: "5MK / 5HK", frames: "Patadas Largas", notes: "Rango de capoeira sobresaliente para footsies." },
+      { input: "236K (Rhino Horn)", frames: "Extensor", notes: "Lleva rápido al rival hacia la esquina." },
+      { input: "214K (Lynx Song)", frames: "Postura Evasiva", notes: "Esquiva ataques medios/altos y mezcla con Overhead o Low." },
+      { input: "623K (Scratch Wheel)", frames: "Antiaéreo", notes: "Corta saltos agresivos." }
+    ],
+    combos: [
+      { type: "Básico Sin Barra", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 5LK > 236MK", damage: "1580 dmg" },
+      { type: "Mallet Smash Mix + DRC", difficulty: "Media", resource: "Con Recursos", notation: "2MK ~ DRC > 5MP > 2HP ~ 214KK > 623HK", damage: "2740 dmg" },
+      { type: "Punish Counter + SA3", difficulty: "Difícil", resource: "Con Recursos", notation: "5HK (PC) ~ DRC > 5HP > 236PP > 623K ~ 236236K (SA3)", damage: "5290 dmg" }
+    ]
+  },
+  "Sagat": {
+    keyMoves: [
+      { input: "236P / 236K", frames: "High / Low Tiger Shot", notes: "Control de zonificación vertical en toda la pantalla." },
+      { input: "623P", frames: "Tiger Uppercut", notes: "Antiaéreo masivo con versión OD invencible." },
+      { input: "5HK / 4HP", frames: "Muay Thai Pokes", notes: "Alcance enorme de rodillas y patadas altas." },
+      { input: "214K", frames: "Tiger Knee", notes: "Acercamiento seguro por encima de proyectiles bajos." }
+    ],
+    combos: [
+      { type: "BnB Sin Barra", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 5LP > 5LK ~ 623HP", damage: "1720 dmg" },
+      { type: "Tiger Knee Confirm", difficulty: "Media", resource: "Con Recursos", notation: "2MK ~ DRC > 5HP > 214KK > 623HP", damage: "2980 dmg" },
+      { type: "Angry Charge + SA3", difficulty: "Difícil", resource: "Con Recursos", notation: "5HP (PC) ~ DRC > 5HP > 4HP ~ 623PP ~ 236236P (SA3)", damage: "5710 dmg" }
+    ]
+  },
+  "C. Viper": {
+    keyMoves: [
+      { input: "236P (Thunder Knuckle)", frames: "Feint Cancel", notes: "Amaga cancelando la animación para ganar frames en presión." },
+      { input: "214K (Burn Kick)", frames: "Aéreo / Suelo", notes: "Mezcla aérea y extensión de combos con altísima ejecución." },
+      { input: "623K (Seismo)", frames: "Seismic Hammer", notes: "Control de suelo a distancia con Super Jump Cancel." },
+      { input: "2HP / j.HK", frames: "Antiaéreo / Cross-up", notes: "Herramientas rápidas de conversión." }
+    ],
+    combos: [
+      { type: "Básico Sin Barra", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 5LP ~ 236HP", damage: "1620 dmg" },
+      { type: "Seismo Super Jump Confirm", difficulty: "Media", resource: "Con Recursos", notation: "5HP ~ 623MP > SJC > j.214KK > 236HP", damage: "2940 dmg" },
+      { type: "Fierce Feint Loop + SA3", difficulty: "Difícil", resource: "Con Recursos", notation: "5HP (PC) ~ 236P~PP (Feint) > 5HP ~ DRC > 214KK ~ 236236P", damage: "5640 dmg" }
+    ]
+  },
+  "Alex": {
+    keyMoves: [
+      { input: "360P (Power Bomb)", frames: "Command Grab", notes: "Agarre potente tras presión de 5MP o lariat." },
+      { input: "[4]6P (Flash Chop)", frames: "Lariat / Chop", notes: "Cambia de lado y habilita mezcla directa." },
+      { input: "236K (Slash Elbow)", frames: "Avance", notes: "Cierra distancia rápidamente." },
+      { input: "6HP (Heavy Lariat)", frames: "+3 on block", notes: "Rompe la guardia en esquina." }
+    ],
+    combos: [
+      { type: "Básico Sin Barra", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 5LK ~ 236HK", damage: "1740 dmg" },
+      { type: "Flash Chop Drive Rush", difficulty: "Media", resource: "Con Recursos", notation: "5MP ~ DRC > 5HP ~ 236HP (Chop) > 360P Mix", damage: "2860 dmg" },
+      { type: "Punish Counter + SA3", difficulty: "Difícil", resource: "Con Recursos", notation: "6HP (PC) > 5HP ~ DRC > 2HP ~ [2]8KK ~ 236236P (SA3)", damage: "5690 dmg" }
+    ]
+  },
+  "Ingrid": {
+    keyMoves: [
+      { input: "236P (Sunshot)", frames: "Proyectil Ágil", notes: "Controla la media distancia con baja recuperación." },
+      { input: "214K (Sun Arch)", frames: "Counter / Evasión", notes: "Rebota con patada acrobática sobre golpes bajos." },
+      { input: "623P (Sun Upper)", frames: "Antiaéreo", notes: "Corta saltos verticales con ángulo seguro." },
+      { input: "5MK / 2MK", frames: "Pokes Rápidos", notes: "Excelente velocidad de desplazamiento." }
+    ],
+    combos: [
+      { type: "BnB Sin Barra", difficulty: "Fácil", resource: "Sin Barra", notation: "2LP > 5LP > 5LK ~ 214HK", damage: "1560 dmg" },
+      { type: "Sunshot Drive Rush", difficulty: "Media", resource: "Con Recursos", notation: "2MK ~ DRC > 5MP > 2HP ~ 236PP > 623HP", damage: "2720 dmg" },
+      { type: "Óptimo + SA3", difficulty: "Difícil", resource: "Con Recursos", notation: "5HP (PC) ~ DRC > 5HP > 214KK > 623HP ~ 236236P (SA3)", damage: "5310 dmg" }
+    ]
+  }
+};
+
 function getDefaultKeyMoves(gameId, name) {
+  if (gameId === "sf6" && SF6_SPECIFIC_DATA[name]?.keyMoves) {
+    return SF6_SPECIFIC_DATA[name].keyMoves;
+  }
   switch (gameId) {
     case "mk1":
       return [
@@ -678,6 +1127,9 @@ function getDefaultKeyMoves(gameId, name) {
 }
 
 function getDefaultCombos(gameId, charName = "") {
+  if (gameId === "sf6" && SF6_SPECIFIC_DATA[charName]?.combos) {
+    return SF6_SPECIFIC_DATA[charName].combos;
+  }
   const realEntry = REAL_FRAME_DATA?.[gameId]?.[charName];
   if (realEntry && Array.isArray(realEntry.combos) && realEntry.combos.length > 0) {
     return realEntry.combos;
