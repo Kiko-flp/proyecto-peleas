@@ -386,7 +386,7 @@ app.get("/api/bootstrap", (req, res) => {
 
   res.json({
     youtubeChannel: store.state.youtubeChannel,
-    events: FGC_EVENTS,
+    events: [...store.getCustomEvents(), ...FGC_EVENTS],
     news: [...customNews, ...CURATED_FGC_NEWS],
     communityResources: store.getCommunityResources(),
     missingContentRoadmap: store.getMissingContentRoadmap(),
@@ -398,7 +398,7 @@ app.get("/api/bootstrap", (req, res) => {
 app.get("/api/news", async (req, res) => {
   const allNews = await getFgcNews();
   const customNews = store.getCustomNews();
-  res.json({ news: [...customNews, ...allNews], events: FGC_EVENTS });
+  res.json({ news: [...customNews, ...allNews], events: [...store.getCustomEvents(), ...FGC_EVENTS] });
 });
 
 app.post("/api/community-resources", async (req, res) => {
@@ -534,12 +534,65 @@ app.post("/api/auth/verify-code", requirePrivateOwner, (req, res) => {
   });
 });
 
+// =========================================================================
+// WEBHOOK AUTÓNOMO DE TELEGRAM Y SINCRONIZACIÓN DE ADMINISTRACIÓN DESDE BOT.JS
+// =========================================================================
+app.post("/api/telegram/webhook", async (req, res) => {
+  const headerSecret = String(req.headers["x-telegram-bot-api-secret-token"] || "");
+  if (telegramBot.webhookSecret && headerSecret && headerSecret !== telegramBot.webhookSecret) {
+    return res.status(403).send("Secret inválido");
+  }
+  try {
+    await telegramBot.handleUpdate(req.body);
+  } catch (_) {}
+  return res.status(200).json({ ok: true });
+});
+
+app.post("/api/admin/bot-sync", requirePrivateOwner, (req, res) => {
+  const { actionType, payload } = req.body || {};
+  const p = payload || {};
+  if (actionType === "add_news") store.addCustomNewsItem(p);
+  else if (actionType === "remove_news") store.removeCustomNews(p.newsId);
+  else if (actionType === "add_event") store.addCustomEvent(p);
+  else if (actionType === "remove_event") store.removeCustomEvent(p.eventId);
+  else if (actionType === "add_roadmap") store.addMissingRoadmapItem(p.target, p.whatIsMissing);
+  else if (actionType === "complete_roadmap") store.completeMissingRoadmapItem(p.missId);
+  else if (actionType === "add_wiki") store.addCommunityResource(p);
+  else if (actionType === "remove_resource") store.removeCommunityResource(p.resId);
+  else if (actionType === "update_patch") store.updateGamePatch(p.gameId, p.currentPatch);
+  else if (actionType === "toggle_lock") store.toggleCharacterLock(p.gameId, p.charQuery, p.forceLocked);
+  else if (actionType === "add_char") store.addAdminCharacter(p.gameId, p.name, p.archetype, p.dlcPack);
+  else if (actionType === "moderate_sub") store.moderateSubmission(p.subId, p.decision);
+  else if (actionType === "resolve_auth") store.resolveAuthRequest(p.code, p.decision);
+  else if (actionType === "remove_user") store.removeVerifiedUser(p.userId);
+  else if (actionType === "update_youtube") store.updateYoutubeChannelUrl(p.newUrl, p.newHandle);
+  return res.json({ synced: true });
+});
+
+telegramBot.registerServerAdminHooks({
+  generateOtp: () => {
+    currentOwnerOtp = String(Math.floor(100000 + Math.random() * 900000));
+    currentOwnerOtpExpires = Date.now() + 10 * 60 * 1000;
+    return currentOwnerOtp;
+  },
+  revokeAllSessions: () => {
+    const count = activeAdminSessions.size;
+    activeAdminSessions.clear();
+    return count;
+  },
+  getSessionCount: () => activeAdminSessions.size
+});
+
 // SPA Fallback
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 app.listen(PORT, () => {
-  console.log(`FGC Vault escuchando en http://localhost:${PORT} (Modo Bot Privado Activo)`);
-  telegramBot.start();
+  console.log(`FGC Vault escuchando en http://localhost:${PORT}`);
+  if (process.env.ENABLE_WEB_BOT !== "false") {
+    telegramBot.start();
+  } else {
+    console.log("Bot de Telegram desactivado en server.js (ENABLE_WEB_BOT=false); usa 'npm run bot'.");
+  }
 });

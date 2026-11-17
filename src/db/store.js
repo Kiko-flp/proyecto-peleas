@@ -22,6 +22,12 @@ class DataStore {
         // Sincronizar siempre el catálogo completo de sagas, imágenes de portada y los 259 personajes
         this.state = {
           ...JSON.parse(JSON.stringify(SEED_DATA)),
+          youtubeChannel: saved.youtubeChannel || SEED_DATA.youtubeChannel,
+          customNews: saved.customNews || [],
+          customEvents: saved.customEvents || [],
+          patchOverrides: saved.patchOverrides || {},
+          charLockOverrides: saved.charLockOverrides || {},
+          customCharacters: saved.customCharacters || [],
           communityResources: saved.communityResources || SEED_DATA.communityResources,
           missingContentRoadmap: saved.missingContentRoadmap || SEED_DATA.missingContentRoadmap,
           ownerChatId: saved.ownerChatId || "",
@@ -30,9 +36,15 @@ class DataStore {
           submissions: saved.submissions || SEED_DATA.submissions,
           botLogs: saved.botLogs || []
         };
+        this.applySavedOverrides();
         this.save();
       } else {
         this.state = JSON.parse(JSON.stringify(SEED_DATA));
+        this.state.customNews = [];
+        this.state.customEvents = [];
+        this.state.patchOverrides = {};
+        this.state.charLockOverrides = {};
+        this.state.customCharacters = [];
         this.state.ownerChatId = "";
         this.state.authRequests = [];
         this.state.botLogs = [
@@ -92,6 +104,31 @@ class DataStore {
     return entry;
   }
 
+  applySavedOverrides() {
+    if (!this.state || !Array.isArray(this.state.games)) return;
+    const patches = this.state.patchOverrides || {};
+    Object.entries(patches).forEach(([gId, patchVal]) => {
+      const g = this.state.games.find((x) => x.id === gId);
+      if (g && patchVal) g.currentPatch = patchVal;
+    });
+
+    const locks = this.state.charLockOverrides || {};
+    Object.entries(locks).forEach(([compositeKey, lockedBool]) => {
+      const [gId, charId] = compositeKey.split("|");
+      const g = this.state.games.find((x) => x.id === gId);
+      const ch = g && g.characters.find((c) => c.id === charId);
+      if (ch) ch.isUnreleased = Boolean(lockedBool);
+    });
+
+    const addedChars = this.state.customCharacters || [];
+    addedChars.forEach((entry) => {
+      const g = this.state.games.find((x) => x.id === entry.gameId);
+      if (g && !g.characters.some((c) => c.id === entry.char.id)) {
+        g.characters.push(entry.char);
+      }
+    });
+  }
+
   getSagas() {
     return this.state.sagas;
   }
@@ -120,6 +157,51 @@ class DataStore {
 
   getCustomNews() {
     return this.state.customNews || [];
+  }
+
+  getCustomEvents() {
+    return this.state.customEvents || [];
+  }
+
+  addCustomEvent({ name, game, startDate, endDate, location }) {
+    if (!this.state.customEvents) this.state.customEvents = [];
+    const ev = {
+      id: "ev-bot-" + Date.now(),
+      name: String(name || "Torneo FGC").trim(),
+      game: String(game || "FGC General").trim(),
+      startDate: String(startDate || new Date().toISOString().slice(0, 10)).trim(),
+      endDate: String(endDate || startDate || new Date().toISOString().slice(0, 10)).trim(),
+      location: String(location || "Online / Mundial").trim(),
+      tier: "Oficial / Bot Admin"
+    };
+    this.state.customEvents.unshift(ev);
+    this.addLog(`Evento añadido desde Bot Admin: ${ev.name} (${ev.startDate} -> ${ev.endDate})`);
+    this.save();
+    return ev;
+  }
+
+  removeCustomEvent(evId) {
+    if (!this.state.customEvents) return false;
+    const before = this.state.customEvents.length;
+    this.state.customEvents = this.state.customEvents.filter((e) => e.id !== evId);
+    if (this.state.customEvents.length < before) {
+      this.addLog(`Evento eliminado desde Bot Admin (${evId})`);
+      this.save();
+      return true;
+    }
+    return false;
+  }
+
+  removeCustomNews(newsId) {
+    if (!this.state.customNews) return false;
+    const before = this.state.customNews.length;
+    this.state.customNews = this.state.customNews.filter((n) => n.id !== newsId);
+    if (this.state.customNews.length < before) {
+      this.addLog(`Noticia eliminada desde Bot Admin (${newsId})`);
+      this.save();
+      return true;
+    }
+    return false;
   }
 
   addCustomNewsItem({ saga, category, title, summary, sourceUrl }) {
@@ -315,9 +397,74 @@ class DataStore {
     const game = this.getGameById(gameId);
     if (!game) return null;
     game.currentPatch = newPatch;
+    if (!this.state.patchOverrides) this.state.patchOverrides = {};
+    this.state.patchOverrides[gameId] = newPatch;
     this.addLog(`Parche actualizado en ${game.title}: ${newPatch}`);
     this.save();
     return game;
+  }
+
+  toggleCharacterLock(gameId, charQuery, forceLocked = null) {
+    const game = this.getGameById(gameId);
+    if (!game || !charQuery) return null;
+    const q = String(charQuery).trim().toLowerCase();
+    const ch = game.characters.find(
+      (c) => c.id.toLowerCase() === q || c.name.toLowerCase().includes(q)
+    );
+    if (!ch) return null;
+    ch.isUnreleased = forceLocked === null ? !ch.isUnreleased : Boolean(forceLocked);
+    if (!this.state.charLockOverrides) this.state.charLockOverrides = {};
+    this.state.charLockOverrides[`${game.id}|${ch.id}`] = ch.isUnreleased;
+    this.addLog(`Candado de ${ch.name} (${game.title}): ${ch.isUnreleased ? "BLOQUEADO (Pronto)" : "DESBLOQUEADO"}`);
+    this.save();
+    return { game, character: ch };
+  }
+
+  addAdminCharacter(gameId, name, archetype = "Versátil / Competitivo", dlcPackOrBase = "Base") {
+    const game = this.getGameById(gameId);
+    if (!game || !name) return null;
+    const cleanName = String(name).trim();
+    if (game.characters.some((c) => c.name.toLowerCase() === cleanName.toLowerCase())) {
+      return null;
+    }
+    const slug = cleanName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const isDLC = !/^base$/i.test(String(dlcPackOrBase || "Base").trim());
+    const newChar = {
+      id: `${game.id}-${slug}`,
+      name: cleanName,
+      archetype: String(archetype || "Versátil / Competitivo").trim(),
+      difficulty: "Media",
+      isDLC,
+      dlcPack: isDLC ? String(dlcPackOrBase).trim() : null,
+      isUnreleased: false,
+      recommendedSubSystem: game.subSystemName || "Sistema",
+      iconUrl: `/api/char-icon?name=${encodeURIComponent(cleanName)}&game=${game.id}&bg=${isDLC ? "2e1065" : "0f172a"}&border=${isDLC ? "a855f7" : "f59e0b"}`,
+      videoUrl: game.basicGuide ? game.basicGuide.videoUrl : "https://www.youtube.com/embed/u7pTIg7vKBM",
+      sourceUrl: (game.officialSources && game.officialSources[0]?.url) || "#",
+      overview: `${cleanName} añadido desde Administración Telegram en ${game.title}.`,
+      keyMoves: [],
+      frameDataCards: [],
+      combos: [],
+      gameplan: "Pendiente de ampliar guía competitiva."
+    };
+    game.characters.push(newChar);
+    if (!this.state.customCharacters) this.state.customCharacters = [];
+    this.state.customCharacters.push({ gameId: game.id, char: newChar });
+    this.addLog(`Personaje añadido desde Bot Admin: ${cleanName} en ${game.title}`);
+    this.save();
+    return { game, character: newChar };
+  }
+
+  removeVerifiedUser(userId) {
+    if (!this.state.verifiedUsers) return false;
+    const before = this.state.verifiedUsers.length;
+    this.state.verifiedUsers = this.state.verifiedUsers.filter((u) => u.id !== userId);
+    if (this.state.verifiedUsers.length < before) {
+      this.addLog(`Acceso verificado revocado desde Bot Admin (${userId})`);
+      this.save();
+      return true;
+    }
+    return false;
   }
 
   updateYoutubeChannelUrl(newUrl, newHandle) {
